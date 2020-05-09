@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Peforms a scan (inclusive prefix sum) on a sequence of elements.
@@ -57,7 +57,9 @@ namespace MoreLinq
             Func<TSource, TSource, TSource> transformation)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (transformation == null) throw new ArgumentNullException("transformation");
+
             return ScanImpl(source, transformation);
         }
 
@@ -65,8 +67,7 @@ namespace MoreLinq
         {
             using (var i = source.GetEnumerator())
             {
-                if (!i.MoveNext())
-                    yield break;
+                if (!i.MoveNext()) yield break;
 
                 var aggregator = i.Current;
 
@@ -75,6 +76,7 @@ namespace MoreLinq
                     yield return aggregator;
                     aggregator = f(aggregator, i.Current);
                 }
+
                 yield return aggregator;
             }
         }
@@ -103,7 +105,9 @@ namespace MoreLinq
             TState seed, Func<TState, TSource, TState> transformation)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (transformation == null) throw new ArgumentNullException("transformation");
+
             return ScanImpl(source, seed, transformation);
         }
 
@@ -119,6 +123,7 @@ namespace MoreLinq
                     yield return aggregator;
                     aggregator = f(aggregator, i.Current);
                 }
+
                 yield return aggregator;
             }
         }

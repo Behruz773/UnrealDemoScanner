@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -68,7 +68,8 @@ namespace MoreLinq
         /// <param name="keySelector">A key selector function</param>
         /// <param name="direction">A direction in which to order the elements (ascending, descending)</param>
         /// <returns>An ordered copy of the source sequence</returns>
-        public static IOrderedEnumerable<T> ThenBy<T, TKey>(this IOrderedEnumerable<T> source, Func<T, TKey> keySelector,
+        public static IOrderedEnumerable<T> ThenBy<T, TKey>(this IOrderedEnumerable<T> source,
+            Func<T, TKey> keySelector,
             OrderByDirection direction)
         {
             return ThenBy(source, keySelector, null, direction);
@@ -85,7 +86,8 @@ namespace MoreLinq
         /// <param name="direction">A direction in which to order the elements (ascending, descending)</param>
         /// <param name="comparer">A comparer used to define the semantics of element comparison</param>
         /// <returns>An ordered copy of the source sequence</returns>
-        public static IOrderedEnumerable<T> ThenBy<T, TKey>(this IOrderedEnumerable<T> source, Func<T, TKey> keySelector,
+        public static IOrderedEnumerable<T> ThenBy<T, TKey>(this IOrderedEnumerable<T> source,
+            Func<T, TKey> keySelector,
             IComparer<TKey> comparer, OrderByDirection direction)
         {
             return direction == OrderByDirection.Ascending

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
+namespace VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil
 {
     public class BitArrayStream : IBitStream
     {
@@ -43,9 +43,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             {
                 if (numBits > RemainingInCurrentChunk)
                     throw new OverflowException("Trying to read beyond a chunk boundary!");
+
                 RemainingInCurrentChunk -= numBits;
-                for (var i = 1; i < RemainingInOldChunks.Count; i++)
-                    RemainingInOldChunks[i] -= numBits;
+                for (var i = 1; i < RemainingInOldChunks.Count; i++) RemainingInOldChunks[i] -= numBits;
             }
 
             return result;
@@ -70,10 +70,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
         {
             var result = new byte[length];
 
-            for (var i = 0; i < length; i++)
-            {
-                result[i] = ReadByte();
-            }
+            for (var i = 0; i < length; i++) result[i] = ReadByte();
 
             return result;
         }
@@ -81,10 +78,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
         public int ReadSignedInt(int numBits)
         {
             // Read the int normally and then shift it back and forth to extend the sign bit.
-            return (((int) ReadInt(numBits)) << (32 - numBits)) >> (32 - numBits);
+            return ((int) ReadInt(numBits) << (32 - numBits)) >> (32 - numBits);
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             array = null;
         }
@@ -96,13 +93,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
 
         public byte[] ReadBits(int bits)
         {
-            var result = new byte[(bits + 7)/8];
+            var result = new byte[(bits + 7) / 8];
 
-            for (var i = 0; i < (bits/8); i++)
-                result[i] = ReadByte();
+            for (var i = 0; i < bits / 8; i++) result[i] = ReadByte();
 
-            if ((bits%8) != 0)
-                result[bits/8] = ReadByte(bits%8);
+            if (bits % 8 != 0) result[bits / 8] = ReadByte(bits % 8);
 
             return result;
         }
@@ -114,8 +109,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
 
         public void BeginChunk(int length)
         {
-            if ((RemainingInCurrentChunk >= 0) && (RemainingInCurrentChunk < length))
+            if (RemainingInCurrentChunk >= 0 && RemainingInCurrentChunk < length)
                 throw new InvalidOperationException("trying to create a too big nested chunk"); // grammar much
+
             RemainingInOldChunks.Add(RemainingInCurrentChunk);
             RemainingInCurrentChunk = length;
         }
@@ -128,24 +124,17 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             RemainingInOldChunks.RemoveAt(idx);
         }
 
-        public bool ChunkFinished
-        {
-            get { return RemainingInCurrentChunk == 0; }
-        }
+        public bool ChunkFinished => RemainingInCurrentChunk == 0;
 
         public void Seek(int pos, SeekOrigin origin)
         {
-            if (RemainingInCurrentChunk >= 0)
-                throw new NotSupportedException("Can't seek while inside a chunk");
+            if (RemainingInCurrentChunk >= 0) throw new NotSupportedException("Can't seek while inside a chunk");
 
-            if (origin == SeekOrigin.Begin)
-                Position = pos;
+            if (origin == SeekOrigin.Begin) Position = pos;
 
-            if (origin == SeekOrigin.Current)
-                Position += pos;
+            if (origin == SeekOrigin.Current) Position += pos;
 
-            if (origin == SeekOrigin.End)
-                Position = array.Count - pos;
+            if (origin == SeekOrigin.End) Position = array.Count - pos;
         }
 
         public uint PeekInt(int numBits)
@@ -153,10 +142,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             uint result = 0;
             var intPos = 0;
 
-            for (var i = 0; i < numBits; i++)
-            {
-                result |= ((array[i + Position] ? 1u : 0u) << intPos++);
-            }
+            for (var i = 0; i < numBits; i++) result |= (array[i + Position] ? 1u : 0u) << intPos++;
 
             return result;
         }
@@ -167,12 +153,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
 
             var idx = 0;
             for (var i = Position; i < Math.Min(Position + length, array.Count); i++)
-            {
                 if (array[i])
                     buffer[idx++] = 49;
                 else
                     buffer[idx++] = 48;
-            }
 
             return Encoding.ASCII.GetString(buffer, 0, Math.Min(length, array.Count - Position));
         }

@@ -21,14 +21,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-
     #region Imports
 
     #endregion
 
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Merges two ordered sequences into one. Where the elements equal
@@ -201,6 +200,7 @@ namespace MoreLinq
         {
             if (keySelector == null)
                 throw new ArgumentNullException("keySelector"); // Argument name changes to 'firstKeySelector'
+
             return OrderedMerge(first, second, keySelector, keySelector, firstSelector, secondSelector, bothSelector,
                 comparer);
         }
@@ -317,11 +317,17 @@ namespace MoreLinq
             IComparer<TKey> comparer)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (firstKeySelector == null) throw new ArgumentNullException("firstKeySelector");
+
             if (secondKeySelector == null) throw new ArgumentNullException("secondKeySelector");
+
             if (firstSelector == null) throw new ArgumentNullException("firstSelector");
+
             if (bothSelector == null) throw new ArgumentNullException("bothSelector");
+
             if (secondSelector == null) throw new ArgumentNullException("secondSelector");
 
             return OrderedMergeImpl(first, second,
@@ -356,7 +362,6 @@ namespace MoreLinq
                 var gotSecond = e2.MoveNext();
 
                 while (gotFirst || gotSecond)
-                {
                     if (gotFirst && gotSecond)
                     {
                         var element1 = e1.Current;
@@ -392,7 +397,6 @@ namespace MoreLinq
                         yield return firstSelector(e1.Current);
                         gotFirst = e1.MoveNext();
                     }
-                }
             }
         }
     }

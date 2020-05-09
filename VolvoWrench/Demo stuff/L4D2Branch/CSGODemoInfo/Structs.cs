@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo
 {
     /// <summary>
     ///     A Demo header.
@@ -14,10 +14,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         public int Protocol { get; private set; } // Should be DEMO_PROTOCOL (4)
 
         [Obsolete("This was a typo. Use NetworkProtocol instead")]
-        public int NetworkProtocal
-        {
-            get { return NetworkProtocol; }
-        }
+        public int NetworkProtocal => NetworkProtocol;
 
         public int NetworkProtocol { get; private set; } // Should be PROTOCOL_VERSION
         public string ServerName { get; private set; } // Name of server
@@ -68,20 +65,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         public float Y { get; set; }
         public float Z { get; set; }
 
-        public double Angle2D
-        {
-            get { return Math.Atan2(Y, X); }
-        }
+        public double Angle2D => Math.Atan2(Y, X);
 
-        public double Absolute
-        {
-            get { return Math.Sqrt(AbsoluteSquared); }
-        }
+        public double Absolute => Math.Sqrt(AbsoluteSquared);
 
-        public double AbsoluteSquared
-        {
-            get { return X*X + Y*Y + Z*Z; }
-        }
+        public double AbsoluteSquared => X * X + Y * Y + Z * Z;
 
         public static Vector Parse(IBitStream reader)
         {
@@ -153,20 +141,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         public QAngle viewAngles2 { get; private set; }
         public QAngle localViewAngles2 { get; private set; }
 
-        public Vector ViewOrigin
-        {
-            get { return (Flags & FDEMO_USE_ORIGIN2) != 0 ? viewOrigin2 : viewOrigin; }
-        }
+        public Vector ViewOrigin => (Flags & FDEMO_USE_ORIGIN2) != 0 ? viewOrigin2 : viewOrigin;
 
-        public QAngle ViewAngles
-        {
-            get { return (Flags & FDEMO_USE_ANGLES2) != 0 ? viewAngles2 : viewAngles; }
-        }
+        public QAngle ViewAngles => (Flags & FDEMO_USE_ANGLES2) != 0 ? viewAngles2 : viewAngles;
 
-        public QAngle LocalViewAngles
-        {
-            get { return (Flags & FDEMO_USE_ANGLES2) != 0 ? localViewAngles2 : localViewAngles; }
-        }
+        public QAngle LocalViewAngles => (Flags & FDEMO_USE_ANGLES2) != 0 ? localViewAngles2 : localViewAngles;
 
         public static Split Parse(IBitStream reader)
         {
@@ -231,33 +210,40 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
         // network xuid
         public long XUID { get; set; }
+
         // scoreboard information
         public string Name { get; set; } //MAX_PLAYER_NAME_LENGTH=128
+
         // local server user ID, unique while server is running
         public int UserID { get; set; }
+
         // global unique player identifer
         public string GUID { get; set; } //33bytes
+
         // friends identification number
         public int FriendsID { get; set; }
+
         // friends name
         public string FriendsName { get; set; } //128
+
         // true, if player is a bot controlled by game.dll
         public bool IsFakePlayer { get; set; }
+
         // true if player is the HLTV proxy
         public bool IsHLTV { get; set; }
+
         // custom files CRC for this player
         public int customFiles0 { get; set; }
         public int customFiles1 { get; set; }
         public int customFiles2 { get; set; }
         public int customFiles3 { get; set; }
-        private byte filesDownloaded { get; set; }
+
+        private byte filesDownloaded { get; }
+
         // this counter increases each time the server downloaded a new file
         private byte FilesDownloaded { get; set; }
 
-        public static int SizeOf
-        {
-            get { return 8 + 8 + 128 + 4 + 3 + 4 + 1 + 1 + 4*8 + 1; }
-        }
+        public static int SizeOf => 8 + 8 + 128 + 4 + 3 + 4 + 1 + 1 + 4 * 8 + 1;
 
         public static PlayerInfo ParseFrom(BinaryReader reader)
         {
@@ -276,7 +262,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             Index = index;
         }
 
-        public int Index { get; private set; }
+        public int Index { get; }
         public Vector Min { get; set; }
         public Vector Max { get; set; }
 
@@ -348,7 +334,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         ///     First Command
         /// </summary>
         FirstCommand = Signon
-    };
+    }
 
     public enum RoundEndReason
     {
@@ -441,14 +427,14 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         ///     CTs Surrender
         /// </summary>
         CTSurrender
-    };
+    }
 
     public enum RoundMVPReason
     {
         MostEliminations = 1,
         BombPlanted,
         BombDefused
-    };
+    }
 
     public enum Hitgroup
     {
@@ -461,5 +447,5 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         LeftLeg = 6,
         RightLeg = 7,
         Gear = 10
-    };
+    }
 }

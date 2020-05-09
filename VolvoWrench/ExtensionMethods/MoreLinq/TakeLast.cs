@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a specified number of contiguous elements from the end of
@@ -50,6 +50,7 @@ namespace MoreLinq
         public static IEnumerable<TSource> TakeLast<TSource>(this IEnumerable<TSource> source, int count)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             return TakeLastImpl(source, count);
         }
 
@@ -57,20 +58,18 @@ namespace MoreLinq
         {
             Debug.Assert(source != null);
 
-            if (count <= 0)
-                yield break;
+            if (count <= 0) yield break;
 
             var q = new Queue<T>(count);
 
             foreach (var item in source)
             {
-                if (q.Count == count)
-                    q.Dequeue();
+                if (q.Count == count) q.Dequeue();
+
                 q.Enqueue(item);
             }
 
-            foreach (var item in q)
-                yield return item;
+            foreach (var item in q) yield return item;
         }
     }
 }

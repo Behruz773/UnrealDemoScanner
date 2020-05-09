@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Immediately executes the given action on each element in the source sequence.
@@ -33,10 +33,10 @@ namespace MoreLinq
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (action == null) throw new ArgumentNullException("action");
 
-            foreach (var element in source)
-                action(element);
+            foreach (var element in source) action(element);
         }
 
         /// <summary>
@@ -52,11 +52,11 @@ namespace MoreLinq
         public static void ForEach<T>(this IEnumerable<T> source, Action<T, int> action)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (action == null) throw new ArgumentNullException("action");
 
             var index = 0;
-            foreach (var element in source)
-                action(element, index++);
+            foreach (var element in source) action(element, index++);
         }
     }
 }

@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Ensures that a source sequence of <see cref="IDisposable" />
@@ -52,8 +52,8 @@ namespace MoreLinq
             }
             catch
             {
-                foreach (var disposable in disposables)
-                    disposable.Dispose();
+                foreach (var disposable in disposables) disposable.Dispose();
+
                 throw;
             }
         }

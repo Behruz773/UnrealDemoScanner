@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns the minimal element of the given sequence, based on
@@ -71,15 +71,14 @@ namespace MoreLinq
             Func<TSource, TKey> selector, IComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (selector == null) throw new ArgumentNullException("selector");
+
             comparer = comparer ?? Comparer<TKey>.Default;
 
             using (var sourceIterator = source.GetEnumerator())
             {
-                if (!sourceIterator.MoveNext())
-                {
-                    throw new InvalidOperationException("Sequence contains no elements");
-                }
+                if (!sourceIterator.MoveNext()) throw new InvalidOperationException("Sequence contains no elements");
                 var min = sourceIterator.Current;
                 var minKey = selector(min);
                 while (sourceIterator.MoveNext())
@@ -92,6 +91,7 @@ namespace MoreLinq
                         minKey = candidateProjected;
                     }
                 }
+
                 return min;
             }
         }

@@ -1,10 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Windows.Media.Media3D;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.GameHandler
 {
     internal class HL2GameHandler : GameHandler
     {
@@ -32,50 +31,30 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
 
         public override long HandleCommand(byte command, int tick, BinaryReader br)
         {
-			if (CurrentTick == -1)
-			{
-				if (tick == 0)
-					CurrentTick = tick;
-			}
-			else if ((tick > 0) && (tick > CurrentTick))
-			{
-				CurrentTick = tick;
-			}
+            if (CurrentTick == -1)
+            {
+                if (tick == 0) CurrentTick = tick;
+            }
+            else if (tick > 0 && tick > CurrentTick)
+            {
+                CurrentTick = tick;
+            }
 
-			Enum.IsDefined(typeof (HL2DemoCommands), (HL2DemoCommands) command);
-            if (command == 1)
-            {
-                return ProcessSignOn(br);
-            }
-            if (command == 2)
-            {
-                return ProcessPacket(br).Read;
-            }
-            if (command == 3)
-            {
-                return 0;
-            }
-            if (command == 4)
-            {
-                return ProcessConsoleCmd(br).Read;
-            }
-            if (command == 5)
-            {
-                return ProcessUserCmd(br);
-            }
-            if (command == 6)
-            {
-                throw new NotImplementedException();
-            }
-            if (command != 8)
-            {
-                throw new Exception(string.Concat("Unknown command: 0x", command.ToString("x")));
-            }
+            Enum.IsDefined(typeof(HL2DemoCommands), (HL2DemoCommands) command);
+            if (command == 1) return ProcessSignOn(br);
+            if (command == 2) return ProcessPacket(br).Read;
+            if (command == 3) return 0;
+            if (command == 4) return ProcessConsoleCmd(br).Read;
+            if (command == 5) return ProcessUserCmd(br);
+            if (command == 6) throw new NotImplementedException();
+            if (command != 8) throw new Exception(string.Concat("Unknown command: 0x", command.ToString("x")));
             return ProcessStringTables(br);
         }
 
         public override bool IsStop(byte command)
-            => command == 7;
+        {
+            return command == 7;
+        }
 
         protected override ConsoleCmdResult ProcessConsoleCmd(BinaryReader br)
         {

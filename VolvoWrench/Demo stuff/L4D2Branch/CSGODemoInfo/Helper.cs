@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT;
 
 #if SLOW_PROTOBUF
 using ProtoBuf;
 #endif
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo
 {
     internal static class Helper
     {
@@ -47,12 +47,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
             do
             {
-                if (count > 5)
-                    throw new InvalidDataException("VarInt32 out of range");
+                if (count > 5) throw new InvalidDataException("VarInt32 out of range");
 
                 b = reader.ReadByte();
 
-                result |= (b & 0x7F) << (7*count);
+                result |= (b & 0x7F) << (7 * count);
 
                 count++;
             } while ((b & 0x80) != 0);
@@ -71,7 +70,8 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         }
 
 
-        public static string ReadNullTerminatedString(this BinaryReader reader, Encoding encoding, int initialBufferSize)
+        public static string ReadNullTerminatedString(this BinaryReader reader, Encoding encoding,
+            int initialBufferSize)
         {
             var result = new List<byte>(initialBufferSize);
 
@@ -79,8 +79,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             {
                 var b = reader.ReadByte();
 
-                if (b == 0)
-                    break;
+                if (b == 0) break;
 
                 result.Add(b);
             }
@@ -123,13 +122,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
 			return (IExtensible)deserialize.Invoke(null, new object[] { stream });
 		}
-		#endif
+#endif
 
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key,
             TValue defaultValue)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : defaultValue;
+            return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
         }
 
         public static bool HasFlagFast(this SendPropertyFlags flags, SendPropertyFlags check)

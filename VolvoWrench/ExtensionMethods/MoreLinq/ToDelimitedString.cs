@@ -23,9 +23,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Creates a delimited string from a sequence of values. The
@@ -73,6 +73,7 @@ namespace MoreLinq
         public static string ToDelimitedString<TSource>(this IEnumerable<TSource> source, string delimiter)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             return ToDelimitedStringImpl(source, delimiter, (sb, e) => sb.Append(e));
         }
 
@@ -89,6 +90,7 @@ namespace MoreLinq
             foreach (var value in source)
             {
                 if (i++ > 0) sb.Append(delimiter);
+
                 append(sb, value);
             }
 

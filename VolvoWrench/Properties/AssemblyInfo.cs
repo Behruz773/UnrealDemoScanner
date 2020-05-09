@@ -1,18 +1,16 @@
-﻿using System.Reflection;
+﻿using System.Resources;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("VolvoWrench")]
-[assembly: AssemblyDescription("This is a cross engine demo and save parsing tool. Feel free to use it and modify it.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SourceRuns")]
-[assembly: AssemblyProduct("VolvoWrench")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyTitle("UnrealDemoScanner")]
+[assembly: AssemblyDescription("Demo analyze tool, scan demo for cheat/hack/scripts.")]
+[assembly: AssemblyCompany("Karaulov")]
+[assembly: AssemblyProduct("UnrealDemoScanner")]
+[assembly: AssemblyCopyright("2020")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -22,7 +20,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly: Guid("d594a1d6-30a7-48ec-9298-37bc21142f1d")]
+[assembly: Guid("17ad4c45-751d-4227-8602-e87644b89773")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -35,5 +33,6 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("0.9.5.*")]
-[assembly: AssemblyFileVersion("0.9.5.0")]
+[assembly: AssemblyVersion("1.0.3.5")]
+[assembly: AssemblyFileVersion("1.0.3.5")]
+[assembly: NeutralResourcesLanguage("en-US")]

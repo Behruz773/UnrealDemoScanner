@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Asserts that all elements of a sequence meet a given condition
@@ -66,6 +66,7 @@ namespace MoreLinq
             Func<TSource, bool> predicate, Func<TSource, Exception> errorSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (predicate == null) throw new ArgumentNullException("predicate");
 
             return AssertImpl(source, predicate, errorSelector ?? delegate { return null; });
@@ -79,6 +80,7 @@ namespace MoreLinq
                 var success = predicate(element);
                 if (!success)
                     throw errorSelector(element) ?? new InvalidOperationException("Sequence contains an invalid item.");
+
                 yield return element;
             }
         }

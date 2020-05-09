@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -40,7 +40,9 @@ namespace MoreLinq
             IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return from item1 in first

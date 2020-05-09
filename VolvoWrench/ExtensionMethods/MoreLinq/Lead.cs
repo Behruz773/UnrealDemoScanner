@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -44,7 +44,7 @@ namespace MoreLinq
         public static IEnumerable<TResult> Lead<TSource, TResult>(this IEnumerable<TSource> source, int offset,
             Func<TSource, TSource, TResult> resultSelector)
         {
-            return Lead(source, offset, default(TSource), resultSelector);
+            return Lead(source, offset, default, resultSelector);
         }
 
         /// <summary>
@@ -67,7 +67,9 @@ namespace MoreLinq
             TSource defaultLeadValue, Func<TSource, TSource, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+
             if (offset <= 0) throw new ArgumentOutOfRangeException("offset");
 
             return LeadImpl(source, offset, defaultLeadValue, resultSelector);
@@ -82,8 +84,7 @@ namespace MoreLinq
                 bool hasMore;
                 // first, prefetch and populate the lead queue with the next step of
                 // items to be streamed out to the consumer of the sequence
-                while ((hasMore = iter.MoveNext()) && leadQueue.Count < offset)
-                    leadQueue.Enqueue(iter.Current);
+                while ((hasMore = iter.MoveNext()) && leadQueue.Count < offset) leadQueue.Enqueue(iter.Current);
                 // next, while the source sequence has items, yield the result of
                 // the projection function applied to the top of queue and current item
                 while (hasMore)
@@ -92,11 +93,9 @@ namespace MoreLinq
                     leadQueue.Enqueue(iter.Current);
                     hasMore = iter.MoveNext();
                 }
+
                 // yield the remaining values in the lead queue with the default lead value
-                while (leadQueue.Count > 0)
-                {
-                    yield return resultSelector(leadQueue.Dequeue(), defaultLeadValue);
-                }
+                while (leadQueue.Count > 0) yield return resultSelector(leadQueue.Dequeue(), defaultLeadValue);
             }
         }
     }

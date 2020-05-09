@@ -1,6 +1,4 @@
-using System.Windows.Media.Media3D;
-
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result
 {
     public class PacketResult
     {

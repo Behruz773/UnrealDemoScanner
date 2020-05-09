@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace VolvoWrench.Demo_Stuff.Source
+namespace VolvoWrench.DemoStuff.Source
 {
     internal class DataTables
     {
@@ -23,11 +23,15 @@ namespace VolvoWrench.Demo_Stuff.Source
                     var flags = (SendPropFlags) bb.ReadBits(16);
 
                     if (type == SendPropType.DataTable || (flags & SendPropFlags.Exclude) != 0)
+                    {
                         propnode.Text += " : " + bb.ReadString();
+                    }
                     else
                     {
                         if (type == SendPropType.Array)
+                        {
                             propnode.Text += "[" + bb.ReadBits(10) + "]";
+                        }
                         else
                         {
                             bb.SeekBits(64);

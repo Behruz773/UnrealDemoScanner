@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Traces the elements of a source sequence for diagnostics.
@@ -66,7 +66,7 @@ namespace MoreLinq
             return TraceImpl(source,
                 string.IsNullOrEmpty(format)
                     ? (Func<TSource, string>) (x => x == null ? string.Empty : x.ToString())
-                    : (x => string.Format(format, x)));
+                    : x => string.Format(format, x));
         }
 
         /// <summary>
@@ -87,7 +87,9 @@ namespace MoreLinq
             Func<TSource, string> formatter)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (formatter == null) throw new ArgumentNullException("formatter");
+
             return TraceImpl(source, formatter);
         }
 
@@ -99,7 +101,7 @@ namespace MoreLinq
 
             return source
 #if !NO_TRACING
-                .Pipe(x => System.Diagnostics.Trace.WriteLine(formatter(x)))
+                    .Pipe(x => System.Diagnostics.Trace.WriteLine(formatter(x)))
 #endif
                 ;
         }

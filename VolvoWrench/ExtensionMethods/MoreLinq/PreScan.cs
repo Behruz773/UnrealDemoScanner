@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Performs a pre-scan (exclusive prefix sum) on a sequence of elements.
@@ -57,7 +57,9 @@ namespace MoreLinq
             Func<TSource, TSource, TSource> transformation, TSource identity)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (transformation == null) throw new ArgumentNullException("transformation");
+
             return PreScanImpl(source, transformation, identity);
         }
 

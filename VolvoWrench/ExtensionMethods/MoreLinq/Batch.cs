@@ -22,9 +22,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Batches the source sequence into sized buckets.
@@ -59,8 +59,11 @@ namespace MoreLinq
             Func<IEnumerable<TSource>, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (size <= 0) throw new ArgumentOutOfRangeException("size");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+
             return BatchImpl(source, size, resultSelector);
         }
 
@@ -76,18 +79,12 @@ namespace MoreLinq
 
             foreach (var item in source)
             {
-                if (bucket == null)
-                {
-                    bucket = new TSource[size];
-                }
+                if (bucket == null) bucket = new TSource[size];
 
                 bucket[count++] = item;
 
                 // The bucket is fully buffered before it's yielded
-                if (count != size)
-                {
-                    continue;
-                }
+                if (count != size) continue;
 
                 // Select is necessary so bucket contents are streamed too
                 yield return resultSelector(bucket.Select(x => x));
@@ -97,10 +94,7 @@ namespace MoreLinq
             }
 
             // Return the last bucket with all remaining elements
-            if (bucket != null && count > 0)
-            {
-                yield return resultSelector(bucket.Take(count));
-            }
+            if (bucket != null && count > 0) yield return resultSelector(bucket.Take(count));
         }
     }
 }

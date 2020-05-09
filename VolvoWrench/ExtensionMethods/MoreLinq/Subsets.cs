@@ -22,7 +22,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -44,8 +44,8 @@ namespace MoreLinq
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="sequence" /> is <see langword="null" /></exception>
         public static IEnumerable<IList<T>> Subsets<T>(this IEnumerable<T> sequence)
         {
-            if (sequence == null)
-                throw new ArgumentNullException("sequence");
+            if (sequence == null) throw new ArgumentNullException("sequence");
+
             return SubsetsImpl(sequence);
         }
 
@@ -65,10 +65,9 @@ namespace MoreLinq
         /// </exception>
         public static IEnumerable<IList<T>> Subsets<T>(this IEnumerable<T> sequence, int subsetSize)
         {
-            if (sequence == null)
-                throw new ArgumentNullException("sequence");
-            if (subsetSize < 0)
-                throw new ArgumentOutOfRangeException("subsetSize", "Subset size must be >= 0");
+            if (sequence == null) throw new ArgumentNullException("sequence");
+
+            if (subsetSize < 0) throw new ArgumentOutOfRangeException("subsetSize", "Subset size must be >= 0");
 
             // NOTE: Theres an interesting trade-off that we have to make in this operator.
             // Ideally, we would throw an exception here if the {subsetSize} parameter is
@@ -108,8 +107,7 @@ namespace MoreLinq
                 {
                     // each intermediate subset is a lexographically ordered K-subset
                     var subsetGenerator = new SubsetGenerator<T>(sequenceAsList, i);
-                    foreach (var subset in subsetGenerator)
-                        yield return subset;
+                    foreach (var subset in subsetGenerator) yield return subset;
                 }
 
                 yield return sequenceAsList; // the last subet is the original set itself
@@ -126,10 +124,12 @@ namespace MoreLinq
 
             public SubsetGenerator(IEnumerable<T> sequence, int subsetSize)
             {
-                if (sequence == null)
-                    throw new ArgumentNullException("sequence");
+                if (sequence == null) throw new ArgumentNullException("sequence");
+
                 if (subsetSize < 0)
-                    throw new ArgumentOutOfRangeException("subsetSize", "{subsetSize} must be between 0 and set.Count()");
+                    throw new ArgumentOutOfRangeException("subsetSize",
+                        "{subsetSize} must be between 0 and set.Count()");
+
                 _subsetSize = subsetSize;
                 _sequence = sequence;
             }
@@ -191,20 +191,13 @@ namespace MoreLinq
                     _continue = _subset.Length > 0;
                 }
 
-                public IList<T> Current
-                {
-                    get { return (IList<T>) _subset.Clone(); }
-                }
+                public IList<T> Current => (IList<T>) _subset.Clone();
 
-                object IEnumerator.Current
-                {
-                    get { return Current; }
-                }
+                object IEnumerator.Current => Current;
 
                 public bool MoveNext()
                 {
-                    if (!_continue)
-                        return false;
+                    if (!_continue) return false;
 
                     if (_m2 == -1)
                     {
@@ -213,20 +206,16 @@ namespace MoreLinq
                     }
                     else
                     {
-                        if (_m2 < _n - _m)
-                        {
-                            _m = 0;
-                        }
+                        if (_m2 < _n - _m) _m = 0;
                         _m++;
                         _m2 = _indices[_k - _m];
                     }
 
-                    for (var j = 1; j <= _m; j++)
-                        _indices[_k + j - _m - 1] = _m2 + j;
+                    for (var j = 1; j <= _m; j++) _indices[_k + j - _m - 1] = _m2 + j;
 
                     ExtractSubset();
 
-                    _continue = (_indices[0] != _z);
+                    _continue = _indices[0] != _z;
                     return true;
                 }
 
@@ -236,8 +225,7 @@ namespace MoreLinq
 
                 private void ExtractSubset()
                 {
-                    for (var i = 0; i < _k; i++)
-                        _subset[i] = _set[_indices[i] - 1];
+                    for (var i = 0; i < _k; i++) _subset[i] = _set[_indices[i] - 1];
                 }
             }
         }

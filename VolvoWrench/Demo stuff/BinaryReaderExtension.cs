@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace VolvoWrench.Demo_stuff
+namespace VolvoWrench.DemoStuff
 {
     internal static class BinaryReaderExtension
     {
@@ -42,12 +41,11 @@ namespace VolvoWrench.Demo_stuff
 
             do
             {
-                if (count > 5)
-                    throw new InvalidDataException("VarInt32 out of range");
+                if (count > 5) throw new InvalidDataException("VarInt32 out of range");
 
                 b = reader.ReadByte();
 
-                result |= (b & 0x7F) << (7*count);
+                result |= (b & 0x7F) << (7 * count);
 
                 count++;
             } while ((b & 0x80) != 0);
@@ -66,7 +64,8 @@ namespace VolvoWrench.Demo_stuff
         }
 
 
-        public static string ReadNullTerminatedString(this BinaryReader reader, Encoding encoding, int initialBufferSize)
+        public static string ReadNullTerminatedString(this BinaryReader reader, Encoding encoding,
+            int initialBufferSize)
         {
             var result = new List<byte>(initialBufferSize);
 
@@ -74,8 +73,7 @@ namespace VolvoWrench.Demo_stuff
             {
                 var b = reader.ReadByte();
 
-                if (b == 0)
-                    break;
+                if (b == 0) break;
 
                 result.Add(b);
             }

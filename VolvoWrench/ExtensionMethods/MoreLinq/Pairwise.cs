@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a sequence resulting from applying a function to each
@@ -56,7 +56,9 @@ namespace MoreLinq
             Func<TSource, TSource, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+
             return PairwiseImpl(source, resultSelector);
         }
 
@@ -68,8 +70,7 @@ namespace MoreLinq
 
             using (var e = source.GetEnumerator())
             {
-                if (!e.MoveNext())
-                    yield break;
+                if (!e.MoveNext()) yield break;
 
                 var previous = e.Current;
                 while (e.MoveNext())

@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -75,6 +75,7 @@ namespace MoreLinq
             Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
 
             return RankByImpl(source, keySelector, comparer ?? Comparer<TKey>.Default);
@@ -96,8 +97,7 @@ namespace MoreLinq
 
             // ReSharper disable LoopCanBeConvertedToQuery
 
-            foreach (var item in source)
-                yield return rankDictionary[item];
+            foreach (var item in source) yield return rankDictionary[item];
 
             // ReSharper restore LoopCanBeConvertedToQuery
         }

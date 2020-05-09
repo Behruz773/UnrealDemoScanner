@@ -19,7 +19,7 @@
 
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     internal sealed class ReverseComparer<T> : IComparer<T>
     {

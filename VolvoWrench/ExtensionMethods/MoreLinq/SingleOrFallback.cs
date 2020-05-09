@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns the single element in the given sequence, or the result
@@ -54,11 +54,11 @@ namespace MoreLinq
         public static TSource SingleOrFallback<TSource>(this IEnumerable<TSource> source, Func<TSource> fallback)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (fallback == null) throw new ArgumentNullException("fallback");
 
             var list = source as IList<TSource>;
             if (list != null)
-            {
                 switch (list.Count)
                 {
                     case 0:
@@ -69,24 +69,15 @@ namespace MoreLinq
 
                     // anything but 0 and 1 is not handled
                 }
-            }
             else
-            {
                 using (var iterator = source.GetEnumerator())
                 {
-                    if (!iterator.MoveNext())
-                    {
-                        return fallback();
-                    }
+                    if (!iterator.MoveNext()) return fallback();
                     var first = iterator.Current;
 
                     // Return if there's no next element
-                    if (!iterator.MoveNext())
-                    {
-                        return first;
-                    }
+                    if (!iterator.MoveNext()) return first;
                 }
-            }
 
             // We should have checked the sequence length and returned by now
             throw new InvalidOperationException("Sequence contains more than one element");

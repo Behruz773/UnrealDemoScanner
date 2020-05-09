@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -42,6 +42,7 @@ namespace MoreLinq
             Func<TSource, TSource, TResult> resultSelector)
         {
             if (sequence == null) throw new ArgumentNullException("sequence");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return IncrementalImpl(sequence, (prev, next, index) => resultSelector(prev, next));
@@ -65,6 +66,7 @@ namespace MoreLinq
             Func<TSource, TSource, int, TResult> resultSelector)
         {
             if (sequence == null) throw new ArgumentNullException("sequence");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return IncrementalImpl(sequence, resultSelector);

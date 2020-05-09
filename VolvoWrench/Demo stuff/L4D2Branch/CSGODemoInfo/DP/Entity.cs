@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP
 {
     internal class Entity
     {
@@ -17,8 +17,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
 
             var flattenedProps = ServerClass.FlattenedProps;
             Props = new PropertyEntry[flattenedProps.Count];
-            for (var i = 0; i < flattenedProps.Count; i++)
-                Props[i] = new PropertyEntry(flattenedProps[i], i);
+            for (var i = 0; i < flattenedProps.Count; i++) Props[i] = new PropertyEntry(flattenedProps[i], i);
         }
 
         public int ID { get; set; }
@@ -47,25 +46,17 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
             var entries = new List<PropertyEntry>();
 
             //No read them. 
-            while ((index = ReadFieldIndex(reader, index, newWay)) != -1)
-                entries.Add(Props[index]);
+            while ((index = ReadFieldIndex(reader, index, newWay)) != -1) entries.Add(Props[index]);
 
             //Now read the updated props
-            foreach (var prop in entries)
-            {
-                prop.Decode(reader, this);
-            }
+            foreach (var prop in entries) prop.Decode(reader, this);
         }
 
         private int ReadFieldIndex(IBitStream reader, int lastIndex, bool bNewWay)
         {
             if (bNewWay)
-            {
                 if (reader.ReadBit())
-                {
                     return lastIndex + 1;
-                }
-            }
 
             var ret = 0;
             if (bNewWay && reader.ReadBit())
@@ -90,18 +81,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
             }
 
             if (ret == 0xFFF)
-            {
                 // end marker is 4095 for cs:go
                 return -1;
-            }
 
             return lastIndex + 1 + ret;
         }
 
         public void Leave()
         {
-            foreach (var prop in Props)
-                prop.Destroy();
+            foreach (var prop in Props) prop.Destroy();
         }
 
         public override string ToString()
@@ -123,7 +111,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
 
 #if SAVE_PROP_VALUES
 		public object Value { get; private set; }
-		#endif
+#endif
 
         /*
 		 * DON'T USE THIS.
@@ -145,11 +133,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
 
         [Obsolete("Don't use this attribute. It is only avaible for debugging. Bind to the correct event instead."
 #if !DEBUG
-			, true
-		#endif
-            )]
+            , true
+#endif
+        )]
 #pragma warning disable 0067 // this is unused in release builds, just as it should be
-            public event EventHandler<PropertyUpdateEventArgs<object>> DataRecivedDontUse;
+        public event EventHandler<PropertyUpdateEventArgs<object>> DataRecivedDontUse;
 #pragma warning restore 0067
 
         [Conditional("DEBUG")]
@@ -191,8 +179,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                 case SendPropertyType.Int:
                 {
                     var val = PropDecoder.DecodeInt(Entry.Prop, stream);
-                    if (IntRecived != null)
-                        IntRecived(this, new PropertyUpdateEventArgs<int>(val, e, this));
+                    if (IntRecived != null) IntRecived(this, new PropertyUpdateEventArgs<int>(val, e, this));
 
                     SaveValue(val);
                     FireDataReceived_DebugEvent(val, e);
@@ -201,8 +188,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                 case SendPropertyType.Float:
                 {
                     var val = PropDecoder.DecodeFloat(Entry.Prop, stream);
-                    if (FloatRecived != null)
-                        FloatRecived(this, new PropertyUpdateEventArgs<float>(val, e, this));
+                    if (FloatRecived != null) FloatRecived(this, new PropertyUpdateEventArgs<float>(val, e, this));
 
                     SaveValue(val);
                     FireDataReceived_DebugEvent(val, e);
@@ -211,8 +197,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                 case SendPropertyType.Vector:
                 {
                     var val = PropDecoder.DecodeVector(Entry.Prop, stream);
-                    if (VectorRecived != null)
-                        VectorRecived(this, new PropertyUpdateEventArgs<Vector>(val, e, this));
+                    if (VectorRecived != null) VectorRecived(this, new PropertyUpdateEventArgs<Vector>(val, e, this));
 
                     SaveValue(val);
                     FireDataReceived_DebugEvent(val, e);
@@ -221,8 +206,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                 case SendPropertyType.Array:
                 {
                     var val = PropDecoder.DecodeArray(Entry, stream);
-                    if (ArrayRecived != null)
-                        ArrayRecived(this, new PropertyUpdateEventArgs<object[]>(val, e, this));
+                    if (ArrayRecived != null) ArrayRecived(this, new PropertyUpdateEventArgs<object[]>(val, e, this));
 
                     SaveValue(val);
                     FireDataReceived_DebugEvent(val, e);
@@ -231,8 +215,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                 case SendPropertyType.String:
                 {
                     var val = PropDecoder.DecodeString(Entry.Prop, stream);
-                    if (StringRecived != null)
-                        StringRecived(this, new PropertyUpdateEventArgs<string>(val, e, this));
+                    if (StringRecived != null) StringRecived(this, new PropertyUpdateEventArgs<string>(val, e, this));
 
                     SaveValue(val);
                     FireDataReceived_DebugEvent(val, e);
@@ -241,8 +224,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                 case SendPropertyType.VectorXY:
                 {
                     var val = PropDecoder.DecodeVectorXY(Entry.Prop, stream);
-                    if (VectorRecived != null)
-                        VectorRecived(this, new PropertyUpdateEventArgs<Vector>(val, e, this));
+                    if (VectorRecived != null) VectorRecived(this, new PropertyUpdateEventArgs<Vector>(val, e, this));
 
                     SaveValue(val);
                     FireDataReceived_DebugEvent(val, e);
@@ -275,7 +257,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
         {
 #if SAVE_PROP_VALUES
 			this.Value = value;
-			#endif
+#endif
         }
 
         public override string ToString()
@@ -314,8 +296,8 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                         Entry.PropertyName,
                         SendPropertyType.Array));
 
-            if (VectorRecived != null &&
-                (Entry.Prop.Type != SendPropertyType.Vector && Entry.Prop.Type != SendPropertyType.VectorXY))
+            if (VectorRecived != null && Entry.Prop.Type != SendPropertyType.Vector &&
+                Entry.Prop.Type != SendPropertyType.VectorXY)
                 throw new InvalidOperationException(
                     string.Format("({0}).({1}) isn't an {2}",
                         e.ServerClass.Name,
@@ -374,7 +356,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
                                 entity.Props[arrayReceived.PropIndex]));
                 }
                 else
+                {
                     throw new NotImplementedException();
+                }
             }
         }
     }
@@ -390,9 +374,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
             Property = p;
         }
 
-        public T Value { get; private set; }
-        public Entity Entity { get; private set; }
-        public PropertyEntry Property { get; private set; }
+        public T Value { get; }
+        public Entity Entity { get; }
+        public PropertyEntry Property { get; }
     }
 
     public class RecordedPropertyUpdate<T>

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo
 {
     public class Player
     {
@@ -39,19 +39,14 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             get
             {
                 if (ActiveWeaponID == DemoParser.INDEX_MASK) return null;
+
                 return rawWeapons[ActiveWeaponID];
             }
         }
 
-        public IEnumerable<Equipment> Weapons
-        {
-            get { return rawWeapons.Values; }
-        }
+        public IEnumerable<Equipment> Weapons => rawWeapons.Values;
 
-        public bool IsAlive
-        {
-            get { return HP > 0; }
-        }
+        public bool IsAlive => HP > 0;
 
         public Team Team { get; set; }
         public bool HasDefuseKit { get; set; }
@@ -63,32 +58,32 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         /// </summary>
         public Player Copy()
         {
-            var me = new Player();
-            me.EntityID = -1; //this should bot be copied
-            me.Entity = null;
+            var me = new Player
+            {
+                EntityID = -1, //this should bot be copied
+                Entity = null,
 
-            me.Name = Name;
-            me.SteamID = SteamID;
-            me.HP = HP;
-            me.Armor = Armor;
+                Name = Name,
+                SteamID = SteamID,
+                HP = HP,
+                Armor = Armor,
 
-            me.ViewDirectionX = ViewDirectionX;
-            me.ViewDirectionY = ViewDirectionY;
-            me.Disconnected = Disconnected;
+                ViewDirectionX = ViewDirectionX,
+                ViewDirectionY = ViewDirectionY,
+                Disconnected = Disconnected,
 
-            me.Team = Team;
+                Team = Team,
 
-            me.HasDefuseKit = HasDefuseKit;
-            me.HasHelmet = HasHelmet;
+                HasDefuseKit = HasDefuseKit,
+                HasHelmet = HasHelmet
+            };
 
             if (Position != null)
                 me.Position = Position.Copy(); //Vector is a class, not a struct - thus we need to make it thread-safe. 
 
-            if (LastAlivePosition != null)
-                me.LastAlivePosition = LastAlivePosition.Copy();
+            if (LastAlivePosition != null) me.LastAlivePosition = LastAlivePosition.Copy();
 
-            if (Velocity != null)
-                me.Velocity = Velocity.Copy();
+            if (Velocity != null) me.Velocity = Velocity.Copy();
 
             return me;
         }

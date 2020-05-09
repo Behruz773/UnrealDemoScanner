@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.ST
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.ST
 {
     internal class StringTableParser
     {
@@ -22,17 +22,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.ST
         {
             var numStrings = (int) reader.ReadInt(16);
 
-            if (tableName == "modelprecache")
-            {
-                parser.modelprecache.Clear();
-            }
+            if (tableName == "modelprecache") parser.modelprecache.Clear();
 
             for (var i = 0; i < numStrings; i++)
             {
                 var stringName = reader.ReadString();
 
-                if (stringName.Length >= 100)
-                    throw new Exception("Roy said I should throw this.");
+                if (stringName.Length >= 100) throw new Exception("Roy said I should throw this.");
 
                 if (reader.ReadBit())
                 {

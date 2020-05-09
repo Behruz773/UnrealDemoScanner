@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Executes the given action on each element in the source sequence
@@ -42,7 +42,9 @@ namespace MoreLinq
         public static IEnumerable<T> Pipe<T>(this IEnumerable<T> source, Action<T> action)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (action == null) throw new ArgumentNullException("action");
+
             return PipeImpl(source, action);
         }
 

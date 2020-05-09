@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -69,10 +69,10 @@ namespace MoreLinq
             OrderByDirection direction, IComparer<TSource> comparer, params IEnumerable<TSource>[] otherSequences)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (otherSequences == null) throw new ArgumentNullException("otherSequences");
 
-            if (otherSequences.Length == 0)
-                return source; // optimization for when otherSequences is empty
+            if (otherSequences.Length == 0) return source; // optimization for when otherSequences is empty
 
             comparer = comparer ?? Comparer<TSource>.Default;
 
@@ -110,10 +110,8 @@ namespace MoreLinq
                 // NOTE: We start with the last index to simplify the removal of an iterator if
                 //       it happens to be terminal (no items) before we start merging
                 for (var i = iterators.Count - 1; i >= 0; i--)
-                {
                     if (!iterators[i].MoveNext())
                         disposables.Exclude(i);
-                }
 
                 // while all iterators have not yet been consumed...
                 while (iterators.Count > 0)
@@ -136,8 +134,7 @@ namespace MoreLinq
                     yield return nextValue; // next value in precedence order
 
                     // advance iterator that yielded element, excluding it when consumed
-                    if (!iterators[nextIndex].MoveNext())
-                        disposables.Exclude(nextIndex);
+                    if (!iterators[nextIndex].MoveNext()) disposables.Exclude(nextIndex);
                 }
             }
         }
@@ -155,10 +152,7 @@ namespace MoreLinq
 
             public List<IEnumerator<T>> Iterators { get; }
 
-            public IEnumerator<T> this[int index]
-            {
-                get { return Iterators[index]; }
-            }
+            public IEnumerator<T> this[int index] => Iterators[index];
 
             public void Dispose()
             {

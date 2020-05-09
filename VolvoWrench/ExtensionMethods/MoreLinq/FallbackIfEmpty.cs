@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns the elements of the specified sequence or the specified
@@ -49,7 +49,8 @@ namespace MoreLinq
         public static IEnumerable<T> FallbackIfEmpty<T>(this IEnumerable<T> source, T fallback)
         {
             if (source == null) throw new ArgumentNullException("source");
-            return FallbackIfEmptyImpl(source, 1, fallback, default(T), default(T), default(T), null);
+
+            return FallbackIfEmptyImpl(source, 1, fallback, default, default, default, null);
         }
 
         /// <summary>
@@ -73,7 +74,8 @@ namespace MoreLinq
         public static IEnumerable<T> FallbackIfEmpty<T>(this IEnumerable<T> source, T fallback1, T fallback2)
         {
             if (source == null) throw new ArgumentNullException("source");
-            return FallbackIfEmptyImpl(source, 2, fallback1, fallback2, default(T), default(T), null);
+
+            return FallbackIfEmptyImpl(source, 2, fallback1, fallback2, default, default, null);
         }
 
         /// <summary>
@@ -102,7 +104,8 @@ namespace MoreLinq
             T fallback3)
         {
             if (source == null) throw new ArgumentNullException("source");
-            return FallbackIfEmptyImpl(source, 3, fallback1, fallback2, fallback3, default(T), null);
+
+            return FallbackIfEmptyImpl(source, 3, fallback1, fallback2, fallback3, default, null);
         }
 
         /// <summary>
@@ -135,6 +138,7 @@ namespace MoreLinq
             T fallback3, T fallback4)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             return FallbackIfEmptyImpl(source, 4, fallback1, fallback2, fallback3, fallback4, null);
         }
 
@@ -155,7 +159,9 @@ namespace MoreLinq
         public static IEnumerable<T> FallbackIfEmpty<T>(this IEnumerable<T> source, params T[] fallback)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (fallback == null) throw new ArgumentNullException("fallback");
+
             return source.FallbackIfEmpty((IEnumerable<T>) fallback);
         }
 
@@ -176,8 +182,10 @@ namespace MoreLinq
         public static IEnumerable<T> FallbackIfEmpty<T>(this IEnumerable<T> source, IEnumerable<T> fallback)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (fallback == null) throw new ArgumentNullException("fallback");
-            return FallbackIfEmptyImpl(source, 0, default(T), default(T), default(T), default(T), fallback);
+
+            return FallbackIfEmptyImpl(source, 0, default, default, default, default, fallback);
         }
 
         private static IEnumerable<T> FallbackIfEmptyImpl<T>(IEnumerable<T> source,
@@ -186,7 +194,6 @@ namespace MoreLinq
         {
             var collection = source as ICollection<T>;
             if (collection != null && collection.Count == 0)
-            {
                 //
                 // Replace the empty collection with an empty sequence and
                 // carry on. LINQ's Enumerable.Empty is implemented
@@ -198,7 +205,6 @@ namespace MoreLinq
                 //
 
                 source = Enumerable.Empty<T>();
-            }
 
             using (var e = source.GetEnumerator())
             {
@@ -216,13 +222,14 @@ namespace MoreLinq
                     {
                         yield return fallback1;
                         if (count > 1) yield return fallback2;
+
                         if (count > 2) yield return fallback3;
+
                         if (count > 3) yield return fallback4;
                     }
                     else
                     {
-                        foreach (var item in fallback)
-                            yield return item;
+                        foreach (var item in fallback) yield return item;
                     }
                 }
             }

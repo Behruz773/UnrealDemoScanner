@@ -21,10 +21,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     // Inspiration & credit: http://stackoverflow.com/a/13503860/6682
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Performs a Full Group Join between the <paramref name="first" /> and <paramref name="second" /> sequences.
@@ -90,9 +90,13 @@ namespace MoreLinq
             IEqualityComparer<TKey> comparer)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (firstKeySelector == null) throw new ArgumentNullException("firstKeySelector");
+
             if (secondKeySelector == null) throw new ArgumentNullException("secondKeySelector");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return FullGroupJoinImpl(first, second, firstKeySelector, secondKeySelector, resultSelector, comparer);
@@ -110,15 +114,11 @@ namespace MoreLinq
             var alookup = Lookup<TKey, TFirst>.CreateForJoin(first, firstKeySelector, comparer);
             var blookup = Lookup<TKey, TSecond>.CreateForJoin(second, secondKeySelector, comparer);
 
-            foreach (var a in alookup)
-            {
-                yield return resultSelector(a.Key, a, blookup[a.Key]);
-            }
+            foreach (var a in alookup) yield return resultSelector(a.Key, a, blookup[a.Key]);
 
             foreach (var b in blookup)
             {
-                if (alookup.Contains(b.Key))
-                    continue;
+                if (alookup.Contains(b.Key)) continue;
                 // We can skip the lookup because we are iterating over keys not found in the first sequence
                 yield return resultSelector(b.Key, Enumerable.Empty<TFirst>(), b);
             }

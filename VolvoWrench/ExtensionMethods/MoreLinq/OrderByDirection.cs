@@ -17,7 +17,7 @@
 
 #endregion
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     /// <summary>
     ///     Enumeration that defines values representing valid ordering directions for a sequence.

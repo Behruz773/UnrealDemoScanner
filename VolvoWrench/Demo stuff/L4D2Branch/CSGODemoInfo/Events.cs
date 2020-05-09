@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo
 {
     public class HeaderParsedEventArgs : EventArgs
     {
@@ -10,7 +10,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             Header = header;
         }
 
-        public DemoHeader Header { get; private set; }
+        public DemoHeader Header { get; }
     }
 
 #if SLOW_PROTOBUF
@@ -101,7 +101,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
 		public List<RankStruct> RankStructList { get; set; }
 	}
-	#endif
+#endif
 
     public class TickDoneEventArgs : EventArgs
     {
@@ -169,10 +169,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         public Equipment Weapon { get; internal set; }
 
         [Obsolete("Use \"Victim\" instead. This will be removed soon™", false)]
-        public Player DeathPerson
-        {
-            get { return Victim; }
-        }
+        public Player DeathPerson => Victim;
 
         public Player Victim { get; internal set; }
         public Player Killer { get; internal set; }
@@ -350,10 +347,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         internal int EntityID { get; set; }
         public EquipmentElement Weapon { get; set; }
 
-        public EquipmentClass Class
-        {
-            get { return (EquipmentClass) (((int) Weapon/100) + 1); }
-        }
+        public EquipmentClass Class => (EquipmentClass) ((int) Weapon / 100 + 1);
 
         public string OriginalString { get; set; }
         public string SkinID { get; set; }
@@ -361,22 +355,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         internal int AmmoType { get; set; }
         public Player Owner { get; set; }
 
-        public int ReserveAmmo
-        {
-            get { return (Owner != null && AmmoType != -1) ? Owner.AmmoLeft[AmmoType] : -1; }
-        }
+        public int ReserveAmmo => Owner != null && AmmoType != -1 ? Owner.AmmoLeft[AmmoType] : -1;
 
         public static EquipmentElement MapEquipment(string OriginalString)
         {
             var weapon = EquipmentElement.Unknown;
 
-            if (OriginalString.Contains("knife") || OriginalString == "bayonet")
-            {
-                weapon = EquipmentElement.Knife;
-            }
+            if (OriginalString.Contains("knife") || OriginalString == "bayonet") weapon = EquipmentElement.Knife;
 
             if (weapon == EquipmentElement.Unknown)
-            {
                 switch (OriginalString)
                 {
                     case "ak47":
@@ -518,7 +505,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                         weapon = EquipmentElement.USP;
                         break;
                     case "scar17":
-                        //These crash the game when given via give weapon_[mp5navy|...], and cannot be purchased ingame.
+                    //These crash the game when given via give weapon_[mp5navy|...], and cannot be purchased ingame.
                     case "sg550": //yet the server-classes are networked, so I need to resolve them. 
                     case "mp5navy":
                     case "p228":
@@ -531,7 +518,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                         Trace.WriteLine("Unknown weapon. " + OriginalString, "Equipment.MapEquipment()");
                         break;
                 }
-            }
 
             return weapon;
         }

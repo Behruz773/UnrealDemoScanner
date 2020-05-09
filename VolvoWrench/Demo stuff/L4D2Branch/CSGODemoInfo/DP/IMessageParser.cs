@@ -1,4 +1,4 @@
-﻿namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP
+﻿namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP
 {
 #if SLOW_PROTOBUF
 	using ProtoBuf;
@@ -26,5 +26,5 @@
 		/// <value>The priority.</value>
 		int Priority { get; }
     }
-	#endif
+#endif
 }

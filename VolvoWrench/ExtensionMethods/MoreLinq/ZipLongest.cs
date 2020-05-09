@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a projection of tuples, where each tuple contains the N-th element
@@ -57,7 +57,9 @@ namespace MoreLinq
             Func<TFirst, TSecond, TResult> resultSelector)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return ZipLongestImpl(first, second, resultSelector);
@@ -72,7 +74,6 @@ namespace MoreLinq
             using (var e2 = second.GetEnumerator())
             {
                 while (e1.MoveNext())
-                {
                     if (e2.MoveNext())
                     {
                         yield return resultSelector(e1.Current, e2.Current);
@@ -81,18 +82,17 @@ namespace MoreLinq
                     {
                         do
                         {
-                            yield return resultSelector(e1.Current, default(TSecond));
+                            yield return resultSelector(e1.Current, default);
                         } while (e1.MoveNext());
+
                         yield break;
                     }
-                }
+
                 if (e2.MoveNext())
-                {
                     do
                     {
-                        yield return resultSelector(default(TFirst), e2.Current);
+                        yield return resultSelector(default, e2.Current);
                     } while (e2.MoveNext());
-                }
             }
         }
     }

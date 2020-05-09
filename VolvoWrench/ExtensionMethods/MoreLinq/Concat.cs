@@ -21,11 +21,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     using LinqEnumerable = Enumerable;
 
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a sequence consisting of the head element and the given tail elements.
@@ -38,6 +38,7 @@ namespace MoreLinq
         public static IEnumerable<T> Concat<T>(this T head, IEnumerable<T> tail)
         {
             if (tail == null) throw new ArgumentNullException("tail");
+
             return tail.Prepend(head);
         }
 
@@ -52,6 +53,7 @@ namespace MoreLinq
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> head, T tail)
         {
             if (head == null) throw new ArgumentNullException("head");
+
             return head.Concat(LinqEnumerable.Repeat(tail, 1));
         }
     }

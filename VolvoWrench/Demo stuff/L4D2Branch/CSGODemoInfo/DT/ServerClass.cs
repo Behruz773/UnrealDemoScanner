@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT
 {
     internal class ServerClass : IDisposable
     {
@@ -22,8 +22,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
 
         internal void AnnounceNewEntity(Entity e)
         {
-            if (OnNewEntity != null)
-                OnNewEntity(this, new EntityCreatedEventArgs(this, e));
+            if (OnNewEntity != null) OnNewEntity(this, new EntityCreatedEventArgs(this, e));
         }
 
         public override string ToString()
@@ -50,7 +49,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
             return string.Format("[FlattenedPropEntry: PropertyName={2}, Prop={0}, ArrayElementProp={1}]", Prop,
                 ArrayElementProp, PropertyName);
         }
-    };
+    }
 
     internal class ExcludeEntry
     {
@@ -61,9 +60,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
             ExcludingDT = excludingDT;
         }
 
-        public string VarName { get; private set; }
-        public string DTName { get; private set; }
-        public string ExcludingDT { get; private set; }
+        public string VarName { get; }
+        public string DTName { get; }
+        public string ExcludingDT { get; }
     }
 
 
@@ -75,7 +74,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
             Entity = e;
         }
 
-        public ServerClass Class { get; private set; }
-        public Entity Entity { get; private set; }
+        public ServerClass Class { get; }
+        public Entity Entity { get; }
     }
 }

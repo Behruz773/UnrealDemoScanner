@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Determines whether the end of the first sequence is equivalent to
@@ -69,6 +69,7 @@ namespace MoreLinq
         public static bool EndsWith<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
 
             comparer = comparer ?? EqualityComparer<T>.Default;

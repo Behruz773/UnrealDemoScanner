@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.GameHandler
 {
     public abstract class GameHandler
     {
@@ -16,7 +16,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
             Flags = new List<KeyValuePair<string, int>>();
         }
 
-		protected int CurrentTick { get; set; } = -1;
+        protected int CurrentTick { get; set; } = -1;
 
         public abstract DemoProtocolVersion DemoVersion { get; protected set; }
 
@@ -26,11 +26,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
 
         public string Map { get; set; }
 
-        protected string MapEndAdjustType { get; private set; }
+        protected string MapEndAdjustType { get; }
 
-        protected List<string> Maps { get; private set; }
+        protected List<string> Maps { get; }
 
-        protected string MapStartAdjustType { get; private set; }
+        protected string MapStartAdjustType { get; }
 
         public int NetworkProtocol { get; set; }
 
@@ -42,25 +42,14 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
 
         public static GameHandler getGameHandler(string gameDir, string map)
         {
-            if (gameDir == "portal")
-            {
-                return new PortalGameHandler();
-            }
+            if (gameDir == "portal") return new PortalGameHandler();
             if (gameDir == "portal2")
             {
-                if (Category.Portal2Sp.Maps.Contains(map))
-                {
-                    return new Portal2SpGameHandler();
-                }
-                if (Category.Portal2Coop.Maps.Contains(map))
-                {
-                    return new Portal2CoopGameHandler();
-                }
-                if (Category.Portal2CoopCourse6.Maps.Contains(map))
-                {
-                    return new Portal2CoopCourse6GameHandler();
-                }
+                if (Category.Portal2Sp.Maps.Contains(map)) return new Portal2SpGameHandler();
+                if (Category.Portal2Coop.Maps.Contains(map)) return new Portal2CoopGameHandler();
+                if (Category.Portal2CoopCourse6.Maps.Contains(map)) return new Portal2CoopCourse6GameHandler();
             }
+
             throw new Exception("Unknown game");
         }
 

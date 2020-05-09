@@ -24,9 +24,9 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Groups the adjacent elements of a sequence according to a
@@ -104,6 +104,7 @@ namespace MoreLinq
             IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
 
             return GroupAdjacent(source, keySelector, e => e, comparer);
@@ -205,10 +206,12 @@ namespace MoreLinq
             IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             if (elementSelector == null) throw new ArgumentNullException("elementSelector");
 
-            return GroupAdjacentImpl<TSource, TKey, TElement, IGrouping<TKey, TElement>>(source, keySelector,
+            return GroupAdjacentImpl(source, keySelector,
                 elementSelector, CreateGroupAdjacentGrouping,
                 comparer ?? EqualityComparer<TKey>.Default);
         }
@@ -257,7 +260,9 @@ namespace MoreLinq
             Func<TKey, IEnumerable<TSource>, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             // This should be removed once the target framework is bumped to something that supports covariance
@@ -316,7 +321,9 @@ namespace MoreLinq
             IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             // This should be removed once the target framework is bumped to something that supports covariance
@@ -341,7 +348,7 @@ namespace MoreLinq
             using (var iterator = source.GetEnumerator())
             {
                 var group = default(TKey);
-                var members = (List<TElement>) null;
+                List<TElement> members = null;
 
                 while (iterator.MoveNext())
                 {
@@ -353,15 +360,14 @@ namespace MoreLinq
                     }
                     else
                     {
-                        if (members != null)
-                            yield return resultSelector(group, members);
+                        if (members != null) yield return resultSelector(group, members);
+
                         group = key;
                         members = new List<TElement> {element};
                     }
                 }
 
-                if (members != null)
-                    yield return resultSelector(group, members);
+                if (members != null) yield return resultSelector(group, members);
             }
         }
 

@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Text;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.GameHandler;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff
 {
     public class DemoParser
     {
@@ -15,19 +15,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff
             using (var binaryReader = new BinaryReader(new MemoryStream(File.ReadAllBytes(file))))
             {
                 if (Encoding.ASCII.GetString(binaryReader.ReadBytes(8)).TrimEnd(new char[1]) != "HL2DEMO")
-                {
                     throw new Exception("Not a demo");
-                }
                 var demoProtocolVersion = (DemoProtocolVersion) binaryReader.ReadInt32();
-                if ((int) demoProtocolVersion == 2)
-                {
-                    demoProtocolVersion = DemoProtocolVersion.HL2;
-                }
-                if (!Enum.IsDefined(typeof (DemoProtocolVersion), demoProtocolVersion))
-                {
+                if ((int) demoProtocolVersion == 2) demoProtocolVersion = DemoProtocolVersion.HL2;
+                if (!Enum.IsDefined(typeof(DemoProtocolVersion), demoProtocolVersion))
                     throw new Exception(string.Concat("Unknown demo protocol version: 0x",
                         demoProtocolVersion.ToString("x")));
-                }
                 var num1 = binaryReader.ReadInt32();
                 binaryReader.BaseStream.Seek(260, SeekOrigin.Current);
                 var str = Encoding.ASCII.GetString(binaryReader.ReadBytes(260)).TrimEnd(new char[1]);
@@ -45,13 +38,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff
                 catch (Exception)
                 {
                     if (demoProtocolVersion == DemoProtocolVersion.HL2)
-                    {
                         hL2GameHandler = new HL2GameHandler();
-                    }
                     else if (demoProtocolVersion == DemoProtocolVersion.ORANGEBOX)
-                    {
                         hL2GameHandler = new OrangeBoxGameHandler();
-                    }
                 }
 
                 hL2GameHandler.FileName = file;
@@ -64,19 +53,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff
                 do
                 {
                     num = binaryReader.ReadByte();
-                    if (hL2GameHandler.IsStop(num))
-                    {
-                        break;
-                    }
+                    if (hL2GameHandler.IsStop(num)) break;
                     var num3 = binaryReader.ReadInt32();
-                    if (hL2GameHandler.DemoVersion >= DemoProtocolVersion.ORANGEBOX)
-                    {
-                        binaryReader.ReadByte();
-                    }
+                    if (hL2GameHandler.DemoVersion >= DemoProtocolVersion.ORANGEBOX) binaryReader.ReadByte();
                     hL2GameHandler.HandleCommand(num, num3, binaryReader);
                 } while (!hL2GameHandler.IsStop(num));
+
                 result = hL2GameHandler.GetResult();
             }
+
             return result;
         }
     }

@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a <see cref="HashSet{T}" /> of the source items using the default equality
@@ -59,6 +59,7 @@ namespace MoreLinq
             IEqualityComparer<TSource> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             return new HashSet<TSource>(source, comparer);
         }
     }

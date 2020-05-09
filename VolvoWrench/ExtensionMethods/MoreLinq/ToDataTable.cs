@@ -24,26 +24,22 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         private static MemberInfo GetAccessedMember(LambdaExpression lambda)
         {
             var body = lambda.Body;
 
             // If it's a field access, boxing was used, we need the field
-            if ((body.NodeType == ExpressionType.Convert) || (body.NodeType == ExpressionType.ConvertChecked))
-            {
+            if (body.NodeType == ExpressionType.Convert || body.NodeType == ExpressionType.ConvertChecked)
                 body = ((UnaryExpression) body).Operand;
-            }
 
             // Check if the MemberExpression is valid and is a "first level" member access e.g. not a.b.c 
             var memberExpression = body as MemberExpression;
-            if ((memberExpression == null) || (memberExpression.Expression.NodeType != ExpressionType.Parameter))
-            {
+            if (memberExpression == null || memberExpression.Expression.NodeType != ExpressionType.Parameter)
                 throw new ArgumentException(string.Format("Illegal expression: {0}", lambda), "lambda");
-            }
 
             return memberExpression.Member;
         }
@@ -56,13 +52,11 @@ namespace MoreLinq
             //
 
             if (expressions == null || expressions.Count == 0)
-            {
-                return from m in typeof (T).GetMembers(BindingFlags.Public | BindingFlags.Instance)
+                return from m in typeof(T).GetMembers(BindingFlags.Public | BindingFlags.Instance)
                     where m.MemberType == MemberTypes.Field
                           ||
-                          (m.MemberType == MemberTypes.Property && ((PropertyInfo) m).GetIndexParameters().Length == 0)
+                          m.MemberType == MemberTypes.Property && ((PropertyInfo) m).GetIndexParameters().Length == 0
                     select m;
-            }
 
             //
             // Ensure none of the expressions is null.
@@ -102,7 +96,7 @@ namespace MoreLinq
                 {
                     Member = m,
                     Type = type.IsGenericType
-                           && typeof (Nullable<>) == type.GetGenericTypeDefinition()
+                           && typeof(Nullable<>) == type.GetGenericTypeDefinition()
                         ? type.GetGenericArguments()[0]
                         : type,
                     Column = columns[m.Name]
@@ -146,12 +140,12 @@ namespace MoreLinq
         private static UnaryExpression CreateMemberAccessor(Expression parameter, MemberInfo member)
         {
             var access = Expression.MakeMemberAccess(parameter, member);
-            return Expression.Convert(access, typeof (object));
+            return Expression.Convert(access, typeof(object));
         }
 
         private static Func<T, object[]> CreateShredder<T>(IEnumerable<MemberInfo> members)
         {
-            var parameter = Expression.Parameter(typeof (T), "e");
+            var parameter = Expression.Parameter(typeof(T), "e");
 
             //
             // It is valid for members sequence to have null entries, in
@@ -161,9 +155,9 @@ namespace MoreLinq
 
             var initializers = members.Select(m => m != null
                 ? (Expression) CreateMemberAccessor(parameter, m)
-                : Expression.Constant(null, typeof (object)));
+                : Expression.Constant(null, typeof(object)));
 
-            var array = Expression.NewArrayInit(typeof (object), initializers);
+            var array = Expression.NewArrayInit(typeof(object), initializers);
 
             var lambda = Expression.Lambda<Func<T, object[]>>(array, parameter);
 
@@ -189,6 +183,7 @@ namespace MoreLinq
             where TTable : DataTable
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (table == null) throw new ArgumentNullException("table");
 
             var members = PrepareMemberInfos(expressions).ToArray();

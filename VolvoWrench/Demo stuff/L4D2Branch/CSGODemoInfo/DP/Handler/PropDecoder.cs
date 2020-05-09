@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler
 {
     internal static class PropDecoder
     {
@@ -34,33 +34,26 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
         {
             if (prop.Flags.HasFlagFast(SendPropertyFlags.VarInt))
             {
-                if (prop.Flags.HasFlagFast(SendPropertyFlags.Unsigned))
-                {
-                    return (int) reader.ReadVarInt();
-                }
+                if (prop.Flags.HasFlagFast(SendPropertyFlags.Unsigned)) return (int) reader.ReadVarInt();
                 return (int) reader.ReadSignedVarInt();
             }
-            if (prop.Flags.HasFlagFast(SendPropertyFlags.Unsigned))
-            {
-                return (int) reader.ReadInt(prop.NumberOfBits);
-            }
+
+            if (prop.Flags.HasFlagFast(SendPropertyFlags.Unsigned)) return (int) reader.ReadInt(prop.NumberOfBits);
             return reader.ReadSignedInt(prop.NumberOfBits);
         }
 
         public static float DecodeFloat(SendTableProperty prop, IBitStream reader)
         {
-            var fVal = 0.0f;
             ulong dwInterp;
 
-            if (DecodeSpecialFloat(prop, reader, out fVal))
-                return fVal;
+            if (DecodeSpecialFloat(prop, reader, out var fVal)) return fVal;
 
 
             //Encoding: The range between lowVal and highVal is splitted into the same steps.
             //Read an int, fit it into the range. 
             dwInterp = reader.ReadInt(prop.NumberOfBits);
-            fVal = (float) dwInterp/((1 << prop.NumberOfBits) - 1);
-            fVal = prop.LowValue + (prop.HighValue - prop.LowValue)*fVal;
+            fVal = (float) dwInterp / ((1 << prop.NumberOfBits) - 1);
+            fVal = prop.LowValue + (prop.HighValue - prop.LowValue) * fVal;
 
             return fVal;
         }
@@ -71,10 +64,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
             {
             }
 
-            var v = new Vector();
-
-            v.X = DecodeFloat(prop, reader);
-            v.Y = DecodeFloat(prop, reader);
+            var v = new Vector
+            {
+                X = DecodeFloat(prop, reader),
+                Y = DecodeFloat(prop, reader)
+            };
 
             if (!prop.Flags.HasFlagFast(SendPropertyFlags.Normal))
             {
@@ -85,18 +79,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 var isNegative = reader.ReadBit();
 
                 //v0v0v1v1 in original instead of margin. 
-                var absolute = v.X*v.X + v.Y*v.Y;
+                var absolute = v.X * v.X + v.Y * v.Y;
                 if (absolute < 1.0f)
-                {
                     v.Z = (float) Math.Sqrt(1 - absolute);
-                }
                 else
-                {
                     v.Z = 0f;
-                }
 
-                if (isNegative)
-                    v.Z *= -1;
+                if (isNegative) v.Z *= -1;
             }
 
             return v;
@@ -109,20 +98,14 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
             var numBits = 1;
 
-            while ((maxElements >>= 1) != 0)
-            {
-                numBits++;
-            }
+            while ((maxElements >>= 1) != 0) numBits++;
 
             var nElements = (int) reader.ReadInt(numBits);
 
             var result = new object[nElements];
 
             var temp = new FlattenedPropEntry("", flattenedProp.ArrayElementProp, null);
-            for (var i = 0; i < nElements; i++)
-            {
-                result[i] = DecodeProp(temp, reader);
-            }
+            for (var i = 0; i < nElements; i++) result[i] = DecodeProp(temp, reader);
 
             return result;
         }
@@ -134,9 +117,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
         public static Vector DecodeVectorXY(SendTableProperty prop, IBitStream reader)
         {
-            var v = new Vector();
-            v.X = DecodeFloat(prop, reader);
-            v.Y = DecodeFloat(prop, reader);
+            var v = new Vector
+            {
+                X = DecodeFloat(prop, reader),
+                Y = DecodeFloat(prop, reader)
+            };
 
             return v;
         }
@@ -150,58 +135,67 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 result = ReadBitCoord(reader);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.CoordMp))
             {
                 result = ReadBitCoordMP(reader, false, false);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.CoordMpLowPrecision))
             {
                 result = ReadBitCoordMP(reader, false, true);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.CoordMpIntegral))
             {
                 result = ReadBitCoordMP(reader, true, false);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.NoScale))
             {
                 result = reader.ReadFloat();
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.Normal))
             {
                 result = ReadBitNormal(reader);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.CellCoord))
             {
                 result = ReadBitCellCoord(reader, prop.NumberOfBits, false, false);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.CellCoordLowPrecision))
             {
                 result = ReadBitCellCoord(reader, prop.NumberOfBits, true, false);
                 return true;
             }
+
             if (prop.Flags.HasFlagFast(SendPropertyFlags.CellCoordIntegral))
             {
                 result = ReadBitCellCoord(reader, prop.NumberOfBits, false, true);
                 return true;
             }
+
             result = 0;
 
             return false;
         }
 
         private static readonly int COORD_FRACTIONAL_BITS = 5;
-        private static readonly int COORD_DENOMINATOR = (1 << (COORD_FRACTIONAL_BITS));
-        private static readonly float COORD_RESOLUTION = (1.0f/(COORD_DENOMINATOR));
+        private static readonly int COORD_DENOMINATOR = 1 << COORD_FRACTIONAL_BITS;
+        private static readonly float COORD_RESOLUTION = 1.0f / COORD_DENOMINATOR;
 
         private static readonly int COORD_FRACTIONAL_BITS_MP_LOWPRECISION = 3;
-        private static readonly float COORD_DENOMINATOR_LOWPRECISION = (1 << (COORD_FRACTIONAL_BITS_MP_LOWPRECISION));
-        private static readonly float COORD_RESOLUTION_LOWPRECISION = (1.0f/(COORD_DENOMINATOR_LOWPRECISION));
+        private static readonly float COORD_DENOMINATOR_LOWPRECISION = 1 << COORD_FRACTIONAL_BITS_MP_LOWPRECISION;
+        private static readonly float COORD_RESOLUTION_LOWPRECISION = 1.0f / COORD_DENOMINATOR_LOWPRECISION;
 
         private static float ReadBitCoord(IBitStream reader)
         {
@@ -222,22 +216,16 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
                 // If there's an integer, read it in
                 if (intVal == 1)
-                {
                     // Adjust the integers from [0..MAX_COORD_VALUE-1] to [1..MAX_COORD_VALUE]
                     intVal = (int) reader.ReadInt(14) + 1; //14 --> Coord int bits
-                }
 
                 //If there's a fraction, read it in
-                if (fractVal == 1)
-                {
-                    fractVal = (int) reader.ReadInt(COORD_FRACTIONAL_BITS);
-                }
+                if (fractVal == 1) fractVal = (int) reader.ReadInt(COORD_FRACTIONAL_BITS);
 
-                value = intVal + (fractVal*COORD_RESOLUTION);
+                value = intVal + fractVal * COORD_RESOLUTION;
             }
 
-            if (isNegative)
-                value *= -1;
+            if (isNegative) value *= -1;
 
             return value;
         }
@@ -264,13 +252,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     // If there's an integer, read it in
                     // Adjust the integers from [0..MAX_COORD_VALUE-1] to [1..MAX_COORD_VALUE]
                     if (inBounds)
-                    {
                         value = reader.ReadInt(11) + 1;
-                    }
                     else
-                    {
                         value = reader.ReadInt(14) + 1;
-                    }
                 }
             }
             else
@@ -287,24 +271,19 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     // If there's an integer, read it in
                     // Adjust the integers from [0..MAX_COORD_VALUE-1] to [1..MAX_COORD_VALUE]
                     if (inBounds)
-                    {
                         value = reader.ReadInt(11) + 1;
-                    }
                     else
-                    {
                         value = reader.ReadInt(14) + 1;
-                    }
                 }
 
                 // If there's a fraction, read it in
                 fractval = (int) reader.ReadInt(isLowPrecision ? 3 : 5);
 
                 // Calculate the correct floating point value
-                value = intval + (fractval*(isLowPrecision ? COORD_RESOLUTION_LOWPRECISION : COORD_RESOLUTION));
+                value = intval + fractval * (isLowPrecision ? COORD_RESOLUTION_LOWPRECISION : COORD_RESOLUTION);
             }
 
-            if (isNegative)
-                value = -value;
+            if (isNegative) value = -value;
 
             return value;
         }
@@ -325,15 +304,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     (int) reader.ReadInt(lowPrecision ? COORD_FRACTIONAL_BITS_MP_LOWPRECISION : COORD_FRACTIONAL_BITS);
 
 
-                value = intval + (fractval*(lowPrecision ? COORD_RESOLUTION_LOWPRECISION : COORD_RESOLUTION));
+                value = intval + fractval * (lowPrecision ? COORD_RESOLUTION_LOWPRECISION : COORD_RESOLUTION);
             }
 
             return value;
         }
 
         private static readonly int NORMAL_FRACTIONAL_BITS = 11;
-        private static readonly int NORMAL_DENOMINATOR = ((1 << (NORMAL_FRACTIONAL_BITS)) - 1);
-        private static readonly float NORMAL_RESOLUTION = (1.0f/(NORMAL_DENOMINATOR));
+        private static readonly int NORMAL_DENOMINATOR = (1 << NORMAL_FRACTIONAL_BITS) - 1;
+        private static readonly float NORMAL_RESOLUTION = 1.0f / NORMAL_DENOMINATOR;
 
         private static float ReadBitNormal(IBitStream reader)
         {
@@ -341,10 +320,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
             var fractVal = reader.ReadInt(NORMAL_FRACTIONAL_BITS);
 
-            var value = fractVal*NORMAL_RESOLUTION;
+            var value = fractVal * NORMAL_RESOLUTION;
 
-            if (isNegative)
-                value *= -1;
+            if (isNegative) value *= -1;
 
             return value;
         }

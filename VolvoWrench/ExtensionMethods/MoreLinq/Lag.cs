@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -43,7 +43,7 @@ namespace MoreLinq
         public static IEnumerable<TResult> Lag<TSource, TResult>(this IEnumerable<TSource> source, int offset,
             Func<TSource, TSource, TResult> resultSelector)
         {
-            return Lag(source, offset, default(TSource), resultSelector);
+            return Lag(source, offset, default, resultSelector);
         }
 
         /// <summary>
@@ -66,6 +66,7 @@ namespace MoreLinq
             TSource defaultLagValue, Func<TSource, TSource, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
             // NOTE: Theoretically, we could assume that negative (or zero-offset) lags could be
             //       re-written as: sequence.Lead( -lagBy, resultSelector ). However, I'm not sure
@@ -94,7 +95,6 @@ namespace MoreLinq
                 }
 
                 if (hasMore) // check that we didn't consume the sequence yet
-                {
                     // now the lagged value is derived from the sequence
                     while (iter.MoveNext())
                     {
@@ -102,7 +102,6 @@ namespace MoreLinq
                         yield return resultSelector(iter.Current, lagValue);
                         lagQueue.Enqueue(iter.Current);
                     }
-                }
             }
         }
     }

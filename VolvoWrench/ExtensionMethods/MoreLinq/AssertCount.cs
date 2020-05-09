@@ -20,12 +20,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
 #if MORELINQ
-
         private static readonly Func<int, int, Exception> defaultErrorSelector = OnAssertCountFailure;
 
         /// <summary>
@@ -88,7 +87,7 @@ namespace MoreLinq
             return new SequenceException(string.Format(message, count.ToString("N0")));
         }
 
-        #endif
+#endif
 
         private static IEnumerable<TSource> AssertCountImpl<TSource>(IEnumerable<TSource> source,
             int count, Func<int, int, Exception> errorSelector)
@@ -96,8 +95,8 @@ namespace MoreLinq
             var collection = source as ICollection<TSource>; // Optimization for collections
             if (collection != null)
             {
-                if (collection.Count != count)
-                    throw errorSelector(collection.Count.CompareTo(count), count);
+                if (collection.Count != count) throw errorSelector(collection.Count.CompareTo(count), count);
+
                 return source;
             }
 
@@ -111,16 +110,11 @@ namespace MoreLinq
             foreach (var element in source)
             {
                 iterations++;
-                if (iterations > count)
-                {
-                    throw errorSelector(1, count);
-                }
+                if (iterations > count) throw errorSelector(1, count);
                 yield return element;
             }
-            if (iterations != count)
-            {
-                throw errorSelector(-1, count);
-            }
+
+            if (iterations != count) throw errorSelector(-1, count);
         }
     }
 }

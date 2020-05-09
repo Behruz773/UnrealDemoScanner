@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace VolvoWrench.Demo_stuff.GoldSource.Verify
+namespace VolvoWrench.DemoStuff.GoldSource.Verify
 {
     public class Category
     {
+        public List<Tuple<string, Commandtype>> CommandRules;
+        public List<Tuple<string, string>> CvarRules;
         public string name;
-        public List<Tuple<String,Commandtype>> CommandRules;
-        public List<Cvar> CvarRules;
 
         public Category()
         {
             CommandRules = new List<Tuple<string, Commandtype>>();
-            CvarRules = new List<Cvar>();
+            CvarRules = new List<Tuple<string, string>>();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
+namespace VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil
 {
     public static class BitStreamUtil
     {
@@ -26,11 +26,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
 			var bs3 = new UnsafeBitStream();
 			bs3.Initialize(new MemoryStream(data));
 			return new DebugBitStream(bs1, new DebugBitStream(bs2, bs3));
-			#else
+#else
 
 #if YOLO
 			var bs = new UnsafeBitStream();
-			#else
+#else
             var bs = new ManagedBitStream();
 #endif
 
@@ -51,11 +51,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
 			var bs3 = new UnsafeBitStream();
 			bs3.Initialize(new MemoryStream(data));
 			return new DebugBitStream(bs1, new DebugBitStream(bs2, bs3));
-			#else
+#else
 
 #if YOLO
 			var bs = new UnsafeBitStream();
-			#else
+#else
             var bs = new ManagedBitStream();
 #endif
 
@@ -79,6 +79,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
                     ret = (ret & 15) | (bs.ReadInt(32 - 4) << 4);
                     break;
             }
+
             return ret;
         }
 
@@ -93,10 +94,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             for (var pos = 0; pos < limit; pos++)
             {
                 var b = bs.ReadByte();
-                if ((b == 0) || (b == 10))
-                    break;
+                if (b == 0 || b == 10) break;
+
                 result.Add(b);
             }
+
             return Encoding.ASCII.GetString(result.ToArray());
         }
 
@@ -105,8 +107,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             using (var memstream = new MemoryStream())
             {
                 // not particulary efficient, but probably fine
-                for (var b = bs.ReadByte(); b != 0; b = bs.ReadByte())
-                    memstream.WriteByte(b);
+                for (var b = bs.ReadByte(); b != 0; b = bs.ReadByte()) memstream.WriteByte(b);
 
                 return Encoding.Default.GetString(memstream.GetBuffer(), 0, checked((int) memstream.Length));
             }
@@ -123,11 +124,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             uint result = 0;
             for (var count = 0; (tmpByte & 0x80) != 0; count++)
             {
-                if (count > 5)
-                    throw new InvalidDataException("VarInt32 out of range");
+                if (count > 5) throw new InvalidDataException("VarInt32 out of range");
+
                 tmpByte = bs.ReadByte();
-                result |= (tmpByte & 0x7F) << (7*count);
+                result |= (tmpByte & 0x7F) << (7 * count);
             }
+
             return result;
         }
 
@@ -145,13 +147,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
             {
                 b = reader.ReadByte();
 
-                if ((count < 4) || ((count == 4) && (((b & 0xF8) == 0) || ((b & 0xF8) == 0xF8))))
-                    result |= (b & ~0x80) << (7*count);
+                if (count < 4 || count == 4 && ((b & 0xF8) == 0 || (b & 0xF8) == 0xF8))
+                {
+                    result |= (b & ~0x80) << (7 * count);
+                }
                 else
                 {
-                    if (count >= 10)
-                        throw new OverflowException("Nope nope nope nope! 10 bytes max!");
-                    if ((count == 9) ? (b != 1) : ((b & 0x7F) != 0x7F))
+                    if (count >= 10) throw new OverflowException("Nope nope nope nope! 10 bytes max!");
+
+                    if (count == 9 ? b != 1 : (b & 0x7F) != 0x7F)
                         throw new NotSupportedException("more than 32 bits are not supported");
                 }
             }

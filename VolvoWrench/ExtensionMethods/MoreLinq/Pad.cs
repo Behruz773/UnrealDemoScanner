@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Pads a sequence with default values if it is narrower (shorter
@@ -78,7 +78,9 @@ namespace MoreLinq
         public static IEnumerable<TSource> Pad<TSource>(this IEnumerable<TSource> source, int width, TSource padding)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (width < 0) throw new ArgumentException(null, "width");
+
             return PadImpl(source, width, padding, null);
         }
 
@@ -109,9 +111,12 @@ namespace MoreLinq
             Func<int, TSource> paddingSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (paddingSelector == null) throw new ArgumentNullException("paddingSelector");
+
             if (width < 0) throw new ArgumentException(null, "width");
-            return PadImpl(source, width, default(TSource), paddingSelector);
+
+            return PadImpl(source, width, default, paddingSelector);
         }
 
         private static IEnumerable<T> PadImpl<T>(IEnumerable<T> source,
@@ -126,6 +131,7 @@ namespace MoreLinq
                 yield return item;
                 count++;
             }
+
             while (count < width)
             {
                 yield return paddingSelector != null ? paddingSelector(count) : padding;

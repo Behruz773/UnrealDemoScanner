@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
 {
     public struct CreateStringTable
     {
@@ -15,10 +15,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
         public int UserDataSize;
         public int UserDataSizeBits;
 
-        public bool UserDataFixedSize
-        {
-            get { return _UserDataFixedSize != 0; }
-        }
+        public bool UserDataFixedSize => _UserDataFixedSize != 0;
 
         public void Parse(IBitStream bitstream, DemoParser parser)
         {
@@ -35,25 +32,27 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                         Name = bitstream.ReadProtobufString();
                         continue;
                     }
+
                     if (fieldnum == 8)
                     {
                         // String data is special.
                         // We'll simply hope that gaben is nice and sends
                         // string_data last, just like he should.
                         var len = bitstream.ReadProtobufVarInt();
-                        bitstream.BeginChunk(len*8);
+                        bitstream.BeginChunk(len * 8);
                         CreateStringTableUserInfoHandler.Apply(this, bitstream, parser);
                         bitstream.EndChunk();
                         if (!bitstream.ChunkFinished)
                             throw new NotImplementedException("Lord Gaben wasn't nice to us :/");
+
                         break;
                     }
+
                     throw new InvalidDataException("yes I know we should drop this but we" +
                                                    "probably want to know that they added a new big field");
                 }
 
-                if (wireType != 0)
-                    throw new InvalidDataException();
+                if (wireType != 0) throw new InvalidDataException();
 
                 var val = bitstream.ReadProtobufVarInt();
 
@@ -76,9 +75,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                         break;
                     case 7:
                         Flags = val;
-                        break;
-                    default:
-                        // silently drop
                         break;
                 }
             }

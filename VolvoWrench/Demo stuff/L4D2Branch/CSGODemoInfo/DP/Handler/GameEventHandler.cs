@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler
 {
     /// <summary>
     ///     This class manages all GameEvents for a demo-parser.
@@ -14,8 +14,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
         public static void HandleGameEventList(IEnumerable<GameEventList.Descriptor> gel, DemoParser parser)
         {
             parser.GEH_Descriptors = new Dictionary<int, GameEventList.Descriptor>();
-            foreach (var d in gel)
-                parser.GEH_Descriptors[d.EventId] = d;
+            foreach (var d in gel) parser.GEH_Descriptors[d.EventId] = d;
         }
 
         /// <summary>
@@ -28,14 +27,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
             var descriptors = parser.GEH_Descriptors;
             var blindPlayers = parser.GEH_BlindPlayers;
 
-            if (descriptors == null)
-                return;
+            if (descriptors == null) return;
 
             Dictionary<string, object> data;
             var eventDescriptor = descriptors[rawEvent.EventId];
 
-            if (parser.Players.Count == 0 && eventDescriptor.Name != "player_connect")
-                return;
+            if (parser.Players.Count == 0 && eventDescriptor.Name != "player_connect") return;
 
             if (eventDescriptor.Name == "round_start")
             {
@@ -51,14 +48,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 parser.RaiseRoundStart(rs);
             }
 
-            if (eventDescriptor.Name == "cs_win_panel_match")
-                parser.RaiseWinPanelMatch();
+            if (eventDescriptor.Name == "cs_win_panel_match") parser.RaiseWinPanelMatch();
 
-            if (eventDescriptor.Name == "round_announce_final")
-                parser.RaiseRoundFinal();
+            if (eventDescriptor.Name == "round_announce_final") parser.RaiseRoundFinal();
 
-            if (eventDescriptor.Name == "round_announce_last_round_half")
-                parser.RaiseLastRoundHalf();
+            if (eventDescriptor.Name == "round_announce_last_round_half") parser.RaiseLastRoundHalf();
 
             if (eventDescriptor.Name == "round_end")
             {
@@ -70,8 +64,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
                 if (winner == parser.tID)
                     t = Team.Terrorist;
-                else if (winner == parser.ctID)
-                    t = Team.CounterTerrorist;
+                else if (winner == parser.ctID) t = Team.CounterTerrorist;
 
                 var roundEnd = new RoundEndedEventArgs
                 {
@@ -83,18 +76,19 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 parser.RaiseRoundEnd(roundEnd);
             }
 
-            if (eventDescriptor.Name == "round_officially_ended")
-                parser.RaiseRoundOfficiallyEnd();
+            if (eventDescriptor.Name == "round_officially_ended") parser.RaiseRoundOfficiallyEnd();
 
             if (eventDescriptor.Name == "round_mvp")
             {
                 data = MapData(eventDescriptor, rawEvent);
 
-                var roundMVPArgs = new RoundMVPEventArgs();
-                roundMVPArgs.Player = parser.Players.ContainsKey((int) data["userid"])
-                    ? parser.Players[(int) data["userid"]]
-                    : null;
-                roundMVPArgs.Reason = (RoundMVPReason) data["reason"];
+                var roundMVPArgs = new RoundMVPEventArgs
+                {
+                    Player = parser.Players.ContainsKey((int) data["userid"])
+                        ? parser.Players[(int) data["userid"]]
+                        : null,
+                    Reason = (RoundMVPReason) data["reason"]
+                };
 
                 parser.RaiseRoundMVP(roundMVPArgs);
             }
@@ -103,19 +97,19 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
             {
                 data = MapData(eventDescriptor, rawEvent);
 
-                var botTakeOverArgs = new BotTakeOverEventArgs();
-                botTakeOverArgs.Taker = parser.Players.ContainsKey((int) data["userid"])
-                    ? parser.Players[(int) data["userid"]]
-                    : null;
+                var botTakeOverArgs = new BotTakeOverEventArgs
+                {
+                    Taker = parser.Players.ContainsKey((int) data["userid"])
+                        ? parser.Players[(int) data["userid"]]
+                        : null
+                };
 
                 parser.RaiseBotTakeOver(botTakeOverArgs);
             }
 
-            if (eventDescriptor.Name == "begin_new_match")
-                parser.RaiseMatchStarted();
+            if (eventDescriptor.Name == "begin_new_match") parser.RaiseMatchStarted();
 
-            if (eventDescriptor.Name == "round_freeze_end")
-                parser.RaiseFreezetimeEnded();
+            if (eventDescriptor.Name == "round_freeze_end") parser.RaiseFreezetimeEnded();
 
             //if (eventDescriptor.Name != "player_footstep" && eventDescriptor.Name != "weapon_fire" && eventDescriptor.Name != "player_jump") {
             //	Console.WriteLine (eventDescriptor.Name);
@@ -127,35 +121,36 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
                     data = MapData(eventDescriptor, rawEvent);
 
-                    var fire = new WeaponFiredEventArgs();
-                    fire.Shooter = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
-                    fire.Weapon = new Equipment((string) data["weapon"]);
+                    var fire = new WeaponFiredEventArgs
+                    {
+                        Shooter = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null,
+                        Weapon = new Equipment((string) data["weapon"])
+                    };
 
                     if (fire.Shooter != null && fire.Weapon.Class != EquipmentClass.Grenade)
-                    {
                         fire.Weapon = fire.Shooter.ActiveWeapon;
-                    }
 
                     parser.RaiseWeaponFired(fire);
                     break;
                 case "player_death":
                     data = MapData(eventDescriptor, rawEvent);
 
-                    var kill = new PlayerKilledEventArgs();
-
-                    kill.Victim = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
-                    kill.Killer = parser.Players.ContainsKey((int) data["attacker"])
-                        ? parser.Players[(int) data["attacker"]]
-                        : null;
-                    kill.Assister = parser.Players.ContainsKey((int) data["assister"])
-                        ? parser.Players[(int) data["assister"]]
-                        : null;
-                    kill.Headshot = (bool) data["headshot"];
-                    kill.Weapon = new Equipment((string) data["weapon"], (string) data["weapon_itemid"]);
+                    var kill = new PlayerKilledEventArgs
+                    {
+                        Victim = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null,
+                        Killer = parser.Players.ContainsKey((int) data["attacker"])
+                            ? parser.Players[(int) data["attacker"]]
+                            : null,
+                        Assister = parser.Players.ContainsKey((int) data["assister"])
+                            ? parser.Players[(int) data["assister"]]
+                            : null,
+                        Headshot = (bool) data["headshot"],
+                        Weapon = new Equipment((string) data["weapon"], (string) data["weapon_itemid"])
+                    };
 
                     if (kill.Killer != null && kill.Weapon.Class != EquipmentClass.Grenade && kill.Killer.Weapons.Any())
                     {
@@ -174,36 +169,37 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 case "player_hurt":
                     data = MapData(eventDescriptor, rawEvent);
 
-                    var hurt = new PlayerHurtEventArgs();
-                    hurt.Player = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
-                    hurt.Attacker = parser.Players.ContainsKey((int) data["attacker"])
-                        ? parser.Players[(int) data["attacker"]]
-                        : null;
-                    hurt.Health = (int) data["health"];
-                    hurt.Armor = (int) data["armor"];
-                    hurt.HealthDamage = (int) data["dmg_health"];
-                    hurt.ArmorDamage = (int) data["dmg_armor"];
-                    hurt.Hitgroup = (Hitgroup) ((int) data["hitgroup"]);
+                    var hurt = new PlayerHurtEventArgs
+                    {
+                        Player = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null,
+                        Attacker = parser.Players.ContainsKey((int) data["attacker"])
+                            ? parser.Players[(int) data["attacker"]]
+                            : null,
+                        Health = (int) data["health"],
+                        Armor = (int) data["armor"],
+                        HealthDamage = (int) data["dmg_health"],
+                        ArmorDamage = (int) data["dmg_armor"],
+                        Hitgroup = (Hitgroup) (int) data["hitgroup"],
 
-                    hurt.Weapon = new Equipment((string) data["weapon"], "");
+                        Weapon = new Equipment((string) data["weapon"], "")
+                    };
 
                     if (hurt.Attacker != null && hurt.Weapon.Class != EquipmentClass.Grenade &&
                         hurt.Attacker.Weapons.Any())
-                    {
                         hurt.Weapon = hurt.Attacker.ActiveWeapon;
-                    }
 
                     parser.RaisePlayerHurt(hurt);
                     break;
 
-                    #region Nades
+                #region Nades
 
                 case "player_blind":
                     data = MapData(eventDescriptor, rawEvent);
                     if (parser.Players.ContainsKey((int) data["userid"]))
                         blindPlayers.Add(parser.Players[(int) data["userid"]]);
+
                     break;
                 case "flashbang_detonate":
                     var args = FillNadeEvent<FlashEventArgs>(MapData(eventDescriptor, rawEvent), parser);
@@ -234,15 +230,17 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     parser.RaiseFireEnd(FillNadeEvent<FireEventArgs>(MapData(eventDescriptor, rawEvent), parser));
                     break;
 
-                    #endregion
+                #endregion
 
                 case "player_connect":
                     data = MapData(eventDescriptor, rawEvent);
 
-                    var player = new PlayerInfo();
-                    player.UserID = (int) data["userid"];
-                    player.Name = (string) data["name"];
-                    player.GUID = (string) data["networkid"];
+                    var player = new PlayerInfo
+                    {
+                        UserID = (int) data["userid"],
+                        Name = (string) data["name"],
+                        GUID = (string) data["networkid"]
+                    };
                     player.XUID = player.GUID == "BOT" ? 0 : GetCommunityID(player.GUID);
 
 
@@ -257,26 +255,23 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 case "player_disconnect":
                     data = MapData(eventDescriptor, rawEvent);
 
-                    var disconnect = new PlayerDisconnectEventArgs();
-                    disconnect.Player = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
+                    var disconnect = new PlayerDisconnectEventArgs
+                    {
+                        Player = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null
+                    };
                     parser.RaisePlayerDisconnect(disconnect);
 
                     var toDelete = (int) data["userid"];
                     for (var i = 0; i < parser.RawPlayers.Length; i++)
-                    {
                         if (parser.RawPlayers[i] != null && parser.RawPlayers[i].UserID == toDelete)
                         {
                             parser.RawPlayers[i] = null;
                             break;
                         }
-                    }
 
-                    if (parser.Players.ContainsKey(toDelete))
-                    {
-                        parser.Players.Remove(toDelete);
-                    }
+                    if (parser.Players.ContainsKey(toDelete)) parser.Players.Remove(toDelete);
 
                     break;
 
@@ -290,16 +285,16 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
 
                     if (team == parser.tID)
                         t = Team.Terrorist;
-                    else if (team == parser.ctID)
-                        t = Team.CounterTerrorist;
+                    else if (team == parser.ctID) t = Team.CounterTerrorist;
+
                     playerTeamEvent.NewTeam = t;
 
                     t = Team.Spectate;
                     team = (int) data["oldteam"];
                     if (team == parser.tID)
                         t = Team.Terrorist;
-                    else if (team == parser.ctID)
-                        t = Team.CounterTerrorist;
+                    else if (team == parser.ctID) t = Team.CounterTerrorist;
+
                     playerTeamEvent.OldTeam = t;
 
                     playerTeamEvent.Swapped = parser.Players.ContainsKey((int) data["userid"])
@@ -317,10 +312,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 case "bomb_exploded": //When the bomb has exploded
                     data = MapData(eventDescriptor, rawEvent);
 
-                    var bombEventArgs = new BombEventArgs();
-                    bombEventArgs.Player = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
+                    var bombEventArgs = new BombEventArgs
+                    {
+                        Player = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null
+                    };
 
                     var site = (int) data["site"];
 
@@ -377,19 +374,23 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     break;
                 case "bomb_begindefuse":
                     data = MapData(eventDescriptor, rawEvent);
-                    var e = new BombDefuseEventArgs();
-                    e.Player = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
-                    e.HasKit = (bool) data["haskit"];
+                    var e = new BombDefuseEventArgs
+                    {
+                        Player = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null,
+                        HasKit = (bool) data["haskit"]
+                    };
                     parser.RaiseBombBeginDefuse(e);
                     break;
                 case "bomb_abortdefuse":
                     data = MapData(eventDescriptor, rawEvent);
-                    var e2 = new BombDefuseEventArgs();
-                    e2.Player = parser.Players.ContainsKey((int) data["userid"])
-                        ? parser.Players[(int) data["userid"]]
-                        : null;
+                    var e2 = new BombDefuseEventArgs
+                    {
+                        Player = parser.Players.ContainsKey((int) data["userid"])
+                            ? parser.Players[(int) data["userid"]]
+                            : null
+                    };
                     e2.HasKit = e2.Player.HasDefuseKit;
                     parser.RaiseBombAbortDefuse(e2);
                     break;
@@ -404,10 +405,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
             if (data.ContainsKey("userid") && parser.Players.ContainsKey((int) data["userid"]))
                 nade.ThrownBy = parser.Players[(int) data["userid"]];
 
-            var vec = new Vector();
-            vec.X = (float) data["x"];
-            vec.Y = (float) data["y"];
-            vec.Z = (float) data["z"];
+            var vec = new Vector
+            {
+                X = (float) data["x"],
+                Y = (float) data["y"],
+                Z = (float) data["z"]
+            };
             nade.Position = vec;
 
             return nade;
@@ -427,7 +430,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
         {
             var authServer = Convert.ToInt64(steamID.Substring(8, 1));
             var authID = Convert.ToInt64(steamID.Substring(10));
-            return (76561197960265728 + (authID*2) + authServer);
+            return 76561197960265728 + authID * 2 + authServer;
         }
     }
 }

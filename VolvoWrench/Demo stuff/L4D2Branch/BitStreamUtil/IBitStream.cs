@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
+namespace VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil
 {
     public interface IBitStream : IDisposable
     {
@@ -23,6 +23,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil
         byte[] ReadBytes(int bytes);
         float ReadFloat();
         byte[] ReadBits(int bits);
+
         int ReadProtobufVarInt();
         // Chunking: You can begin chunks with a specified length.
         // You can then determine whether you've already read

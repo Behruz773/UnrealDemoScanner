@@ -31,7 +31,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     /// <summary>
     ///     A <see cref="ILookup{TKey,TElement}" /> implementation that preserves insertion order
@@ -56,6 +56,7 @@ namespace MoreLinq
         private Lookup(IEqualityComparer<TKey> comparer)
         {
             if (comparer == null) comparer = EqualityComparer<TKey>.Default;
+
             _comparer = comparer;
             _groupings = new Grouping<TKey, TElement>[7];
         }
@@ -64,13 +65,11 @@ namespace MoreLinq
         {
             var g = _lastGrouping;
             if (g != null)
-            {
                 do
                 {
                     g = g.next;
                     yield return g;
                 } while (g != _lastGrouping);
-            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -86,6 +85,7 @@ namespace MoreLinq
             {
                 var grouping = GetGrouping(key, false);
                 if (grouping != null) return grouping;
+
                 return Enumerable.Empty<TElement>();
             }
         }
@@ -99,13 +99,13 @@ namespace MoreLinq
             Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             if (elementSelector == null) throw new ArgumentNullException("elementSelector");
+
             var lookup = new Lookup<TKey, TElement>(comparer);
-            foreach (var item in source)
-            {
-                lookup.GetGrouping(keySelector(item), true).Add(elementSelector(item));
-            }
+            foreach (var item in source) lookup.GetGrouping(keySelector(item), true).Add(elementSelector(item));
             return lookup;
         }
 
@@ -118,6 +118,7 @@ namespace MoreLinq
                 var key = keySelector(item);
                 if (key != null) lookup.GetGrouping(key, true).Add(item);
             }
+
             return lookup;
         }
 
@@ -126,39 +127,39 @@ namespace MoreLinq
         {
             var g = _lastGrouping;
             if (g != null)
-            {
                 do
                 {
                     g = g.next;
-                    if (g.count != g.elements.Length)
-                    {
-                        Array.Resize(ref g.elements, g.count);
-                    }
+                    if (g.count != g.elements.Length) Array.Resize(ref g.elements, g.count);
                     yield return resultSelector(g.key, g.elements);
                 } while (g != _lastGrouping);
-            }
         }
 
         internal int InternalGetHashCode(TKey key)
         {
             // Handle comparer implementations that throw when passed null
-            return (key == null) ? 0 : _comparer.GetHashCode(key) & 0x7FFFFFFF;
+            return key == null ? 0 : _comparer.GetHashCode(key) & 0x7FFFFFFF;
         }
 
         internal Grouping<TKey, TElement> GetGrouping(TKey key, bool create)
         {
             var hashCode = InternalGetHashCode(key);
-            for (var g = _groupings[hashCode%_groupings.Length]; g != null; g = g.hashNext)
-                if (g.hashCode == hashCode && _comparer.Equals(g.key, key)) return g;
+            for (var g = _groupings[hashCode % _groupings.Length]; g != null; g = g.hashNext)
+                if (g.hashCode == hashCode && _comparer.Equals(g.key, key))
+                    return g;
+
             if (create)
             {
                 if (Count == _groupings.Length) Resize();
-                var index = hashCode%_groupings.Length;
-                var g = new Grouping<TKey, TElement>();
-                g.key = key;
-                g.hashCode = hashCode;
-                g.elements = new TElement[1];
-                g.hashNext = _groupings[index];
+
+                var index = hashCode % _groupings.Length;
+                var g = new Grouping<TKey, TElement>
+                {
+                    key = key,
+                    hashCode = hashCode,
+                    elements = new TElement[1],
+                    hashNext = _groupings[index]
+                };
                 _groupings[index] = g;
                 if (_lastGrouping == null)
                 {
@@ -169,25 +170,28 @@ namespace MoreLinq
                     g.next = _lastGrouping.next;
                     _lastGrouping.next = g;
                 }
+
                 _lastGrouping = g;
                 Count++;
                 return g;
             }
+
             return null;
         }
 
         private void Resize()
         {
-            var newSize = checked(Count*2 + 1);
+            var newSize = checked(Count * 2 + 1);
             var newGroupings = new Grouping<TKey, TElement>[newSize];
             var g = _lastGrouping;
             do
             {
                 g = g.next;
-                var index = g.hashCode%newSize;
+                var index = g.hashCode % newSize;
                 g.hashNext = newGroupings[index];
                 newGroupings[index] = g;
             } while (g != _lastGrouping);
+
             _groupings = newGroupings;
         }
     }
@@ -213,20 +217,11 @@ namespace MoreLinq
 
         // DDB195907: implement IGrouping<>.Key implicitly
         // so that WPF binding works on this property.
-        public TKey Key
-        {
-            get { return key; }
-        }
+        public TKey Key => key;
 
-        int ICollection<TElement>.Count
-        {
-            get { return count; }
-        }
+        int ICollection<TElement>.Count => count;
 
-        bool ICollection<TElement>.IsReadOnly
-        {
-            get { return true; }
-        }
+        bool ICollection<TElement>.IsReadOnly => true;
 
         void ICollection<TElement>.Add(TElement item)
         {
@@ -273,14 +268,16 @@ namespace MoreLinq
             get
             {
                 if (index < 0 || index >= count) throw new ArgumentOutOfRangeException("index");
+
                 return elements[index];
             }
-            set { throw new NotSupportedException("Lookup is immutable"); }
+            set => throw new NotSupportedException("Lookup is immutable");
         }
 
         internal void Add(TElement element)
         {
-            if (elements.Length == count) Array.Resize(ref elements, checked(count*2));
+            if (elements.Length == count) Array.Resize(ref elements, checked(count * 2));
+
             elements[count] = element;
             count++;
         }

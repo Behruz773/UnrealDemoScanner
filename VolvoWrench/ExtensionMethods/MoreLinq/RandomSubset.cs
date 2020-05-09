@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -48,7 +48,9 @@ namespace MoreLinq
         public static IEnumerable<T> RandomSubset<T>(this IEnumerable<T> sequence, int subsetSize, Random rand)
         {
             if (rand == null) throw new ArgumentNullException("rand");
+
             if (sequence == null) throw new ArgumentNullException("sequence");
+
             if (subsetSize < 0) throw new ArgumentOutOfRangeException("subsetSize");
 
             return RandomSubsetImpl(sequence, subsetSize, rand);
@@ -82,8 +84,7 @@ namespace MoreLinq
             }
 
             // yield the random subet as a new sequence
-            for (var i = 0; i < subsetSize; i++)
-                yield return seqArray[i];
+            for (var i = 0; i < subsetSize; i++) yield return seqArray[i];
         }
     }
 }

@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -71,6 +71,7 @@ namespace MoreLinq
         public static IEnumerable<int> Random(Random rand, int maxValue)
         {
             if (rand == null) throw new ArgumentNullException("rand");
+
             if (maxValue < 0) throw new ArgumentOutOfRangeException("maxValue");
 
             return RandomImpl(rand, r => r.Next(maxValue));
@@ -100,6 +101,7 @@ namespace MoreLinq
         public static IEnumerable<int> Random(Random rand, int minValue, int maxValue)
         {
             if (rand == null) throw new ArgumentNullException("rand");
+
             if (minValue > maxValue)
                 throw new ArgumentOutOfRangeException("minValue",
                     string.Format("The argument minValue ({0}) is greater than maxValue ({1})", minValue, maxValue));
@@ -140,8 +142,7 @@ namespace MoreLinq
         /// <returns>An infinite sequence of random numbers of type T</returns>
         private static IEnumerable<T> RandomImpl<T>(Random rand, Func<Random, T> nextValue)
         {
-            while (true)
-                yield return nextValue(rand);
+            while (true) yield return nextValue(rand);
         }
     }
 }

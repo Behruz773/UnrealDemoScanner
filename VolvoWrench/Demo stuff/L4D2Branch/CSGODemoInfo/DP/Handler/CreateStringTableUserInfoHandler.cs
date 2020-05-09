@@ -1,30 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler
 {
     public static class CreateStringTableUserInfoHandler
     {
         public static void Apply(CreateStringTable table, IBitStream reader, DemoParser parser)
         {
             if (table.Name == "modelprecache")
-            {
                 while (parser.modelprecache.Count < table.MaxEntries)
-                {
                     parser.modelprecache.Add(null);
-                }
-            }
 
-            if (reader.ReadBit())
-                throw new NotImplementedException("Encoded with dictionaries, unable to decode");
+            if (reader.ReadBit()) throw new NotImplementedException("Encoded with dictionaries, unable to decode");
 
             var nTemp = table.MaxEntries;
             var nEntryBits = 0;
-            while ((nTemp >>= 1) != 0)
-                ++nEntryBits;
+            while ((nTemp >>= 1) != 0) ++nEntryBits;
 
             var history = new List<string>();
 
@@ -34,19 +28,14 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
             {
                 var entryIndex = lastEntry + 1;
                 // d in the entity-index
-                if (!reader.ReadBit())
-                {
-                    entryIndex = (int) reader.ReadInt(nEntryBits);
-                }
+                if (!reader.ReadBit()) entryIndex = (int) reader.ReadInt(nEntryBits);
 
                 lastEntry = entryIndex;
 
                 // Read the name of the string into entry.
                 var entry = "";
                 if (entryIndex < 0 || entryIndex >= table.MaxEntries)
-                {
                     throw new InvalidDataException("bogus string index");
-                }
 
                 if (reader.ReadBit())
                 {
@@ -67,11 +56,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     }
                 }
 
-                if (entry == null)
-                    entry = "";
+                if (entry == null) entry = "";
 
-                if (history.Count > 31)
-                    history.RemoveAt(0);
+                if (history.Count > 31) history.RemoveAt(0);
 
                 history.Add(entry);
 
@@ -91,8 +78,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                     }
                 }
 
-                if (userdata.Length == 0)
-                    break;
+                if (userdata.Length == 0) break;
 
                 if (table.Name == "userinfo")
                 {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
 {
     public struct PacketEntities
     {
@@ -14,15 +14,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
         public int MaxEntries;
         public int UpdatedEntries;
 
-        public bool IsDelta
-        {
-            get { return _IsDelta != 0; }
-        }
+        public bool IsDelta => _IsDelta != 0;
 
-        public bool UpdateBaseline
-        {
-            get { return _UpdateBaseline != 0; }
-        }
+        public bool UpdateBaseline => _UpdateBaseline != 0;
 
         public void Parse(IBitStream bitstream, DemoParser parser)
         {
@@ -32,23 +26,22 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                 var wireType = desc & 7;
                 var fieldnum = desc >> 3;
 
-                if ((fieldnum == 7) && (wireType == 2))
+                if (fieldnum == 7 && wireType == 2)
                 {
                     // Entity data is special.
                     // We'll simply hope that gaben is nice and sends
                     // entity_data last, just like he should.
 
                     var len = bitstream.ReadProtobufVarInt();
-                    bitstream.BeginChunk(len*8);
+                    bitstream.BeginChunk(len * 8);
                     PacketEntitesHandler.Apply(this, bitstream, parser);
                     bitstream.EndChunk();
-                    if (!bitstream.ChunkFinished)
-                        throw new NotImplementedException("Lord Gaben wasn't nice to us :/");
+                    if (!bitstream.ChunkFinished) throw new NotImplementedException("Lord Gaben wasn't nice to us :/");
+
                     break;
                 }
 
-                if (wireType != 0)
-                    throw new InvalidDataException();
+                if (wireType != 0) throw new InvalidDataException();
 
                 var val = bitstream.ReadProtobufVarInt();
 
@@ -71,9 +64,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                         break;
                     case 6:
                         DeltaFrom = val;
-                        break;
-                    default:
-                        // silently drop
                         break;
                 }
             }

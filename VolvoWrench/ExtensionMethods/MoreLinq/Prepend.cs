@@ -21,11 +21,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     using LinqEnumerable = Enumerable;
 
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Prepends a single value to a sequence.
@@ -50,6 +50,7 @@ namespace MoreLinq
         public static IEnumerable<TSource> Prepend<TSource>(this IEnumerable<TSource> source, TSource value)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             return LinqEnumerable.Repeat(value, 1).Concat(source);
         }
     }

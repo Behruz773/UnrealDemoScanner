@@ -1,6 +1,6 @@
 using System;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result
 {
     public class DemoParseResult : ICloneable
     {
@@ -14,23 +14,14 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result
         {
             get
             {
-                if (StartAdjustmentTick > -1 && EndAdjustmentTick > -1)
-                {
-                    return EndAdjustmentTick - StartAdjustmentTick;
-                }
-                if (StartAdjustmentTick > -1)
-                {
-                    return TotalTicks - StartAdjustmentTick;
-                }
-                if (EndAdjustmentTick > -1)
-                {
-                    return EndAdjustmentTick;
-                }
+                if (StartAdjustmentTick > -1 && EndAdjustmentTick > -1) return EndAdjustmentTick - StartAdjustmentTick;
+                if (StartAdjustmentTick > -1) return TotalTicks - StartAdjustmentTick;
+                if (EndAdjustmentTick > -1) return EndAdjustmentTick;
                 return TotalTicks;
             }
         }
 
-		public int EndAdjustmentTick { get; set; }
+        public int EndAdjustmentTick { get; set; }
         public string EndAdjustmentType { get; set; }
         public string FileName { get; set; }
         public string GameDir { get; set; }
@@ -40,10 +31,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result
         public string StartAdjustmentType { get; set; }
         public int TotalTicks { get; set; }
 
-		public float AdjustTime(float ticksPerSecond)
-			=> AdjustedTicks * ticksPerSecond;
-
-		public object Clone()
+        public object Clone()
         {
             var demoParseResult = new DemoParseResult
             {
@@ -58,6 +46,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result
                 EndAdjustmentType = EndAdjustmentType
             };
             return demoParseResult;
+        }
+
+        public float AdjustTime(float ticksPerSecond)
+        {
+            return AdjustedTicks * ticksPerSecond;
         }
     }
 }

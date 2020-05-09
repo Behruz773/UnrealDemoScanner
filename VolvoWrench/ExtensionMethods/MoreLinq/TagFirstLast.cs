@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    partial class MoreEnumerable
+    public partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a sequence resulting from applying a function to each
@@ -62,14 +62,16 @@ namespace MoreLinq
             Func<TSource, bool, bool, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+
             return TagFirsLastImpl(source, resultSelector);
         }
 
         private static IEnumerable<TResult> TagFirsLastImpl<TSource, TResult>(IEnumerable<TSource> source,
             Func<TSource, bool, bool, TResult> resultSelector)
         {
-            var edge = new[] {new KeyValuePair<bool, TSource>(false, default(TSource))};
+            KeyValuePair<bool, TSource>[] edge = {new KeyValuePair<bool, TSource>(false, default)};
             return edge.Concat(source.Select(e => new KeyValuePair<bool, TSource>(true, e)))
                 .Concat(edge)
                 .Pairwise((a, b) => new {Prev = a, Curr = b})

@@ -22,9 +22,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Combines <see cref="Enumerable.OrderBy{TSource,TKey}(IEnumerable{TSource},Func{TSource,TKey})" />,
@@ -90,6 +90,7 @@ namespace MoreLinq
             int count, IComparer<T> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             return PartialSortByImpl<T, T>(source, count, null, null, comparer);
         }
 
@@ -116,10 +117,7 @@ namespace MoreLinq
             int count, IComparer<T> comparer, OrderByDirection direction)
         {
             comparer = comparer ?? Comparer<T>.Default;
-            if (direction == OrderByDirection.Descending)
-            {
-                comparer = new ReverseComparer<T>(comparer);
-            }
+            if (direction == OrderByDirection.Descending) comparer = new ReverseComparer<T>(comparer);
             return source.PartialSort(count, comparer);
         }
 
@@ -195,7 +193,9 @@ namespace MoreLinq
             IComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             return PartialSortByImpl(source, count, keySelector, comparer, null);
         }
 
@@ -226,10 +226,7 @@ namespace MoreLinq
             OrderByDirection direction)
         {
             comparer = comparer ?? Comparer<TKey>.Default;
-            if (direction == OrderByDirection.Descending)
-            {
-                comparer = new ReverseComparer<TKey>(comparer);
-            }
+            if (direction == OrderByDirection.Descending) comparer = new ReverseComparer<TKey>(comparer);
             return source.PartialSortBy(count, keySelector, comparer);
         }
 
@@ -246,7 +243,7 @@ namespace MoreLinq
             foreach (var item in source)
             {
                 int i;
-                var key = default(TKey);
+                TKey key = default;
                 if (keys != null)
                 {
                     key = keySelector(item);
@@ -257,27 +254,23 @@ namespace MoreLinq
                     i = top.BinarySearch(item, comparer);
                 }
 
-                if (i < 0 && (i = ~i) >= count)
-                    continue;
+                if (i < 0 && (i = ~i) >= count) continue;
 
                 if (top.Count == count)
                 {
-                    if (keys != null)
-                        keys.RemoveAt(top.Count - 1);
+                    if (keys != null) keys.RemoveAt(top.Count - 1);
 
                     top.RemoveAt(top.Count - 1);
                 }
 
-                if (keys != null)
-                    keys.Insert(i, key);
+                if (keys != null) keys.Insert(i, key);
 
                 top.Insert(i, item);
             }
 
             // ReSharper disable once LoopCanBeConvertedToQuery
 
-            foreach (var item in top)
-                yield return item;
+            foreach (var item in top) yield return item;
         }
     }
 }

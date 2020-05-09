@@ -1,8 +1,0 @@
-﻿- Save parser statefile parser
-- Overlay 2.0
-- Settings 2.0
-- L4D2 Netdecode
-- Statistics
-- Heatmap
-- Demo doctor c#
-- Warp planner

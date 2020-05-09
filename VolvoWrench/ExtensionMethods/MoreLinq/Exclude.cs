@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -35,7 +35,9 @@ namespace MoreLinq
         public static IEnumerable<T> Exclude<T>(this IEnumerable<T> sequence, int startIndex, int count)
         {
             if (sequence == null) throw new ArgumentNullException("sequence");
+
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+
             if (count < 0) throw new ArgumentOutOfRangeException("count");
 
             return ExcludeImpl(sequence, startIndex, count);
@@ -48,14 +50,11 @@ namespace MoreLinq
             using (var iter = sequence.GetEnumerator())
             {
                 // yield the first part of the sequence
-                while (iter.MoveNext() && ++index < startIndex)
-                    yield return iter.Current;
+                while (iter.MoveNext() && ++index < startIndex) yield return iter.Current;
                 // skip the next part (up to count items)
-                while (++index < endIndex && iter.MoveNext())
-                    continue;
+                while (++index < endIndex && iter.MoveNext()) continue;
                 // yield the remainder of the sequence
-                while (iter.MoveNext())
-                    yield return iter.Current;
+                while (iter.MoveNext()) yield return iter.Current;
             }
         }
     }

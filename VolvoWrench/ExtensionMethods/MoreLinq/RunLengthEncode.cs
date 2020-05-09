@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -48,8 +48,7 @@ namespace MoreLinq
         public static IEnumerable<KeyValuePair<T, int>> RunLengthEncode<T>(this IEnumerable<T> sequence,
             IEqualityComparer<T> comparer)
         {
-            if (sequence == null)
-                throw new ArgumentNullException("sequence");
+            if (sequence == null) throw new ArgumentNullException("sequence");
 
             return RunLengthEncodeImpl(sequence, comparer ?? EqualityComparer<T>.Default);
         }
@@ -69,7 +68,6 @@ namespace MoreLinq
                     var runCount = 1;
 
                     while (iter.MoveNext())
-                    {
                         if (comparer.Equals(prevItem, iter.Current))
                         {
                             ++runCount;
@@ -80,7 +78,6 @@ namespace MoreLinq
                             prevItem = iter.Current;
                             runCount = 1;
                         }
-                    }
 
                     yield return new KeyValuePair<T, int>(prevItem, runCount);
                 }

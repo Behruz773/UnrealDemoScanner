@@ -1,10 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Windows.Media.Media3D;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.GameHandler
 {
     internal class Portal2CoopGameHandler : OrangeBoxGameHandler
     {
@@ -34,11 +33,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 result.StartAdjustmentType = _startAdjustType;
                 result.StartAdjustmentTick = _startTick;
             }
+
             if (_endAdjustType != null)
             {
                 result.EndAdjustmentType = _endAdjustType;
                 result.EndAdjustmentTick = _endTick;
             }
+
             return result;
         }
 
@@ -55,6 +56,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 _startAdjustType = "Portal2 co-op Start Standard";
                 _startTick = CurrentTick;
             }
+
             if (_endAdjustType == null && CurrentTick > 0)
             {
                 if (consoleCmdResult.Command.StartsWith("playvideo_end_level_transition") &&
@@ -71,6 +73,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                     _endTick = CurrentTick;
                 }
             }
+
             return consoleCmdResult;
         }
 
@@ -92,6 +95,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 _startAdjustType = "Portal2 co-op P-Body Gain Control";
                 _startTick = CurrentTick;
             }
+
             return packetResult;
         }
     }

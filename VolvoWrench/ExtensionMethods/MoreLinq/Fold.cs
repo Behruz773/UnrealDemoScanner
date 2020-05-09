@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         private static readonly Func<int, int, Exception> OnFolderSourceSizeErrorSelector = OnFolderSourceSizeError;
 
@@ -33,14 +33,13 @@ namespace MoreLinq
             Func<T, T, T, T, TResult> folder4)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (count == 1 && folder1 == null
                 || count == 2 && folder2 == null
                 || count == 3 && folder3 == null
                 || count == 4 && folder4 == null)
-            {
                 // ReSharper disable NotResolvedInText
                 throw new ArgumentNullException("folder"); // ReSharper restore NotResolvedInText
-            }
 
             var elements = new T[count];
             foreach (var e in AssertCountImpl(source.Index(), count, OnFolderSourceSizeErrorSelector))

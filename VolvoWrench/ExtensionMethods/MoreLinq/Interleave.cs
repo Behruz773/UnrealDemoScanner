@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -76,9 +76,12 @@ namespace MoreLinq
             ImbalancedInterleaveStrategy imbalanceStrategy, params IEnumerable<T>[] otherSequences)
         {
             if (sequence == null) throw new ArgumentNullException("sequence");
+
             if (otherSequences == null) throw new ArgumentNullException("otherSequences");
+
             if (otherSequences.Any(s => s == null))
-                throw new ArgumentNullException("otherSequences", "One or more sequences passed to Interleave was null.");
+                throw new ArgumentNullException("otherSequences",
+                    "One or more sequences passed to Interleave was null.");
 
             return InterleaveImpl(new[] {sequence}.Concat(otherSequences), imbalanceStrategy);
         }
@@ -102,7 +105,6 @@ namespace MoreLinq
                 {
                     // advance every iterator and verify a value exists to be yielded
                     for (var index = 0; index < iterCount; index++)
-                    {
                         if (!iteratorList[index].MoveNext())
                         {
                             // check if all iterators have been consumed and we can terminate
@@ -121,7 +123,7 @@ namespace MoreLinq
                             {
                                 case ImbalancedInterleaveStrategy.Pad:
                                     var newIter =
-                                        iteratorList[index] = Generate(default(T), x => default(T)).GetEnumerator();
+                                        iteratorList[index] = Generate(default(T), x => default).GetEnumerator();
                                     newIter.MoveNext();
                                     break;
 
@@ -133,23 +135,17 @@ namespace MoreLinq
                                     break;
                             }
                         }
-                    }
 
                     if (shouldContinue) // only if all iterators could be advanced
-                    {
                         // yield the values of each iterator's current position
                         for (var index = 0; index < iterCount; index++)
-                        {
                             yield return iteratorList[index].Current;
-                        }
-                    }
                 }
             }
             finally
             {
                 Debug.Assert(iteratorList != null || iterators != null);
-                foreach (var iter in (iteratorList ?? (IList<IEnumerator<T>>) iterators))
-                    iter.Dispose();
+                foreach (var iter in iteratorList ?? (IList<IEnumerator<T>>) iterators) iter.Dispose();
             }
         }
 

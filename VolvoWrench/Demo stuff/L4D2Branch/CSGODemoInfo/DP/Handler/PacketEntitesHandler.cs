@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler
 {
     public static class PacketEntitesHandler
     {
@@ -85,16 +85,19 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
             //This code below is just faster, since it only parses stuff once
             //which is faster. 
 
-            object[] fastBaseline;
-            if (parser.PreprocessedBaselines.TryGetValue(serverClassID, out fastBaseline))
+            if (parser.PreprocessedBaselines.TryGetValue(serverClassID, out var fastBaseline))
+            {
                 PropertyEntry.Emit(newEntity, fastBaseline);
+            }
             else
             {
                 var preprocessedBaseline = new List<object>();
                 if (parser.instanceBaseline.ContainsKey(serverClassID))
                     using (var collector = new PropertyCollector(newEntity, preprocessedBaseline))
                     using (var bitStream = BitStreamUtil.BitStreamUtil.Create(parser.instanceBaseline[serverClassID]))
+                    {
                         newEntity.ApplyUpdate(bitStream);
+                    }
 
                 parser.PreprocessedBaselines.Add(serverClassID, preprocessedBaseline.ToArray());
             }
@@ -113,7 +116,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                 Capture = capture;
 
                 foreach (var prop in Underlying.Props)
-                {
                     switch (prop.Entry.Prop.Type)
                     {
                         case SendPropertyType.Array:
@@ -135,13 +137,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                         default:
                             throw new NotImplementedException();
                     }
-                }
             }
 
             public void Dispose()
             {
                 foreach (var prop in Underlying.Props)
-                {
                     switch (prop.Entry.Prop.Type)
                     {
                         case SendPropertyType.Array:
@@ -163,7 +163,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
                         default:
                             throw new NotImplementedException();
                     }
-                }
             }
 
             private void HandleVectorRecived(object sender, PropertyUpdateEventArgs<Vector> e)

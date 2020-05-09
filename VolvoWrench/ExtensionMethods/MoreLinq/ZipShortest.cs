@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a projection of tuples, where each tuple contains the N-th element
@@ -56,8 +56,11 @@ namespace MoreLinq
             IEnumerable<T2> second, IEnumerable<T3> third, Func<T1, T2, T3, TResult> resultSelector)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (third == null) throw new ArgumentNullException("third");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return ZipImpl<T1, T2, T3, object, TResult>(first, second, third, null,
@@ -100,9 +103,13 @@ namespace MoreLinq
             Func<T1, T2, T3, T4, TResult> resultSelector)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (third == null) throw new ArgumentNullException("third");
+
             if (fourth == null) throw new ArgumentNullException("fourth");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return ZipImpl(first, second, third, fourth, resultSelector);
@@ -136,7 +143,9 @@ namespace MoreLinq
             IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
 
             return ZipImpl<TFirst, TSecond, object, object, TResult>(first, second, null, null,
@@ -154,15 +163,11 @@ namespace MoreLinq
             using (var e4 = s4 != null ? s4.GetEnumerator() : null)
             {
                 while (e1.MoveNext())
-                {
                     if (e2.MoveNext() && (e3 == null || e3.MoveNext())
-                        && (e4 == null || e4.MoveNext()))
-                    {
+                                      && (e4 == null || e4.MoveNext()))
                         yield return resultSelector(e1.Current, e2.Current,
-                            e3 != null ? e3.Current : default(T3),
-                            e4 != null ? e4.Current : default(T4));
-                    }
-                }
+                            e3 != null ? e3.Current : default,
+                            e4 != null ? e4.Current : default);
             }
         }
     }

@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns all distinct elements of the given source, where "distinctness"
@@ -72,7 +72,9 @@ namespace MoreLinq
             Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             return DistinctByImpl(source, keySelector, comparer);
         }
 
@@ -81,12 +83,8 @@ namespace MoreLinq
         {
             var knownKeys = new HashSet<TKey>(comparer);
             foreach (var element in source)
-            {
                 if (knownKeys.Add(keySelector(element)))
-                {
                     yield return element;
-                }
-            }
         }
     }
 }

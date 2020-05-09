@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -43,7 +43,9 @@ namespace MoreLinq
         public static IEnumerable<T> Slice<T>(this IEnumerable<T> sequence, int startIndex, int count)
         {
             if (sequence == null) throw new ArgumentNullException("sequence");
+
             if (startIndex < 0) throw new ArgumentOutOfRangeException("startIndex");
+
             if (count < 0) throw new ArgumentOutOfRangeException("count");
 
             // optimization for anything implementing IList<T>
@@ -62,8 +64,7 @@ namespace MoreLinq
         {
             var listCount = list.Count;
             var index = startIndex;
-            while (index < listCount && count-- > 0)
-                yield return list[index++];
+            while (index < listCount && count-- > 0) yield return list[index++];
         }
     }
 }

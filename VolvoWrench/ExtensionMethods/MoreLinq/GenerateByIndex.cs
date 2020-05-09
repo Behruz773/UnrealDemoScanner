@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns a sequence of values based on indexes.
@@ -40,6 +40,7 @@ namespace MoreLinq
             // Would just use Enumerable.Range(0, int.MaxValue).Select(generator) but that doesn't
             // include int.MaxValue. Picky, I know...
             if (generator == null) throw new ArgumentNullException("generator");
+
             return GenerateByIndexImpl(generator);
         }
 
@@ -47,10 +48,7 @@ namespace MoreLinq
         {
             // Looping over 0...int.MaxValue inclusive is a pain. Simplest is to go exclusive,
             // then go again for int.MaxValue.
-            for (var i = 0; i < int.MaxValue; i++)
-            {
-                yield return generator(i);
-            }
+            for (var i = 0; i < int.MaxValue; i++) yield return generator(i);
             yield return generator(int.MaxValue);
         }
     }

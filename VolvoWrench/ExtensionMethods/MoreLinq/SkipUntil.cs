@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Skips items from the input sequence until the given predicate returns true
@@ -57,7 +57,9 @@ namespace MoreLinq
             Func<TSource, bool> predicate)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (predicate == null) throw new ArgumentNullException("predicate");
+
             return SkipUntilImpl(source, predicate);
         }
 
@@ -67,16 +69,9 @@ namespace MoreLinq
             using (var iterator = source.GetEnumerator())
             {
                 while (iterator.MoveNext())
-                {
                     if (predicate(iterator.Current))
-                    {
                         break;
-                    }
-                }
-                while (iterator.MoveNext())
-                {
-                    yield return iterator.Current;
-                }
+                while (iterator.MoveNext()) yield return iterator.Current;
             }
         }
     }

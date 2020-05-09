@@ -1,4 +1,4 @@
-﻿namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler
+﻿namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler
 {
 #if SLOW_PROTOBUF
 	public class UserMessageHandler : IMessageParser
@@ -13,7 +13,8 @@
 				return false;
 
 			ECstrike15UserMessages msg = (ECstrike15UserMessages)userMessage.msg_type;
-			Type toParse = Assembly.GetExecutingAssembly().GetType("DemoInfo.Messages.CCSUsrMsg_" + msg.ToString().Substring(6));
+			Type toParse =
+ Assembly.GetExecutingAssembly().GetType("DemoInfo.Messages.CCSUsrMsg_" + msg.ToString().Substring(6));
 
 			using (var memstream = new MemoryStream(userMessage.msg_data))
 			{
@@ -65,7 +66,8 @@
 
 								foreach (CCSUsrMsg_ServerRankUpdate.RankUpdate rankUpdate in (rankMsg.rank_update))
 								{
-									ServerRankUpdateEventArgs.RankStruct rankStruct = new ServerRankUpdateEventArgs.RankStruct
+									ServerRankUpdateEventArgs.RankStruct rankStruct =
+ new ServerRankUpdateEventArgs.RankStruct
 									{
 										New = rankUpdate.rank_new,
 										Old = rankUpdate.rank_old,
@@ -93,5 +95,5 @@
 
 		public int Priority { get { return 0; } }
 	}
-	#endif
+#endif
 }

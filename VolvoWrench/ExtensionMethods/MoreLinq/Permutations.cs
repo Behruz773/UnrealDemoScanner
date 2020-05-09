@@ -22,7 +22,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -51,8 +51,7 @@ namespace MoreLinq
         {
             using (var iter = new PermutationEnumerator<T>(sequence))
             {
-                while (iter.MoveNext())
-                    yield return iter.Current;
+                while (iter.MoveNext()) yield return iter.Current;
             }
         }
 
@@ -130,11 +129,9 @@ namespace MoreLinq
 
             public void Reset()
             {
-                if (m_GeneratorIterator != null)
-                    m_GeneratorIterator.Dispose();
+                if (m_GeneratorIterator != null) m_GeneratorIterator.Dispose();
                 // restore lexographic ordering of the permutation indexes
-                for (var i = 0; i < m_Permutation.Length; i++)
-                    m_Permutation[i] = i;
+                for (var i = 0; i < m_Permutation.Length; i++) m_Permutation[i] = i;
                 // start a newiteration over the nested loop generator
                 m_GeneratorIterator = m_Generator.GetEnumerator();
                 // we must advance the nestedloop iterator to the initial element,
@@ -145,10 +142,7 @@ namespace MoreLinq
 
             public IList<T> Current { get; private set; }
 
-            object IEnumerator.Current
-            {
-                get { return Current; }
-            }
+            object IEnumerator.Current => Current;
 
             public bool MoveNext()
             {
@@ -156,8 +150,7 @@ namespace MoreLinq
                 // check if more permutation left to enumerate
                 var prevResult = m_HasMoreResults;
                 m_HasMoreResults = m_GeneratorIterator.MoveNext();
-                if (m_HasMoreResults)
-                    m_GeneratorIterator.Current(); // produce the next permutation ordering
+                if (m_HasMoreResults) m_GeneratorIterator.Current(); // produce the next permutation ordering
                 // we return prevResult rather than m_HasMoreResults because there is always
                 // at least one permtuation: the original set. Also, this provides a simple way
                 // to deal with the disparity between sets that have only one loop level (size 0-2)
@@ -180,14 +173,12 @@ namespace MoreLinq
             {
                 // find the largest index j with m_Permutation[j] < m_Permutation[j+1]
                 var j = m_Permutation.Length - 2;
-                while (m_Permutation[j] > m_Permutation[j + 1])
-                    j--;
+                while (m_Permutation[j] > m_Permutation[j + 1]) j--;
 
                 // find index k such that m_Permutation[k] is the smallest integer
                 // greater than m_Permutation[j] to the right of m_Permutation[j]
                 var k = m_Permutation.Length - 1;
-                while (m_Permutation[j] > m_Permutation[k])
-                    k--;
+                while (m_Permutation[j] > m_Permutation[k]) k--;
 
                 // interchange m_Permutation[j] and m_Permutation[k]
                 var oldValue = m_Permutation[k];
@@ -225,8 +216,8 @@ namespace MoreLinq
             private IList<T> PermuteValueSet()
             {
                 var permutedSet = new T[m_Permutation.Length];
-                for (var i = 0; i < m_Permutation.Length; i++)
-                    permutedSet[i] = m_ValueSet[m_Permutation[i]];
+                for (var i = 0; i < m_Permutation.Length; i++) permutedSet[i] = m_ValueSet[m_Permutation[i]];
+
                 return permutedSet;
             }
 

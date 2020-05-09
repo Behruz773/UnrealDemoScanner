@@ -1,17 +1,18 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Windows.Media.Media3D;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.GameHandler
 {
     internal class Portal2SpGameHandler : OrangeBoxGameHandler
     {
         private const string _crosshairAppearAdjustType = "Crosshair Appear";
         private const string _crosshairDisappearAdjustType = "Crosshair Disappear";
         private readonly StringBuilder _debugBuffer;
+
         private readonly string[] _maps = Category.Portal2Sp.Maps;
+
         // how many ticks from last portal shot to being at the checkpoint.
         // experimentally determined, may be wrong.
         private readonly int FINALE_END_TICK_OFFSET = -852;
@@ -19,11 +20,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
         private string _endAdjustType;
         private int _endTick = -1;
         private string _startAdjustType;
+
         private int _startTick = -1;
+
         // best guess. you can move at ~2-3 units/tick, so don't check exactly.
-        private Point3D FINALE_END_POS = new Point3D(54.1f, 159.2f, -201.4f);
-        private Point3D INTRO_START_POS = new Point3D(-8709.20f, 1690.07f, 28.00f);
-        private Point3D INTRO_START_TOL = new Point3D(0.02f, 0.02f, 0.5f);
+        private readonly Point3D FINALE_END_POS = new Point3D(54.1f, 159.2f, -201.4f);
+        private readonly Point3D INTRO_START_POS = new Point3D(-8709.20f, 1690.07f, 28.00f);
+        private readonly Point3D INTRO_START_TOL = new Point3D(0.02f, 0.02f, 0.5f);
 
         public Portal2SpGameHandler()
         {
@@ -36,7 +39,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
             // check if you're in a specific cylinder of volume and far enough below the floor.
             return Math.Pow(position.X - FINALE_END_POS.X, 2) + Math.Pow(position.Y - FINALE_END_POS.Y, 2) <
                    Math.Pow(50, 2)
-                   && (position.Z < FINALE_END_POS.Z);
+                   && position.Z < FINALE_END_POS.Z;
         }
 
         private bool atSpawn(Point3D position)
@@ -55,11 +58,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 result.StartAdjustmentType = _startAdjustType;
                 result.StartAdjustmentTick = _startTick;
             }
+
             if (_endAdjustType != null)
             {
                 result.EndAdjustmentType = _endAdjustType;
                 result.EndAdjustmentTick = _endTick;
             }
+
             return result;
         }
 
@@ -75,6 +80,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 _endAdjustType = "#SAVE# Flag";
                 _endTick = CurrentTick;
             }
+
             return consoleCmdResult;
         }
 
@@ -94,6 +100,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 _endAdjustType = "Crosshair Disappear";
                 _endTick = CurrentTick + FINALE_END_TICK_OFFSET;
             }
+
             return packetResult;
         }
     }

@@ -1,4 +1,4 @@
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff
 {
     public enum DemoProtocolVersion
     {

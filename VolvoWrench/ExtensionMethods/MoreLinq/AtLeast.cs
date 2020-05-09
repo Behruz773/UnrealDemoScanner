@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns true when the number of elements in the given sequence is greater than
@@ -55,13 +55,11 @@ namespace MoreLinq
         public static bool AtLeast<TSource>(this IEnumerable<TSource> source, int count)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (count < 0) throw new ArgumentOutOfRangeException("count", "The count must not be negative.");
 
             var collection = source as ICollection<TSource>;
-            if (collection != null)
-            {
-                return collection.Count >= count;
-            }
+            if (collection != null) return collection.Count >= count;
 
             return source.Take(count).Count() == count;
         }

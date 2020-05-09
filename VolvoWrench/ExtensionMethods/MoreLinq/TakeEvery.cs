@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns every N-th element of a sequence.
@@ -47,8 +47,10 @@ namespace MoreLinq
         public static IEnumerable<TSource> TakeEvery<TSource>(this IEnumerable<TSource> source, int step)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (step <= 0) throw new ArgumentOutOfRangeException("step");
-            return source.Where((e, i) => i%step == 0);
+
+            return source.Where((e, i) => i % step == 0);
         }
     }
 }

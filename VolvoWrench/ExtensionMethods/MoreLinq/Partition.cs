@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -44,10 +44,11 @@ namespace MoreLinq
         public static IEnumerable<IEnumerable<TSource>> Partition<TSource>(this IEnumerable<TSource> source, int size)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (size <= 0) throw new ArgumentOutOfRangeException("size");
 
             var splitInstructions =
-                GenerateByIndex(i => i%size == size - 1 ? PartitionInstruction.Yield : PartitionInstruction.Fill);
+                GenerateByIndex(i => i % size == size - 1 ? PartitionInstruction.Yield : PartitionInstruction.Fill);
             return source.PartitionImpl(splitInstructions);
         }
 
@@ -68,6 +69,7 @@ namespace MoreLinq
             IEnumerable<int> partitions)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (partitions == null) throw new ArgumentNullException("partitions");
 
             var splitInstructions = Enumerable.Empty<PartitionInstruction>();
@@ -75,8 +77,7 @@ namespace MoreLinq
             // Each partition shall be filled and then splitted
             foreach (var partitionSize in partitions)
             {
-                if (partitionSize < 0)
-                    throw new ArgumentException("Partition sizes may not be negative.");
+                if (partitionSize < 0) throw new ArgumentException("Partition sizes may not be negative.");
 
                 splitInstructions =
                     splitInstructions.Concat(Enumerable.Repeat(PartitionInstruction.Fill, partitionSize - 1));
@@ -98,14 +99,13 @@ namespace MoreLinq
             Debug.Assert(source != null);
             Debug.Assert(splitInstructions != null);
 
-            var collector = (IList<TSource>) new List<TSource>();
+            IList<TSource> collector = new List<TSource>();
             var collectorFilled = false;
 
             // Zip shortest
             foreach (
                 var itemInstructionPair in
-                    source.ZipShortest(splitInstructions, (x, y) => new {Item = x, Instruction = y}))
-            {
+                source.ZipShortest(splitInstructions, (x, y) => new {Item = x, Instruction = y}))
                 switch (itemInstructionPair.Instruction)
                 {
                     case PartitionInstruction.Yield:
@@ -114,7 +114,7 @@ namespace MoreLinq
                         // partition contents are streamed too
                         yield return collector.Select(x => x);
 
-                    // advance to the next partition, reset the collector 
+                        // advance to the next partition, reset the collector 
                         collector = new List<TSource>();
                         collectorFilled = false;
                         break;
@@ -124,13 +124,9 @@ namespace MoreLinq
                         collector.Add(itemInstructionPair.Item);
                         break;
                 }
-            }
 
             // The source or instruction sequence is exhausted, yield the partly filled collector
-            if (collectorFilled)
-            {
-                yield return collector.Select(x => x);
-            }
+            if (collectorFilled) yield return collector.Select(x => x);
         }
 
         /// <summary>

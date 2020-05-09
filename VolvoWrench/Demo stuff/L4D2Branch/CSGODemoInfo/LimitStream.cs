@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo
 {
     public class LimitStream : Stream
     {
@@ -12,38 +12,27 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
         public LimitStream(Stream underlying, long length)
         {
-            if (!underlying.CanRead)
-                throw new NotImplementedException();
+            if (!underlying.CanRead) throw new NotImplementedException();
 
-            if (length <= 0)
-                throw new ArgumentException("length");
+            if (length <= 0) throw new ArgumentException("length");
 
             Underlying = underlying;
             Length = length;
             _Position = 0;
         }
 
-        public override bool CanRead
-        {
-            get { return true; }
-        }
+        public override bool CanRead => true;
 
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
+        public override bool CanSeek => false;
 
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
+        public override bool CanWrite => false;
 
         public override long Length { get; }
 
         public override long Position
         {
-            get { return _Position; }
-            set { throw new NotImplementedException(); }
+            get => _Position;
+            set => throw new NotImplementedException();
         }
 
         protected override void Dispose(bool disposing)
@@ -56,13 +45,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                 if (Underlying.CanSeek)
                     Underlying.Seek(remaining, SeekOrigin.Current);
                 else
-                {
                     while (remaining > 0)
                     {
                         Underlying.Read(Dignitrash, 0, checked((int) Math.Min(TrashSize, remaining)));
                         remaining -= TrashSize; // could go beyond 0, but it's signed so who cares
                     }
-                }
             }
         }
 
@@ -78,10 +65,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             while (offset < count)
             {
                 var thisTime = Read(data, offset, count - offset);
-                if (thisTime == 0)
-                    throw new EndOfStreamException();
+                if (thisTime == 0) throw new EndOfStreamException();
+
                 offset += thisTime;
             }
+
             return data;
         }
 

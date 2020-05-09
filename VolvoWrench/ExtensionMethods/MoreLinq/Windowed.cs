@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -41,6 +41,7 @@ namespace MoreLinq
         public static IEnumerable<IEnumerable<TSource>> Windowed<TSource>(this IEnumerable<TSource> source, int size)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (size <= 0) throw new ArgumentOutOfRangeException("size");
 
             return WindowedImpl(source, size);
@@ -57,10 +58,7 @@ namespace MoreLinq
                 // NOTE: The order of evaluation in the if() below is important
                 //       because it relies on short-circuit behavior to ensure
                 //       we don't move the iterator once the window is complete
-                while (countLeft-- > 0 && iter.MoveNext())
-                {
-                    window.Add(iter.Current);
-                }
+                while (countLeft-- > 0 && iter.MoveNext()) window.Add(iter.Current);
 
                 // return the first window (whatever size it may be)
                 yield return window;

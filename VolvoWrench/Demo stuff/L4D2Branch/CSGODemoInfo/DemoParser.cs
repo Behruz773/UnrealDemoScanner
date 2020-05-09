@@ -2,19 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.ST;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.ST;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo
 {
     public class DemoParser : IDisposable
     {
         private const int MAX_EDICT_BITS = 11;
-        internal const int INDEX_MASK = ((1 << MAX_EDICT_BITS) - 1);
-        internal const int MAX_ENTITIES = ((1 << MAX_EDICT_BITS));
+        internal const int INDEX_MASK = (1 << MAX_EDICT_BITS) - 1;
+        internal const int MAX_ENTITIES = 1 << MAX_EDICT_BITS;
         private const int MAXPLAYERS = 64;
         private const int MAXWEAPONS = 64;
 
@@ -207,7 +207,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         #endregion
 
 #if SLOW_PROTOBUF
-		#region UserMessage events
+        #region UserMessage events
 
 		/// <summary>
 		/// Occurs when the server use 'say'
@@ -224,18 +224,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 		/// </summary>
 		public event EventHandler<ServerRankUpdateEventArgs> ServerRankUpdate;
 
-		#endregion
-		#endif
+        #endregion
+#endif
 
         /// <summary>
         ///     The mapname of the Demo. Only avaible after the header is parsed.
         ///     Is a string like "de_dust2".
         /// </summary>
         /// <value>The map.</value>
-        public string Map
-        {
-            get { return Header.MapName; }
-        }
+        public string Map => Header.MapName;
 
         /// <summary>
         ///     The header of the demo, containing some useful information.
@@ -247,19 +244,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         ///     Gets the participants of this game
         /// </summary>
         /// <value>The participants.</value>
-        public IEnumerable<Player> Participants
-        {
-            get { return Players.Values; }
-        }
+        public IEnumerable<Player> Participants => Players.Values;
 
         /// <summary>
         ///     Gets all the participants of this game, that aren't spectating.
         /// </summary>
         /// <value>The playing participants.</value>
-        public IEnumerable<Player> PlayingParticipants
-        {
-            get { return Players.Values.Where(a => a.Team != Team.Spectate); }
-        }
+        public IEnumerable<Player> PlayingParticipants => Players.Values.Where(a => a.Team != Team.Spectate);
 
         /// <summary>
         ///     The stream of the demo - all the information go here
@@ -405,28 +396,19 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         ///     The tickrate *of the demo* (16 for normal GOTV-demos)
         /// </summary>
         /// <value>The tick rate.</value>
-        public float TickRate
-        {
-            get { return Header.PlaybackFrames/Header.PlaybackTime; }
-        }
+        public float TickRate => Header.PlaybackFrames / Header.PlaybackTime;
 
         /// <summary>
         ///     How long a tick of the demo is in s^-1
         /// </summary>
         /// <value>The tick time.</value>
-        public float TickTime
-        {
-            get { return Header.PlaybackTime/Header.PlaybackFrames; }
-        }
+        public float TickTime => Header.PlaybackTime / Header.PlaybackFrames;
 
         /// <summary>
         ///     Gets the parsing progess. 0 = beginning, ~1 = finished (it can actually be > 1, so be careful!)
         /// </summary>
         /// <value>The parsing progess.</value>
-        public float ParsingProgess
-        {
-            get { return (CurrentTick/(float) Header.PlaybackFrames); }
-        }
+        public float ParsingProgess => CurrentTick / (float) Header.PlaybackFrames;
 
         /// <summary>
         ///     The current tick the parser has seen. So if it's a 16-tick demo,
@@ -445,10 +427,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         ///     How far we've advanced in the demo in seconds.
         /// </summary>
         /// <value>The current time.</value>
-        public float CurrentTime
-        {
-            get { return CurrentTick*TickTime; }
-        }
+        public float CurrentTime => CurrentTick * TickTime;
 
         /// <summary>
         ///     This contains additional informations about each player, such as Kills, Deaths, etc.
@@ -466,10 +445,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         {
             BitStream = BitStreamUtil.BitStreamUtil.Create(input);
 
-            for (var i = 0; i < MAXPLAYERS; i++)
-            {
-                additionalInformations[i] = new AdditionalPlayerInformation();
-            }
+            for (var i = 0; i < MAXPLAYERS; i++) additionalInformations[i] = new AdditionalPlayerInformation();
         }
 
 
@@ -483,14 +459,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             if (header.Filestamp != "HL2DEMO")
                 throw new InvalidDataException("Invalid demo_file-Type - expecting HL2DEMO");
 
-            if (header.Protocol != 4)
-                throw new InvalidDataException("Invalid Demo-Protocol");
+            if (header.Protocol != 4) throw new InvalidDataException("Invalid Demo-Protocol");
 
             Header = header;
 
 
-            if (HeaderParsed != null)
-                HeaderParsed(this, new HeaderParsedEventArgs(Header));
+            if (HeaderParsed != null) HeaderParsed(this, new HeaderParsedEventArgs(Header));
         }
 
         /// <summary>
@@ -518,8 +492,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
             for (var i = 0; i < RawPlayers.Length; i++)
             {
-                if (RawPlayers[i] == null)
-                    continue;
+                if (RawPlayers[i] == null) continue;
 
                 var rawPlayer = RawPlayers[i];
 
@@ -541,25 +514,22 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
                     p.AdditionaInformations = additionalInformations[p.EntityID];
 
-                    if (p.IsAlive)
-                    {
-                        p.LastAlivePosition = p.Position.Copy();
-                    }
+                    if (p.IsAlive) p.LastAlivePosition = p.Position.Copy();
 
                     if (newplayer && p.SteamID != 0)
                     {
-                        var bind = new PlayerBindEventArgs();
-                        bind.Player = p;
+                        var bind = new PlayerBindEventArgs
+                        {
+                            Player = p
+                        };
                         RaisePlayerBind(bind);
                     }
                 }
             }
 
             if (b)
-            {
                 if (TickDone != null)
                     TickDone(this, new TickDoneEventArgs());
-            }
 
             return b;
         }
@@ -584,11 +554,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                 case DemoCommand.Stop:
                     return false;
                 case DemoCommand.ConsoleCommand:
-                    BitStream.BeginChunk(BitStream.ReadSignedInt(32)*8);
+                    BitStream.BeginChunk(BitStream.ReadSignedInt(32) * 8);
                     BitStream.EndChunk();
                     break;
                 case DemoCommand.DataTables:
-                    BitStream.BeginChunk(BitStream.ReadSignedInt(32)*8);
+                    BitStream.BeginChunk(BitStream.ReadSignedInt(32) * 8);
                     SendTableParser.ParsePacket(BitStream);
                     BitStream.EndChunk();
 
@@ -600,13 +570,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
                     break;
                 case DemoCommand.StringTables:
-                    BitStream.BeginChunk(BitStream.ReadSignedInt(32)*8);
+                    BitStream.BeginChunk(BitStream.ReadSignedInt(32) * 8);
                     StringTables.ParsePacket(BitStream, this);
                     BitStream.EndChunk();
                     break;
                 case DemoCommand.UserCommand:
                     BitStream.ReadInt(32);
-                    BitStream.BeginChunk(BitStream.ReadSignedInt(32)*8);
+                    BitStream.BeginChunk(BitStream.ReadSignedInt(32) * 8);
                     BitStream.EndChunk();
                     break;
                 case DemoCommand.Signon:
@@ -630,7 +600,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             BitStream.ReadInt(32); // SeqNrIn
             BitStream.ReadInt(32); // SeqNrOut
 
-            BitStream.BeginChunk(BitStream.ReadSignedInt(32)*8);
+            BitStream.BeginChunk(BitStream.ReadSignedInt(32) * 8);
             DemoPacketParser.ParsePacket(BitStream, this);
             BitStream.EndChunk();
         }
@@ -656,105 +626,95 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
         private void HandleTeamScores()
         {
             SendTableParser.FindByName("CCSTeam")
-                .OnNewEntity += (object sender, EntityCreatedEventArgs e) =>
+                .OnNewEntity += (sender, e) =>
+            {
+                string team = null;
+                string teamName = null;
+                string teamFlag = null;
+                var teamID = -1;
+                var score = 0;
+
+                e.Entity.FindProperty("m_scoreTotal").IntRecived += (xx, update) => { score = update.Value; };
+
+                e.Entity.FindProperty("m_iTeamNum").IntRecived += (xx, update) =>
                 {
-                    string team = null;
-                    string teamName = null;
-                    string teamFlag = null;
-                    var teamID = -1;
-                    var score = 0;
+                    teamID = update.Value;
 
-                    e.Entity.FindProperty("m_scoreTotal").IntRecived += (xx, update) => { score = update.Value; };
-
-                    e.Entity.FindProperty("m_iTeamNum").IntRecived += (xx, update) =>
+                    if (team == "CT")
                     {
-                        teamID = update.Value;
+                        ctID = teamID;
+                        CTScore = score;
+                        foreach (var p in PlayerInformations.Where(a => a != null && a.TeamID == teamID))
+                            p.Team = Team.CounterTerrorist;
+                    }
 
-                        if (team == "CT")
+                    if (team == "TERRORIST")
+                    {
+                        tID = teamID;
+                        TScore = score;
+                        foreach (var p in PlayerInformations.Where(a => a != null && a.TeamID == teamID))
+                            p.Team = Team.CounterTerrorist;
+                    }
+                };
+
+                e.Entity.FindProperty("m_szTeamname").StringRecived += (sender_, recivedTeamName) =>
+                {
+                    team = recivedTeamName.Value;
+
+                    //We got the name. Lets bind the updates accordingly!
+                    if (recivedTeamName.Value == "CT")
+                    {
+                        CTScore = score;
+                        CTClanName = teamName;
+                        e.Entity.FindProperty("m_scoreTotal").IntRecived +=
+                            (xx, update) => { CTScore = update.Value; };
+
+                        if (teamID != -1)
                         {
                             ctID = teamID;
-                            CTScore = score;
                             foreach (var p in PlayerInformations.Where(a => a != null && a.TeamID == teamID))
                                 p.Team = Team.CounterTerrorist;
                         }
+                    }
+                    else if (recivedTeamName.Value == "TERRORIST")
+                    {
+                        TScore = score;
+                        TClanName = teamName;
+                        e.Entity.FindProperty("m_scoreTotal").IntRecived +=
+                            (xx, update) => { TScore = update.Value; };
 
-                        if (team == "TERRORIST")
+                        if (teamID != -1)
                         {
                             tID = teamID;
-                            TScore = score;
                             foreach (var p in PlayerInformations.Where(a => a != null && a.TeamID == teamID))
-                                p.Team = Team.CounterTerrorist;
+                                p.Team = Team.Terrorist;
                         }
-                    };
-
-                    e.Entity.FindProperty("m_szTeamname").StringRecived += (sender_, recivedTeamName) =>
-                    {
-                        team = recivedTeamName.Value;
-
-                        //We got the name. Lets bind the updates accordingly!
-                        if (recivedTeamName.Value == "CT")
-                        {
-                            CTScore = score;
-                            CTClanName = teamName;
-                            e.Entity.FindProperty("m_scoreTotal").IntRecived +=
-                                (xx, update) => { CTScore = update.Value; };
-
-                            if (teamID != -1)
-                            {
-                                ctID = teamID;
-                                foreach (var p in PlayerInformations.Where(a => a != null && a.TeamID == teamID))
-                                    p.Team = Team.CounterTerrorist;
-                            }
-                        }
-                        else if (recivedTeamName.Value == "TERRORIST")
-                        {
-                            TScore = score;
-                            TClanName = teamName;
-                            e.Entity.FindProperty("m_scoreTotal").IntRecived +=
-                                (xx, update) => { TScore = update.Value; };
-
-                            if (teamID != -1)
-                            {
-                                tID = teamID;
-                                foreach (var p in PlayerInformations.Where(a => a != null && a.TeamID == teamID))
-                                    p.Team = Team.Terrorist;
-                            }
-                        }
-                    };
-
-                    e.Entity.FindProperty("m_szTeamFlagImage").StringRecived += (sender_, recivedTeamFlag) =>
-                    {
-                        teamFlag = recivedTeamFlag.Value;
-
-                        if (team == "CT")
-                        {
-                            CTFlag = teamFlag;
-                        }
-                        else if (team == "TERRORIST")
-                        {
-                            TFlag = teamFlag;
-                        }
-                    };
-
-                    e.Entity.FindProperty("m_szClanTeamname").StringRecived += (sender_, recivedClanName) =>
-                    {
-                        teamName = recivedClanName.Value;
-                        if (team == "CT")
-                        {
-                            CTClanName = recivedClanName.Value;
-                        }
-                        else if (team == "TERRORIST")
-                        {
-                            TClanName = recivedClanName.Value;
-                        }
-                    };
+                    }
                 };
+
+                e.Entity.FindProperty("m_szTeamFlagImage").StringRecived += (sender_, recivedTeamFlag) =>
+                {
+                    teamFlag = recivedTeamFlag.Value;
+
+                    if (team == "CT")
+                        CTFlag = teamFlag;
+                    else if (team == "TERRORIST") TFlag = teamFlag;
+                };
+
+                e.Entity.FindProperty("m_szClanTeamname").StringRecived += (sender_, recivedClanName) =>
+                {
+                    teamName = recivedClanName.Value;
+                    if (team == "CT")
+                        CTClanName = recivedClanName.Value;
+                    else if (team == "TERRORIST") TClanName = recivedClanName.Value;
+                };
+            };
         }
 
         private void HandlePlayers()
         {
             SendTableParser.FindByName("CCSPlayer").OnNewEntity +=
-                (object sender, EntityCreatedEventArgs e) => HandleNewPlayer(e.Entity);
+                (sender, e) => HandleNewPlayer(e.Entity);
 
             SendTableParser.FindByName("CCSPlayerResource").OnNewEntity += (blahblah, playerResources) =>
             {
@@ -878,7 +838,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             if (playerEntity.Props.All(a => a.Entry.PropertyName != "m_hMyWeapons.000"))
                 weaponPrefix = "bcc_nonlocaldata.m_hMyWeapons.";
 
-
             var cache = new int[MAXWEAPONS];
 
             for (var i = 0; i < MAXWEAPONS; i++)
@@ -896,6 +855,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                             p.rawWeapons.Remove(cache[iForTheMethod]);
                             cache[iForTheMethod] = 0;
                         }
+
                         cache[iForTheMethod] = index;
 
                         AttributeWeapon(index, p);
@@ -903,9 +863,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                     else
                     {
                         if (cache[iForTheMethod] != 0 && p.rawWeapons.ContainsKey(cache[iForTheMethod]))
-                        {
                             p.rawWeapons[cache[iForTheMethod]].Owner = null;
-                        }
                         p.rawWeapons.Remove(cache[iForTheMethod]);
 
                         cache[iForTheMethod] = 0;
@@ -953,7 +911,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                         //Bomb is neither "ratatata" nor "boom", its "booooooom".
                         equipmentMapping.Add(sc, EquipmentElement.Bomb);
                     }
-                    else if (sc.Name == "CKnife" || (sc.BaseClasses.Count > 6 && sc.BaseClasses[6].Name == "CKnife"))
+                    else if (sc.Name == "CKnife" || sc.BaseClasses.Count > 6 && sc.BaseClasses[6].Name == "CKnife")
                     {
                         //tsching weapon
                         equipmentMapping.Add(sc, EquipmentElement.Knife);
@@ -977,16 +935,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 
         private void HandleWeapons()
         {
-            for (var i = 0; i < MAX_ENTITIES; i++)
-            {
-                weapons[i] = new Equipment();
-            }
+            for (var i = 0; i < MAX_ENTITIES; i++) weapons[i] = new Equipment();
 
             foreach (
                 var s in SendTableParser.ServerClasses.Where(a => a.BaseClasses.Any(c => c.Name == "CWeaponCSBase")))
-            {
                 s.OnNewEntity += HandleWeapon;
-            }
         }
 
         private void HandleWeapon(object sender, EntityCreatedEventArgs e)
@@ -997,15 +950,15 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             equipment.AmmoInMagazine = -1;
 
             e.Entity.FindProperty("m_iClip1").IntRecived +=
-                (asdasd, ammoUpdate) => {
-                                            equipment.AmmoInMagazine = ammoUpdate.Value - 1; //wtf volvo y -1?
+                (asdasd, ammoUpdate) =>
+                {
+                    equipment.AmmoInMagazine = ammoUpdate.Value - 1; //wtf volvo y -1?
                 };
 
             e.Entity.FindProperty("LocalWeaponData.m_iPrimaryAmmoType").IntRecived +=
                 (asdasd, typeUpdate) => { equipment.AmmoType = typeUpdate.Value; };
 
             if (equipment.Weapon == EquipmentElement.P2000)
-            {
                 e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
                 {
                     equipment.OriginalString = modelprecache[e2.Value];
@@ -1016,10 +969,8 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                     else
                         throw new InvalidDataException("Unknown weapon model");
                 };
-            }
 
             if (equipment.Weapon == EquipmentElement.M4A4)
-            {
                 e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
                 {
                     equipment.OriginalString = modelprecache[e2.Value];
@@ -1031,10 +982,8 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                     else
                         throw new InvalidDataException("Unknown weapon model");
                 };
-            }
 
             if (equipment.Weapon == EquipmentElement.P250)
-            {
                 e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
                 {
                     equipment.OriginalString = modelprecache[e2.Value];
@@ -1045,7 +994,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
                     else
                         throw new InvalidDataException("Unknown weapon model");
                 };
-            }
         }
 
         internal List<BoundingBoxInformation> triggers = new List<BoundingBoxInformation>();
@@ -1113,216 +1061,180 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 			writer.Flush();
 			writer.Close();
 		}
-		#endif
+#endif
 
         #region EventCaller
 
         internal void RaiseMatchStarted()
         {
-            if (MatchStarted != null)
-                MatchStarted(this, new MatchStartedEventArgs());
+            if (MatchStarted != null) MatchStarted(this, new MatchStartedEventArgs());
         }
 
         internal void RaiseWinPanelMatch()
         {
-            if (WinPanelMatch != null)
-                WinPanelMatch(this, new WinPanelMatchEventArgs());
+            if (WinPanelMatch != null) WinPanelMatch(this, new WinPanelMatchEventArgs());
         }
 
         internal void RaiseRoundStart(RoundStartedEventArgs rs)
         {
-            if (RoundStart != null)
-                RoundStart(this, rs);
+            if (RoundStart != null) RoundStart(this, rs);
         }
 
         internal void RaiseRoundFinal()
         {
-            if (RoundFinal != null)
-                RoundFinal(this, new RoundFinalEventArgs());
+            if (RoundFinal != null) RoundFinal(this, new RoundFinalEventArgs());
         }
 
         internal void RaiseLastRoundHalf()
         {
-            if (LastRoundHalf != null)
-                LastRoundHalf(this, new LastRoundHalfEventArgs());
+            if (LastRoundHalf != null) LastRoundHalf(this, new LastRoundHalfEventArgs());
         }
 
         internal void RaiseRoundEnd(RoundEndedEventArgs re)
         {
-            if (RoundEnd != null)
-                RoundEnd(this, re);
+            if (RoundEnd != null) RoundEnd(this, re);
         }
 
         internal void RaiseRoundOfficiallyEnd()
         {
-            if (RoundOfficiallyEnd != null)
-                RoundOfficiallyEnd(this, new RoundOfficiallyEndedEventArgs());
+            if (RoundOfficiallyEnd != null) RoundOfficiallyEnd(this, new RoundOfficiallyEndedEventArgs());
         }
 
         internal void RaiseRoundMVP(RoundMVPEventArgs re)
         {
-            if (RoundMVP != null)
-                RoundMVP(this, re);
+            if (RoundMVP != null) RoundMVP(this, re);
         }
 
         internal void RaiseFreezetimeEnded()
         {
-            if (FreezetimeEnded != null)
-                FreezetimeEnded(this, new FreezetimeEndedEventArgs());
+            if (FreezetimeEnded != null) FreezetimeEnded(this, new FreezetimeEndedEventArgs());
         }
 
         internal void RaisePlayerKilled(PlayerKilledEventArgs kill)
         {
-            if (PlayerKilled != null)
-                PlayerKilled(this, kill);
+            if (PlayerKilled != null) PlayerKilled(this, kill);
         }
 
         internal void RaisePlayerHurt(PlayerHurtEventArgs hurt)
         {
-            if (PlayerHurt != null)
-                PlayerHurt(this, hurt);
+            if (PlayerHurt != null) PlayerHurt(this, hurt);
         }
 
         internal void RaisePlayerBind(PlayerBindEventArgs bind)
         {
-            if (PlayerBind != null)
-                PlayerBind(this, bind);
+            if (PlayerBind != null) PlayerBind(this, bind);
         }
 
         internal void RaisePlayerDisconnect(PlayerDisconnectEventArgs bind)
         {
-            if (PlayerDisconnect != null)
-                PlayerDisconnect(this, bind);
+            if (PlayerDisconnect != null) PlayerDisconnect(this, bind);
         }
 
         internal void RaisePlayerTeam(PlayerTeamEventArgs args)
         {
-            if (PlayerTeam != null)
-                PlayerTeam(this, args);
+            if (PlayerTeam != null) PlayerTeam(this, args);
         }
 
         internal void RaiseBotTakeOver(BotTakeOverEventArgs take)
         {
-            if (BotTakeOver != null)
-                BotTakeOver(this, take);
+            if (BotTakeOver != null) BotTakeOver(this, take);
         }
 
         internal void RaiseWeaponFired(WeaponFiredEventArgs fire)
         {
-            if (WeaponFired != null)
-                WeaponFired(this, fire);
+            if (WeaponFired != null) WeaponFired(this, fire);
         }
 
 
         internal void RaiseSmokeStart(SmokeEventArgs args)
         {
-            if (SmokeNadeStarted != null)
-                SmokeNadeStarted(this, args);
+            if (SmokeNadeStarted != null) SmokeNadeStarted(this, args);
 
-            if (NadeReachedTarget != null)
-                NadeReachedTarget(this, args);
+            if (NadeReachedTarget != null) NadeReachedTarget(this, args);
         }
 
         internal void RaiseSmokeEnd(SmokeEventArgs args)
         {
-            if (SmokeNadeEnded != null)
-                SmokeNadeEnded(this, args);
+            if (SmokeNadeEnded != null) SmokeNadeEnded(this, args);
         }
 
         internal void RaiseDecoyStart(DecoyEventArgs args)
         {
-            if (DecoyNadeStarted != null)
-                DecoyNadeStarted(this, args);
+            if (DecoyNadeStarted != null) DecoyNadeStarted(this, args);
 
-            if (NadeReachedTarget != null)
-                NadeReachedTarget(this, args);
+            if (NadeReachedTarget != null) NadeReachedTarget(this, args);
         }
 
         internal void RaiseDecoyEnd(DecoyEventArgs args)
         {
-            if (DecoyNadeEnded != null)
-                DecoyNadeEnded(this, args);
+            if (DecoyNadeEnded != null) DecoyNadeEnded(this, args);
         }
 
         internal void RaiseFireStart(FireEventArgs args)
         {
-            if (FireNadeStarted != null)
-                FireNadeStarted(this, args);
+            if (FireNadeStarted != null) FireNadeStarted(this, args);
 
-            if (NadeReachedTarget != null)
-                NadeReachedTarget(this, args);
+            if (NadeReachedTarget != null) NadeReachedTarget(this, args);
         }
 
         internal void RaiseFireEnd(FireEventArgs args)
         {
-            if (FireNadeEnded != null)
-                FireNadeEnded(this, args);
+            if (FireNadeEnded != null) FireNadeEnded(this, args);
         }
 
         internal void RaiseFlashExploded(FlashEventArgs args)
         {
-            if (FlashNadeExploded != null)
-                FlashNadeExploded(this, args);
+            if (FlashNadeExploded != null) FlashNadeExploded(this, args);
 
-            if (NadeReachedTarget != null)
-                NadeReachedTarget(this, args);
+            if (NadeReachedTarget != null) NadeReachedTarget(this, args);
         }
 
         internal void RaiseGrenadeExploded(GrenadeEventArgs args)
         {
-            if (ExplosiveNadeExploded != null)
-                ExplosiveNadeExploded(this, args);
+            if (ExplosiveNadeExploded != null) ExplosiveNadeExploded(this, args);
 
-            if (NadeReachedTarget != null)
-                NadeReachedTarget(this, args);
+            if (NadeReachedTarget != null) NadeReachedTarget(this, args);
         }
 
         internal void RaiseBombBeginPlant(BombEventArgs args)
         {
-            if (BombBeginPlant != null)
-                BombBeginPlant(this, args);
+            if (BombBeginPlant != null) BombBeginPlant(this, args);
         }
 
         internal void RaiseBombAbortPlant(BombEventArgs args)
         {
-            if (BombAbortPlant != null)
-                BombAbortPlant(this, args);
+            if (BombAbortPlant != null) BombAbortPlant(this, args);
         }
 
         internal void RaiseBombPlanted(BombEventArgs args)
         {
-            if (BombPlanted != null)
-                BombPlanted(this, args);
+            if (BombPlanted != null) BombPlanted(this, args);
         }
 
         internal void RaiseBombDefused(BombEventArgs args)
         {
-            if (BombDefused != null)
-                BombDefused(this, args);
+            if (BombDefused != null) BombDefused(this, args);
         }
 
         internal void RaiseBombExploded(BombEventArgs args)
         {
-            if (BombExploded != null)
-                BombExploded(this, args);
+            if (BombExploded != null) BombExploded(this, args);
         }
 
         internal void RaiseBombBeginDefuse(BombDefuseEventArgs args)
         {
-            if (BombBeginDefuse != null)
-                BombBeginDefuse(this, args);
+            if (BombBeginDefuse != null) BombBeginDefuse(this, args);
         }
 
         internal void RaiseBombAbortDefuse(BombDefuseEventArgs args)
         {
-            if (BombAbortDefuse != null)
-                BombAbortDefuse(this, args);
+            if (BombAbortDefuse != null) BombAbortDefuse(this, args);
         }
 
         #endregion
 
 #if SLOW_PROTOBUF
-		#region UserMessage event caller
+        #region UserMessage event caller
 
 		internal void RaiseSayText(SayTextEventArgs st)
 		{
@@ -1342,8 +1254,8 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
 				ServerRankUpdate(this, sru);
 		}
 
-		#endregion
-		#endif
+        #endregion
+#endif
 
         /// <summary>
         ///     Releases all resource used by the <see cref="DemoParser" /> object. This must be called or evil things (memory
@@ -1362,15 +1274,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo
             BitStream.Dispose();
 
             foreach (var entity in Entities)
-            {
                 if (entity != null)
                     entity.Leave();
-            }
 
-            foreach (var serverClass in SendTableParser.ServerClasses)
-            {
-                serverClass.Dispose();
-            }
+            foreach (var serverClass in SendTableParser.ServerClasses) serverClass.Dispose();
 
             TickDone = null;
             BombAbortDefuse = null;

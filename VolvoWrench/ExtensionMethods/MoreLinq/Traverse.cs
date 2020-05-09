@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public partial class MoreEnumerable
     {
@@ -41,6 +41,7 @@ namespace MoreLinq
         public static IEnumerable<T> TraverseBreadthFirst<T>(T root, Func<T, IEnumerable<T>> childrenSelector)
         {
             if (childrenSelector == null) throw new ArgumentNullException("childrenSelector");
+
             return TraverseBreadthFirstImpl(root, childrenSelector);
         }
 
@@ -53,8 +54,7 @@ namespace MoreLinq
             {
                 var current = queue.Dequeue();
                 yield return current;
-                foreach (var child in childrenSelector(current))
-                    queue.Enqueue(child);
+                foreach (var child in childrenSelector(current)) queue.Enqueue(child);
             }
         }
 
@@ -74,6 +74,7 @@ namespace MoreLinq
         public static IEnumerable<T> TraverseDepthFirst<T>(T root, Func<T, IEnumerable<T>> childrenSelector)
         {
             if (childrenSelector == null) throw new ArgumentNullException("childrenSelector");
+
             return TraverseDepthFirstImpl(root, childrenSelector);
         }
 
@@ -88,8 +89,7 @@ namespace MoreLinq
                 yield return current;
                 // because a stack pops the elements out in LIFO order, we need to push them in reverse
                 // if we want to traverse the returned list in the same order as was returned to us
-                foreach (var child in childrenSelector(current).Reverse())
-                    stack.Push(child);
+                foreach (var child in childrenSelector(current).Reverse()) stack.Push(child);
             }
         }
     }

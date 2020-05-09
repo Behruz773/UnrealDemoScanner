@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Determines whether the beginning of the first sequence is
@@ -68,9 +68,11 @@ namespace MoreLinq
         ///     it calls <see cref="IEqualityComparer{T}.Equals(T,T)" /> on pairs
         ///     of elements at the same index.
         /// </remarks>
-        public static bool StartsWith<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer)
+        public static bool StartsWith<T>(this IEnumerable<T> first, IEnumerable<T> second,
+            IEqualityComparer<T> comparer)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
 
             comparer = comparer ?? EqualityComparer<T>.Default;

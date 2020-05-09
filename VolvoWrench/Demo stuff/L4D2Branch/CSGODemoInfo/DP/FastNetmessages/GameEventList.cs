@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.Handler;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.Handler;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
 {
     public struct GameEventList
     {
@@ -19,11 +19,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                 var desc = bitstream.ReadProtobufVarInt();
                 var wireType = desc & 7;
                 var fieldnum = desc >> 3;
-                if ((wireType != 2) || (fieldnum != 1))
-                    throw new InvalidDataException();
+                if (wireType != 2 || fieldnum != 1) throw new InvalidDataException();
 
                 var length = bitstream.ReadProtobufVarInt();
-                bitstream.BeginChunk(length*8);
+                bitstream.BeginChunk(length * 8);
                 var descriptor = new Descriptor();
                 descriptor.Parse(bitstream);
                 yield return descriptor;
@@ -43,14 +42,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                     var desc = bitstream.ReadProtobufVarInt();
                     var wireType = desc & 7;
                     var fieldnum = desc >> 3;
-                    if ((wireType == 0) && (fieldnum == 1))
-                    {
+                    if (wireType == 0 && fieldnum == 1)
                         Type = bitstream.ReadProtobufVarInt();
-                    }
-                    else if ((wireType == 2) && (fieldnum == 2))
-                    {
+                    else if (wireType == 2 && fieldnum == 2)
                         Name = bitstream.ReadProtobufString();
-                    }
                     else
                         throw new InvalidDataException();
                 }
@@ -71,26 +66,29 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                     var desc = bitstream.ReadProtobufVarInt();
                     var wireType = desc & 7;
                     var fieldnum = desc >> 3;
-                    if ((wireType == 0) && (fieldnum == 1))
+                    if (wireType == 0 && fieldnum == 1)
                     {
                         EventId = bitstream.ReadProtobufVarInt();
                     }
-                    else if ((wireType == 2) && (fieldnum == 2))
+                    else if (wireType == 2 && fieldnum == 2)
                     {
                         Name = bitstream.ReadProtobufString();
                     }
-                    else if ((wireType == 2) && (fieldnum == 3))
+                    else if (wireType == 2 && fieldnum == 3)
                     {
                         var length = bitstream.ReadProtobufVarInt();
-                        bitstream.BeginChunk(length*8);
+                        bitstream.BeginChunk(length * 8);
                         var key = new Key();
                         key.Parse(bitstream);
                         keys.Add(key);
                         bitstream.EndChunk();
                     }
                     else
+                    {
                         throw new InvalidDataException();
+                    }
                 }
+
                 Keys = keys.ToArray();
             }
         }

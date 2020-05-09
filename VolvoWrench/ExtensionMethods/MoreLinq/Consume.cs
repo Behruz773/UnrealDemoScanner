@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Completely consumes the given sequence. This method uses immediate execution,
@@ -33,6 +33,7 @@ namespace MoreLinq
         public static void Consume<T>(this IEnumerable<T> source)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             foreach (var element in source)
             {
             }

@@ -22,9 +22,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Splits the source sequence by a separator.
@@ -189,8 +189,11 @@ namespace MoreLinq
             Func<IEnumerable<TSource>, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (count <= 0) throw new ArgumentOutOfRangeException("count");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+
             return SplitImpl(source, separator, comparer ?? EqualityComparer<TSource>.Default, count, resultSelector);
         }
 
@@ -291,9 +294,13 @@ namespace MoreLinq
             Func<IEnumerable<TSource>, TResult> resultSelector)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (separatorFunc == null) throw new ArgumentNullException("separatorFunc");
+
             if (count <= 0) throw new ArgumentOutOfRangeException("count");
+
             if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+
             return SplitImpl(source, separatorFunc, count, resultSelector);
         }
 
@@ -315,7 +322,6 @@ namespace MoreLinq
                 List<TSource> items = null;
 
                 foreach (var item in source)
-                {
                     if (count > 0 && separatorFunc(item))
                     {
                         yield return resultSelector(items ?? Enumerable.Empty<TSource>());
@@ -324,15 +330,12 @@ namespace MoreLinq
                     }
                     else
                     {
-                        if (items == null)
-                            items = new List<TSource>();
+                        if (items == null) items = new List<TSource>();
 
                         items.Add(item);
                     }
-                }
 
-                if (items != null && items.Count > 0)
-                    yield return resultSelector(items);
+                if (items != null && items.Count > 0) yield return resultSelector(items);
             }
         }
     }

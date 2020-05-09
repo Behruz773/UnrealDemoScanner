@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -83,6 +83,7 @@ namespace MoreLinq
             Func<T, T, int, bool> newSegmentPredicate)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (newSegmentPredicate == null) throw new ArgumentNullException("newSegmentPredicate");
 
             return SegmentImpl(source, newSegmentPredicate);
@@ -95,7 +96,7 @@ namespace MoreLinq
             using (var iter = source.GetEnumerator())
             {
                 var segment = new List<T>();
-                var prevItem = default(T);
+                T prevItem = default;
 
                 // ensure that the first item is always part
                 // of the first segment. This is an intentional
@@ -121,14 +122,15 @@ namespace MoreLinq
                         segment.Add(iter.Current);
                         continue;
                     }
+
                     yield return segment; // yield the completed segment
 
                     // start a new segment...
                     segment = new List<T> {iter.Current};
                 }
+
                 // handle the case of the sequence ending before new segment is detected
-                if (segment.Count > 0)
-                    yield return segment;
+                if (segment.Count > 0) yield return segment;
             }
         }
     }

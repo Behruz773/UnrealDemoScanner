@@ -1,8 +1,7 @@
 using System.IO;
-using System.Windows.Media.Media3D;
-using VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.Result;
+using VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.Result;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
+namespace VolvoWrench.DemoStuff.L4D2Branch.PortalStuff.GameHandler
 {
     internal class PortalGameHandler : HL2GameHandler
     {
@@ -27,11 +26,13 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 result.StartAdjustmentType = _startAdjustType;
                 result.StartAdjustmentTick = _startTick;
             }
+
             if (_endAdjustType != null)
             {
                 result.EndAdjustmentType = _endAdjustType;
                 result.EndAdjustmentTick = _endTick;
             }
+
             return result;
         }
 
@@ -49,6 +50,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 _endAdjustType = "#SAVE# Flag";
                 _endTick = CurrentTick;
             }
+
             return consoleCmdResult;
         }
 
@@ -62,6 +64,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.PortalStuff.GameHandler
                 _startAdjustType = "Crosshair Appear";
                 _startTick = CurrentTick + 1;
             }
+
             return packetResult;
         }
     }

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
 {
     public struct SendTable
     {
@@ -10,15 +10,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
         public int _NeedsDecoder;
         public string NetTableName;
 
-        public bool IsEnd
-        {
-            get { return _IsEnd != 0; }
-        }
+        public bool IsEnd => _IsEnd != 0;
 
-        public bool NeedsDecoder
-        {
-            get { return _NeedsDecoder != 0; }
-        }
+        public bool NeedsDecoder => _NeedsDecoder != 0;
 
         public IEnumerable<SendProp> Parse(IBitStream bitstream)
         {
@@ -42,15 +36,17 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                         // We'll simply hope that gaben is nice and sends
                         // props last, just like he should.
                         var len = bitstream.ReadProtobufVarInt();
-                        bitstream.BeginChunk(len*8);
+                        bitstream.BeginChunk(len * 8);
                         var sendprop = new SendProp();
                         sendprop.Parse(bitstream);
                         sendprops.Add(sendprop);
                         bitstream.EndChunk();
                     }
                     else
+                    {
                         throw new InvalidDataException("yes I know we should drop this" +
                                                        "but we probably want to know that they added a new big field");
+                    }
                 }
                 else if (wireType == 0)
                 {
@@ -64,13 +60,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                         case 3:
                             _NeedsDecoder = val;
                             break;
-                        default:
-                            // silently drop
-                            break;
                     }
                 }
                 else
+                {
                     throw new InvalidDataException();
+                }
             }
 
             return sendprops;
@@ -99,13 +94,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                     if (wireType == 2)
                     {
                         if (fieldnum == 2)
-                        {
                             VarName = bitstream.ReadProtobufString();
-                        }
                         else if (fieldnum == 5)
-                        {
                             DtName = bitstream.ReadProtobufString();
-                        }
                         else
                             throw new InvalidDataException("yes I know we should drop this but we" +
                                                            "probably want to know that they added a new big field");
@@ -131,9 +122,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                             case 9:
                                 NumBits = val;
                                 break;
-                            default:
-                                // silently drop
-                                break;
                         }
                     }
                     else if (wireType == 5)
@@ -148,13 +136,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                             case 8:
                                 HighValue = val;
                                 break;
-                            default:
-                                // silently drop
-                                break;
                         }
                     }
                     else
+                    {
                         throw new InvalidDataException();
+                    }
                 }
             }
         }

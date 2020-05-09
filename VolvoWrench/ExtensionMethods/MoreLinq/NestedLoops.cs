@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
     public static partial class MoreEnumerable
     {
@@ -40,26 +40,28 @@ namespace MoreLinq
         public static IEnumerable<Action> NestedLoops(this Action action, IEnumerable<int> loopCounts)
         {
             if (action == null) throw new ArgumentNullException("action");
+
             if (loopCounts == null) throw new ArgumentNullException("loopCounts");
 
             using (var iter = loopCounts.GetEnumerator())
             {
                 var loopCount = NextLoopCount(iter);
-                if (loopCount == null)
-                    return Enumerable.Empty<Action>(); // null loop
+                if (loopCount == null) return Enumerable.Empty<Action>(); // null loop
+
                 var loop = Enumerable.Repeat(action, loopCount.Value);
-                while ((loopCount = NextLoopCount(iter)) != null)
-                    loop = loop.Repeat(loopCount.Value);
+                while ((loopCount = NextLoopCount(iter)) != null) loop = loop.Repeat(loopCount.Value);
+
                 return loop;
             }
         }
 
         private static int? NextLoopCount(IEnumerator<int> iter)
         {
-            if (!iter.MoveNext())
-                return null;
+            if (!iter.MoveNext()) return null;
+
             if (iter.Current < 0)
                 throw new ArgumentException("All loop counts must be greater than or equal to zero.", "loopCounts");
+
             return iter.Current;
         }
     }

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
-using VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.Messages;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.Messages;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DT
 {
     internal class DataTableParser
     {
@@ -13,26 +13,21 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
         public List<SendTable> DataTables = new List<SendTable>();
         public List<ServerClass> ServerClasses = new List<ServerClass>();
 
-        public int ClassBits
-        {
-            get { return (int) Math.Ceiling(Math.Log(ServerClasses.Count, 2)); }
-        }
+        public int ClassBits => (int) Math.Ceiling(Math.Log(ServerClasses.Count, 2));
 
         public void ParsePacket(IBitStream bitstream)
         {
             while (true)
             {
                 var type = (SVC_Messages) bitstream.ReadProtobufVarInt();
-                if (type != SVC_Messages.svc_SendTable)
-                    throw new Exception("Expected SendTable, got " + type);
+                if (type != SVC_Messages.svc_SendTable) throw new Exception("Expected SendTable, got " + type);
 
                 var size = bitstream.ReadProtobufVarInt();
-                bitstream.BeginChunk(size*8);
+                bitstream.BeginChunk(size * 8);
                 var sendTable = new SendTable(bitstream);
                 bitstream.EndChunk();
 
-                if (sendTable.IsEnd)
-                    break;
+                if (sendTable.IsEnd) break;
 
                 DataTables.Add(sendTable);
             }
@@ -41,11 +36,12 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
 
             for (var i = 0; i < serverClassCount; i++)
             {
-                var entry = new ServerClass();
-                entry.ClassID = checked((int) bitstream.ReadInt(16));
+                var entry = new ServerClass
+                {
+                    ClassID = checked((int) bitstream.ReadInt(16))
+                };
 
-                if (entry.ClassID > serverClassCount)
-                    throw new Exception("Invalid class index");
+                if (entry.ClassID > serverClassCount) throw new Exception("Invalid class index");
 
                 entry.Name = bitstream.ReadDataTableString();
                 entry.DTName = bitstream.ReadDataTableString();
@@ -55,8 +51,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                 ServerClasses.Add(entry);
             }
 
-            for (var i = 0; i < serverClassCount; i++)
-                FlattenDataTable(i);
+            for (var i = 0; i < serverClassCount; i++) FlattenDataTable(i);
         }
 
         private void FlattenDataTable(int serverClassIndex)
@@ -75,8 +70,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
 
             var flattenedProps = ServerClasses[serverClassIndex].FlattenedProps;
 
-            var priorities = new List<int>();
-            priorities.Add(64);
+            var priorities = new List<int>
+            {
+                64
+            };
             priorities.AddRange(flattenedProps.Select(a => a.Prop.Priority).Distinct());
             priorities.Sort();
 
@@ -94,7 +91,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                         var prop = flattenedProps[currentProp].Prop;
 
                         if (prop.Priority == priority ||
-                            (priority == 64 && prop.Flags.HasFlagFast(SendPropertyFlags.ChangesOften)))
+                            priority == 64 && prop.Flags.HasFlagFast(SendPropertyFlags.ChangesOften))
                         {
                             if (start != currentProp)
                             {
@@ -106,11 +103,11 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                             start++;
                             break;
                         }
+
                         currentProp++;
                     }
 
-                    if (currentProp == flattenedProps.Count)
-                        break;
+                    if (currentProp == flattenedProps.Count) break;
                 }
             }
         }
@@ -121,10 +118,9 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                 sendTable.Properties
                     .Where(a => a.Flags.HasFlagFast(SendPropertyFlags.Exclude))
                     .Select(a => new ExcludeEntry(a.Name, a.DataTableName, sendTable.Name))
-                );
+            );
 
             foreach (var prop in sendTable.Properties.Where(a => a.Type == SendPropertyType.DataTable))
-            {
                 if (collectBaseClasses && prop.Name == "baseclass")
                 {
                     GatherExcludesAndBaseclasses(GetTableByName(prop.DataTableName), true);
@@ -134,7 +130,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                 {
                     GatherExcludesAndBaseclasses(GetTableByName(prop.DataTableName), false);
                 }
-            }
         }
 
         private void GatherProps(SendTable table, int serverClassIndex, string prefix)
@@ -171,7 +166,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                     {
                         //We do however prefix everything else
 
-                        var nfix = prefix + ((property.Name.Length > 0) ? property.Name + "." : "");
+                        var nfix = prefix + (property.Name.Length > 0 ? property.Name + "." : "");
 
                         GatherProps(subTable, ServerClassIndex, nfix);
                     }
@@ -179,14 +174,10 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DT
                 else
                 {
                     if (property.Type == SendPropertyType.Array)
-                    {
                         flattenedProps.Add(new FlattenedPropEntry(prefix + property.Name, property,
                             table.Properties[i - 1]));
-                    }
                     else
-                    {
                         flattenedProps.Add(new FlattenedPropEntry(prefix + property.Name, property, null));
-                    }
                 }
             }
         }

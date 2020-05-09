@@ -1,7 +1,7 @@
 ﻿using System.IO;
-using VolvoWrench.Demo_Stuff.L4D2Branch.BitStreamUtil;
+using VolvoWrench.DemoStuff.L4D2Branch.BitStreamUtil;
 
-namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
+namespace VolvoWrench.DemoStuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
 {
     public struct NETTick
     {
@@ -17,8 +17,7 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                 var desc = bitstream.ReadProtobufVarInt();
                 var wireType = desc & 7;
                 var fieldnum = desc >> 3;
-                if (wireType != 0)
-                    throw new InvalidDataException();
+                if (wireType != 0) throw new InvalidDataException();
 
                 var val = (uint) bitstream.ReadProtobufVarInt();
 
@@ -35,9 +34,6 @@ namespace VolvoWrench.Demo_Stuff.L4D2Branch.CSGODemoInfo.DP.FastNetmessages
                         break;
                     case 6:
                         HostFramestartTimeStdDeviation = val;
-                        break;
-                    default:
-                        // silently drop
                         break;
                 }
             }

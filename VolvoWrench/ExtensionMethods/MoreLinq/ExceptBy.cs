@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns the set of elements in the first sequence which aren't
@@ -86,8 +86,11 @@ namespace MoreLinq
             IEqualityComparer<TKey> keyComparer)
         {
             if (first == null) throw new ArgumentNullException("first");
+
             if (second == null) throw new ArgumentNullException("second");
+
             if (keySelector == null) throw new ArgumentNullException("keySelector");
+
             return ExceptByImpl(first, second, keySelector, keyComparer);
         }
 
@@ -100,10 +103,7 @@ namespace MoreLinq
             foreach (var element in first)
             {
                 var key = keySelector(element);
-                if (keys.Contains(key))
-                {
-                    continue;
-                }
+                if (keys.Contains(key)) continue;
                 yield return element;
                 keys.Add(key);
             }

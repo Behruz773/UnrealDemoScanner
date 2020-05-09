@@ -20,9 +20,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
-    static partial class MoreEnumerable
+    public static partial class MoreEnumerable
     {
         /// <summary>
         ///     Returns items from the input sequence until the given predicate returns true
@@ -57,7 +57,9 @@ namespace MoreLinq
             Func<TSource, bool> predicate)
         {
             if (source == null) throw new ArgumentNullException("source");
+
             if (predicate == null) throw new ArgumentNullException("predicate");
+
             return TakeUntilImpl(source, predicate);
         }
 
@@ -67,10 +69,7 @@ namespace MoreLinq
             foreach (var item in source)
             {
                 yield return item;
-                if (predicate(item))
-                {
-                    yield break;
-                }
+                if (predicate(item)) yield break;
             }
         }
     }

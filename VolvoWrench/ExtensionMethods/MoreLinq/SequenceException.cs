@@ -20,10 +20,10 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MoreLinq
+namespace VolvoWrench.ExtensionMethods.MoreLinq
 {
 #if !NO_EXCEPTION_SERIALIZATION
-    
+
 #endif
 
     /// <summary>
