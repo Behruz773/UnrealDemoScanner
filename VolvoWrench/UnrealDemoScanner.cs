@@ -1465,8 +1465,10 @@ namespace VolvoWrench.DG
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
-
-        public static bool FoundFirstTime;
+        public static float DemoStartTime = 0.0f;
+        public static float DemoStartTime2 = 0.0f;
+        public static bool FoundFirstTime = false;
+        public static bool FoundFirstTime2 = false;
         public static bool AimType1FalseDetect;
 
 
@@ -2206,7 +2208,7 @@ namespace VolvoWrench.DG
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
-                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b4. Demo:" + DemoName +
+                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b5. Demo:" + DemoName +
                     ". DEMO TIME: 00:00:00";
             }
             catch
@@ -2252,7 +2254,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b4");
+                Console.WriteLine("Unreal Demo Scanner v1.33b5");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
             }
@@ -3152,7 +3154,16 @@ namespace VolvoWrench.DG
                                 // Console.WriteLine("Frame:" + frame.Key.Type.ToString() +". Len:" + nf.MsgBytes.Length);
 
                                 if (CurrentTime != 0.0f && !FoundFirstTime)
+                                {
+                                    Program.DemoStartTime = CurrentTime;
                                     FoundFirstTime = true;
+                                }
+                                if (CurrentTime2 != 0.0f && !FoundFirstTime2)
+                                {
+                                    Program.DemoStartTime2 = CurrentTime2;
+                                    FoundFirstTime2 = true;
+                                }
+
                                 if (IsUserAlive() && nf.RParms.Health <= 0)
                                 {
                                     UserAlive = false;
@@ -3352,7 +3363,7 @@ namespace VolvoWrench.DG
                                     lastnormalanswer = Program.CurrentTimeString;
 
                                     Console.Title =
-                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b4. Demo:" +
+                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b5. Demo:" +
                                         DemoName + ". DEMO TIME: " + Program.CurrentTimeString;
                                 }
                                 catch
@@ -3360,7 +3371,7 @@ namespace VolvoWrench.DG
                                     try
                                     {
                                         Console.Title =
-                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b4. Demo:" +
+                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b5. Demo:" +
                                             DemoName + ". DEMO TIME: " + lastnormalanswer;
                                     }
                                     catch
@@ -3368,7 +3379,7 @@ namespace VolvoWrench.DG
                                         try
                                         {
                                             Console.Title =
-                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b4. Demo:" +
+                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b5. Demo:" +
                                                 "BAD NAME" + ". DEMO TIME: " + lastnormalanswer;
                                         }
                                         catch
@@ -3638,8 +3649,10 @@ namespace VolvoWrench.DG
                                                 "Detected [TIMESHIFT]. Weapon:" +
                                                 CurrentWeapon);
                                             Console.WriteLine(
-                                                "Detected [TIMESHIFT] on (" +
-                                                CurrentFrameId + "):" + Program.CurrentTimeString);
+                                                "Detected [TIMESHIFT] on (" + DemoStartTime + "):"
+                                                + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+
+                                                Program.CurrentTimeString);
                                         }
                                         if (CurrentTime - PreviewTime > Program.MaximumTimeBetweenFrames)
                                         {
@@ -3667,6 +3680,16 @@ namespace VolvoWrench.DG
                                             {
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
+                                                    TextComments.WriteLine(
+                                                   "Detected [TIMESHIFT 2] on (" +
+                                                   CurrentTime + "):" + Program.CurrentTimeString);
+                                                    AddViewDemoHelperComment(
+                                                        "Detected [TIMESHIFT 2]. Weapon:" +
+                                                        CurrentWeapon);
+                                                    Console.WriteLine(
+                                                        "Detected [TIMESHIFT 2] on (" + DemoStartTime + "):"
+                                                        + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+                                                        Program.CurrentTimeString);
                                                     LastTimeOutCount++;
                                                 }
                                                 LastTimeOut = 1;
@@ -3678,6 +3701,16 @@ namespace VolvoWrench.DG
                                             {
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
+                                                    TextComments.WriteLine(
+                                                      "Detected [TIMESHIFT 3] on (" +
+                                                      CurrentTime + "):" + Program.CurrentTimeString);
+                                                    AddViewDemoHelperComment(
+                                                        "Detected [TIMESHIFT 3]. Weapon:" +
+                                                        CurrentWeapon);
+                                                    Console.WriteLine(
+                                                        "Detected [TIMESHIFT 3] on (" + DemoStartTime + "):"
+                                                        + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+                                                        Program.CurrentTimeString);
                                                     LastTimeOutCount++;
                                                 }
 
@@ -4511,7 +4544,7 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine("Unreal Demo Scanner v1.33b4 scan result:");
+            Console.WriteLine("Unreal Demo Scanner v1.33b5 scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
             //Console.WriteLine(nospreadtest2.ToString("F8"));
@@ -4617,10 +4650,10 @@ namespace VolvoWrench.DG
             //    Console.WriteLine("Unknown delay/timer hack detected. (???)");
             //}
 
-            if (LastTimeOutCount > 2)
-                Console.WriteLine(
-                    "[DEBUG/TRACE MODE] Обнаружены незначительные искривления пространства и времени. Количество: " +
-                    LastTimeOutCount);
+            //if (LastTimeOutCount > 2)
+            //    Console.WriteLine(
+            //        "[DEBUG/TRACE MODE] Обнаружены незначительные искривления пространства и времени. Количество: " +
+            //        LastTimeOutCount);
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
