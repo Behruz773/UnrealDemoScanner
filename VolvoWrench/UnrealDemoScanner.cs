@@ -80,6 +80,8 @@ namespace VolvoWrench.DG
             WEAPON_BAD2 = 255
         }
 
+        public const double MAX_SPREAD_CONST = 0.00000381;
+
         public static List<string> outFrames = null;
         public static bool needsaveframes = false;
 
@@ -3492,10 +3494,27 @@ namespace VolvoWrench.DG
                                         {
                                             if (CurrentFrameAttacked && CurrentFrameOnGround)
                                             {
-                                                if (Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero) > nospreadtest)
+                                                var spreadtest = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero);
+                                                if ( spreadtest > nospreadtest)
                                                 {
                                                     nospreadtest = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
+                                                }
+
+                                                if (spreadtest > MAX_SPREAD_CONST)
+                                                {
+                                                    var tmpcol = Console.ForegroundColor;
+                                                    Console.ForegroundColor = ConsoleColor.Gray;
+                                                    TextComments.WriteLine(
+                                                        "Detected [NOSPREAD TYPE 1] on (" +
+                                                        CurrentTime + "):" + Program.CurrentTimeString + " (???)");
+                                                    AddViewDemoHelperComment(
+                                                        "Detected [NOSPREAD TYPE 1]. Weapon:" +
+                                                        CurrentWeapon + " (???)");
+                                                    Console.WriteLine(
+                                                        "Detected [NOSPREAD TYPE 1] on (" +
+                                                        CurrentTime + "):" + Program.CurrentTimeString + " (???)");
+                                                    Console.ForegroundColor = tmpcol;
                                                 }
                                             }
 
@@ -3516,14 +3535,30 @@ namespace VolvoWrench.DG
                                             //    Console.WriteLine("NONE(" + nf.UCmd.Buttons + ")");
                                             //}
                                         }
-                                        else if (viewanglesforsearch.Y != nf.RParms.Viewangles.Y)
+                                        if (viewanglesforsearch.Y != nf.RParms.Viewangles.Y)
                                         {
                                             if (CurrentFrameAttacked && CurrentFrameOnGround)
                                             {
-                                                if (Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero) > nospreadtest2)
+                                                var spreadtest2 = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.Y - nf.RParms.Viewangles.Y) - Math.Abs(nf.RParms.Punchangle.Y)), 8, MidpointRounding.AwayFromZero);
+                                                if ( spreadtest2 > nospreadtest2)
                                                 {
-                                                    nospreadtest2 = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero);
+                                                    nospreadtest2 = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.Y - nf.RParms.Viewangles.Y) - Math.Abs(nf.RParms.Punchangle.Y)), 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
+                                                }
+                                                if (spreadtest2 > MAX_SPREAD_CONST)
+                                                {
+                                                    var tmpcol = Console.ForegroundColor;
+                                                    Console.ForegroundColor = ConsoleColor.Gray;
+                                                    TextComments.WriteLine(
+                                                        "Detected [NOSPREAD TYPE 2] on (" +
+                                                        CurrentTime + "):" + Program.CurrentTimeString + " (???)");
+                                                    AddViewDemoHelperComment(
+                                                        "Detected [NOSPREAD TYPE 2]. Weapon:" +
+                                                        CurrentWeapon + " (???)");
+                                                    Console.WriteLine(
+                                                        "Detected [NOSPREAD TYPE 2] on (" +
+                                                        CurrentTime + "):" + Program.CurrentTimeString + " (???)");
+                                                    Console.ForegroundColor = tmpcol;
                                                 }
                                             }
 
@@ -4477,6 +4512,7 @@ namespace VolvoWrench.DG
             Console.WriteLine("Unreal Demo Scanner v1.33b4 scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
+            //Console.WriteLine(nospreadtest2.ToString("F8"));
 
             Console.ForegroundColor = ConsoleColor.DarkRed;
 
