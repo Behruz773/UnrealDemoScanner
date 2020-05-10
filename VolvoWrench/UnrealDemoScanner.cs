@@ -3494,10 +3494,10 @@ namespace VolvoWrench.DG
                                         {
                                             if (CurrentFrameAttacked && CurrentFrameOnGround)
                                             {
-                                                var spreadtest = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero);
+                                                var spreadtest = Math.Round(viewanglesforsearch.X - nf.RParms.Viewangles.X + nf.RParms.Punchangle.X, 8, MidpointRounding.AwayFromZero);
                                                 if ( spreadtest > nospreadtest)
                                                 {
-                                                    nospreadtest = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.X - nf.RParms.Viewangles.X) - Math.Abs(nf.RParms.Punchangle.X)), 8, MidpointRounding.AwayFromZero);
+                                                    nospreadtest = Math.Round(viewanglesforsearch.X - nf.RParms.Viewangles.X + nf.RParms.Punchangle.X, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
 
@@ -3539,10 +3539,10 @@ namespace VolvoWrench.DG
                                         {
                                             if (CurrentFrameAttacked && CurrentFrameOnGround)
                                             {
-                                                var spreadtest2 = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.Y - nf.RParms.Viewangles.Y) - Math.Abs(nf.RParms.Punchangle.Y)), 8, MidpointRounding.AwayFromZero);
+                                                var spreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                 if ( spreadtest2 > nospreadtest2)
                                                 {
-                                                    nospreadtest2 = Math.Round(Math.Abs(Math.Abs(viewanglesforsearch.Y - nf.RParms.Viewangles.Y) - Math.Abs(nf.RParms.Punchangle.Y)), 8, MidpointRounding.AwayFromZero);
+                                                    nospreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
                                                 if (spreadtest2 > MAX_SPREAD_CONST)
