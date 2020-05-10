@@ -1499,6 +1499,7 @@ namespace VolvoWrench.DG
 
 
         public static int AimType7Frames;
+        public static float OldAimType7Time = 0.0f;
         public static int OldAimType7Frames;
         public static int AimType7Event;
         public static int BadVoicePacket;
@@ -2888,7 +2889,7 @@ namespace VolvoWrench.DG
                                                     TextComments.WriteLine(
                                                         GetAim7String(OldAimType7Frames,
                                                             AimType7Frames, AimType7Event,
-                                                            tmpangle2) + " on (" + CurrentTime +
+                                                            tmpangle2) + " on (" + OldAimType7Time +
                                                         "):" + Program.CurrentTimeString + " (???)");
                                                     AddViewDemoHelperComment(
                                                         GetAim7String(OldAimType7Frames,
@@ -2898,7 +2899,7 @@ namespace VolvoWrench.DG
                                                     Console.WriteLine(
                                                         GetAim7String(OldAimType7Frames,
                                                             AimType7Frames, AimType7Event,
-                                                            tmpangle2) + " on (" + CurrentTime +
+                                                            tmpangle2) + " on (" + OldAimType7Time +
                                                         "):" + Program.CurrentTimeString + " (???)");
                                                     Console.ForegroundColor = tmpcol;
                                                 }
@@ -2924,7 +2925,7 @@ namespace VolvoWrench.DG
                                                 TextComments.WriteLine(
                                                     GetAim7String(OldAimType7Frames,
                                                         AimType7Frames, AimType7Event,
-                                                        tmpangle2) + " on (" + CurrentTime +
+                                                        tmpangle2) + " on (" + OldAimType7Time +
                                                     "):" + Program.CurrentTimeString + " (???)");
                                                 AddViewDemoHelperComment(
                                                     GetAim7String(OldAimType7Frames,
@@ -2934,7 +2935,7 @@ namespace VolvoWrench.DG
                                                 Console.WriteLine(
                                                     GetAim7String(OldAimType7Frames,
                                                         AimType7Frames, AimType7Event,
-                                                        tmpangle2) + " on (" + CurrentTime +
+                                                        tmpangle2) + " on (" + OldAimType7Time +
                                                     "):" + Program.CurrentTimeString + " (???)");
                                                 Console.ForegroundColor = tmpcol;
                                             }
@@ -2992,6 +2993,7 @@ namespace VolvoWrench.DG
                                             if (AimType7Frames > 1
                                                 && tmpXangle != 0.0 && tmpYangle != 0.0)
                                             {
+                                                Program.OldAimType7Time = CurrentTime;
                                                 //Console.WriteLine("4");
                                                 OldAimType7Frames = AimType7Frames;
                                                 AimType7Event = 1;
