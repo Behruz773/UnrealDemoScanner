@@ -2064,12 +2064,15 @@ namespace VolvoWrench.DG
             // Start recursion on all subnodes.
             foreach (TreeNode oSubNode in oParentNode.Nodes) PrintNodesRecursive(oSubNode);
         }
-
-        public static bool IsUserAlive()
+        public static bool IsRealWeapon()
         {
-            return UserAlive && CurrentWeapon != WeaponIdType.WEAPON_NONE &&
+            return CurrentWeapon != WeaponIdType.WEAPON_NONE &&
                    CurrentWeapon != WeaponIdType.WEAPON_BAD
                    && CurrentWeapon != WeaponIdType.WEAPON_BAD2;
+        }
+        public static bool IsUserAlive()
+        {
+            return RealAlive && IsRealWeapon( );
         }
 
         public static string Truncate(string value, int maxLength)
@@ -3167,6 +3170,7 @@ namespace VolvoWrench.DG
                                 if (IsUserAlive() && nf.RParms.Health <= 0)
                                 {
                                     UserAlive = false;
+                                    RealAlive = false;
                                     DeathsCoount2++;
                                     if (needsaveframes)
                                         subnode.Text +=
@@ -3190,9 +3194,8 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                CurrentFrameAlive = IsUserAlive();
+                                CurrentFrameAlive = IsRealWeapon() && UserAlive;
                                 RealAlive = CurrentFrameAlive && PreviewFrameAlive;
-
 
                                 if (FoundDublicader)
                                 {
@@ -3210,10 +3213,6 @@ namespace VolvoWrench.DG
                                     if (SkipNextAttack == 2) SkipNextAttack = 0;
                                 }
 
-
-                                CurrentFrameAlive = IsUserAlive();
-
-                                RealAlive = CurrentFrameAlive && PreviewFrameAlive;
 
                                 PreviewTime3 = CurrentTime3;
                                 CurrentTime3 = frame.Key.Time;
