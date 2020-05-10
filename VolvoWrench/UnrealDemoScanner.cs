@@ -2966,7 +2966,9 @@ namespace VolvoWrench.DG
                                         if (tmpXangle != 0.0 && tmpYangle != 0.0)
                                             AimType7Event = 4;
                                         else
-                                            AimType7Event = 5;
+                                            AimType7Event = 0;
+                                        /*else
+                                            AimType7Event = 5;*/
                                     }
 
                                     // Если AimType7Event равен 0 то искать паттерн
@@ -3495,7 +3497,7 @@ namespace VolvoWrench.DG
                                             if (CurrentFrameAttacked && CurrentFrameOnGround)
                                             {
                                                 var spreadtest = Math.Round(viewanglesforsearch.X - nf.RParms.Viewangles.X + nf.RParms.Punchangle.X, 8, MidpointRounding.AwayFromZero);
-                                                if ( spreadtest > nospreadtest)
+                                                if (spreadtest > nospreadtest)
                                                 {
                                                     nospreadtest = Math.Round(viewanglesforsearch.X - nf.RParms.Viewangles.X + nf.RParms.Punchangle.X, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
