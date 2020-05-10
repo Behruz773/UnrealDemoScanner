@@ -347,7 +347,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="AfterCompile">
-    <Exec Command="if &quot;$(ConfigurationName)&quot; == &quot;Release&quot; (&quot;$(ProjectDir)_ConfuserEx\Confuser.CLI.exe&quot; &quot;$(ProjectDir)_ConfuserEx\c.crproj&quot;)&#xD;&#xA;" />
-  </Target>
 </Project>
