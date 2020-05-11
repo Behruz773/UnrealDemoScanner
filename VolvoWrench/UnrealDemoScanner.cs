@@ -3246,6 +3246,7 @@ namespace VolvoWrench.DG
                                             {
                                                 if (tmpframeattacked > 2)
                                                 {
+                                                    Program.LostStopAttackButton += 1;
                                                     CheckConsoleCommand("-attack(PROGRAM)");
                                                 }
                                                 break;
@@ -5077,6 +5078,13 @@ namespace VolvoWrench.DG
                         Console.WriteLine("Dublicate frames: " + FrameDuplicates);
                     }
 
+                    if (LostStopAttackButton > 0)
+                    {
+                        Console.WriteLine("Lost -attack commands: " + LostStopAttackButton + ". Possible bypass demoscanner?");
+                    }
+
+                    
+
                     Console.WriteLine("Maximum time between frames:" + Program.MaximumTimeBetweenFrames.ToString("F6"));
 
                     if (playerList.Count > 0)
@@ -5137,6 +5145,7 @@ namespace VolvoWrench.DG
         public static double nospreadtest2 = 0.0;
         public static float MaximumTimeBetweenFrames = 0.0f;
         public static bool GameEnd = false;
+        public static int LostStopAttackButton = 0;
 
         public class Player
         {
