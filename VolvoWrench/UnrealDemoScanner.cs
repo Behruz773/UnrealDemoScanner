@@ -1801,25 +1801,25 @@ namespace VolvoWrench.DG
                 {
                     attackscounter2++;
 
-                    if (LastTriggerCursor == Console.CursorTop && !IsAttack)
-                    {
-                        if (FalsePositives < 3 && SilentAimDetected <= 0 && BadAttackCount <= 2)
-                        {
-                            Thread.Sleep(1000);
-                            Console.SetCursorPosition(0, LastTriggerCursor - 1);
-                            var tmpcol = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                            Console.Write(
-                                "\r( FALSE POSITIVE / ЛОЖНОЕ СРАБАТЫВАНИЕ ) TRIGGERBOT (" +
-                                LastBadAttackCount + " second) ");
-                            Console.ForegroundColor = tmpcol;
-                            Console.SetCursorPosition(0, LastTriggerCursor);
-                            BadAttackCount--;
-                        }
+                    //if (LastTriggerCursor == Console.CursorTop && !IsAttack)
+                    //{
+                    //    if (FalsePositives < 3 && SilentAimDetected <= 0 && BadAttackCount <= 2)
+                    //    {
+                    //        Thread.Sleep(1000);
+                    //        Console.SetCursorPosition(0, LastTriggerCursor - 1);
+                    //        var tmpcol = Console.ForegroundColor;
+                    //        Console.ForegroundColor = ConsoleColor.Gray;
+                    //        Console.Write(
+                    //            "\r( FALSE POSITIVE / ЛОЖНОЕ СРАБАТЫВАНИЕ ) TRIGGERBOT (" +
+                    //            LastBadAttackCount + " second) ");
+                    //        Console.ForegroundColor = tmpcol;
+                    //        Console.SetCursorPosition(0, LastTriggerCursor);
+                    //        BadAttackCount--;
+                    //    }
 
-                        FalsePositives++;
-                        LastTriggerCursor--;
-                    }
+                    //    FalsePositives++;
+                    //    LastTriggerCursor--;
+                    //}
 
                     if (IsUserAlive())
                     {
@@ -3439,6 +3439,7 @@ namespace VolvoWrench.DG
                                 }
                                 catch
                                 {
+                                    Program.ModifiedDemoFrames += 1;
                                     try
                                     {
                                         Console.Title =
@@ -4255,6 +4256,10 @@ namespace VolvoWrench.DG
                                             //  Console.WriteLine("Invalid weapon(" + Program.CurrentTime + ") " + Program.CurrentTimeString);
                                         }
                                         else if (SelectSlot > 0)
+                                        {
+                                            //  Console.WriteLine("Select weapon(" + Program.CurrentTime + ") " + Program.CurrentTimeString);
+                                        } 
+                                        else if (attackscounter3 < 2)
                                         {
                                             //  Console.WriteLine("Select weapon(" + Program.CurrentTime + ") " + Program.CurrentTimeString);
                                         }
@@ -5083,7 +5088,11 @@ namespace VolvoWrench.DG
                         Console.WriteLine("Lost -attack commands: " + LostStopAttackButton + ". Possible bypass demoscanner?");
                     }
 
-                    
+                    if (ModifiedDemoFrames > 0)
+                    {
+                        Console.WriteLine("Possible demoscanner bypass. Tried to kill frames:" + ModifiedDemoFrames);
+                    }
+
 
                     Console.WriteLine("Maximum time between frames:" + Program.MaximumTimeBetweenFrames.ToString("F6"));
 
@@ -5091,11 +5100,9 @@ namespace VolvoWrench.DG
                         Console.WriteLine("Players: " + playerList.Count);
                     try
                     {
-                        //if ((new FileInfo(Assembly.GetExecutingAssembly().Location).Length <
-                        //        1000000 || playerList.Count > 4) &&
                         if (CheatKey > 0)
                             Console.WriteLine(
-                                "Press cheat key " + CheatKey + " times. (???)");
+                                "Possible press cheat key " + CheatKey + " times. (???)");
                     }
                     catch
                     {
@@ -5133,6 +5140,7 @@ namespace VolvoWrench.DG
         {
             public int x, y;
         }
+
         public static int cipid = 0;
         public static float LastAim5Detected = 0.0f;
         public static float LastAim5DetectedReal = 0.0f;
@@ -5146,6 +5154,7 @@ namespace VolvoWrench.DG
         public static float MaximumTimeBetweenFrames = 0.0f;
         public static bool GameEnd = false;
         public static int LostStopAttackButton = 0;
+        public static int ModifiedDemoFrames = 0;
 
         public class Player
         {
