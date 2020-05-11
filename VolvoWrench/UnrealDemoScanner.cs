@@ -250,7 +250,6 @@ namespace VolvoWrench.DG
         public static List<double> averagefps2 = new List<double>();
 
         public static int LastTimeOut = -1;
-        public static int LastTimeOutCount = 0;
 
 
         public static float LastTimeDesync = 0.0f;
@@ -3714,17 +3713,22 @@ namespace VolvoWrench.DG
                                     {
                                         if (CurrentTime - PreviewTime > 0.5f && !Program.GameEnd && CurrentFrameId > 10)
                                         {
-                                            TextComments.WriteLine(
-                                                    "Detected [TIMESHIFT] on (" +
-                                                    CurrentTime + "):" + Program.CurrentTimeString);
-                                            AddViewDemoHelperComment(
-                                                "Detected [TIMESHIFT]. Weapon:" +
-                                                CurrentWeapon);
-                                            Console.WriteLine(
-                                                "Detected [TIMESHIFT] on (" + DemoStartTime + "):"
-                                                + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+                                            Program.TimeShiftCount += 1;
 
-                                                Program.CurrentTimeString);
+                                            if (Program.TimeShiftCount > 4)
+                                            {
+                                                TextComments.WriteLine(
+                                                        "Detected [TIMESHIFT] on (" +
+                                                        CurrentTime + "):" + Program.CurrentTimeString);
+                                                AddViewDemoHelperComment(
+                                                    "Detected [TIMESHIFT]. Weapon:" +
+                                                    CurrentWeapon);
+                                                Console.WriteLine(
+                                                    "Detected [TIMESHIFT] on (" + DemoStartTime + "):"
+                                                    + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+
+                                                    Program.CurrentTimeString);
+                                            }
                                         }
                                         if (CurrentTime - PreviewTime > Program.MaximumTimeBetweenFrames)
                                         {
@@ -3752,17 +3756,20 @@ namespace VolvoWrench.DG
                                             {
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
-                                                    TextComments.WriteLine(
-                                                   "Detected [TIMESHIFT 2] on (" +
-                                                   CurrentTime + "):" + Program.CurrentTimeString);
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [TIMESHIFT 2]. Weapon:" +
-                                                        CurrentWeapon);
-                                                    Console.WriteLine(
-                                                        "Detected [TIMESHIFT 2] on (" + DemoStartTime + "):"
-                                                        + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
-                                                        Program.CurrentTimeString);
-                                                    LastTimeOutCount++;
+                                                    Program.TimeShiftCount += 1;
+                                                    if (Program.TimeShiftCount > 4)
+                                                    {
+                                                        TextComments.WriteLine(
+                                                       "Detected [TIMESHIFT 2] on (" +
+                                                       CurrentTime + "):" + Program.CurrentTimeString);
+                                                        AddViewDemoHelperComment(
+                                                            "Detected [TIMESHIFT 2]. Weapon:" +
+                                                            CurrentWeapon);
+                                                        Console.WriteLine(
+                                                            "Detected [TIMESHIFT 2] on (" + DemoStartTime + "):"
+                                                            + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+                                                            Program.CurrentTimeString);
+                                                    }
                                                 }
                                                 LastTimeOut = 1;
                                                 //Console.WriteLine("Second.");
@@ -3773,17 +3780,20 @@ namespace VolvoWrench.DG
                                             {
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
-                                                    TextComments.WriteLine(
-                                                      "Detected [TIMESHIFT 3] on (" +
-                                                      CurrentTime + "):" + Program.CurrentTimeString);
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [TIMESHIFT 3]. Weapon:" +
-                                                        CurrentWeapon);
-                                                    Console.WriteLine(
-                                                        "Detected [TIMESHIFT 3] on (" + DemoStartTime + "):"
-                                                        + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
-                                                        Program.CurrentTimeString);
-                                                    LastTimeOutCount++;
+                                                    Program.TimeShiftCount += 1;
+                                                    if (Program.TimeShiftCount > 4)
+                                                    {
+                                                        TextComments.WriteLine(
+                                                          "Detected [TIMESHIFT 3] on (" +
+                                                          CurrentTime + "):" + Program.CurrentTimeString);
+                                                        AddViewDemoHelperComment(
+                                                            "Detected [TIMESHIFT 3]. Weapon:" +
+                                                            CurrentWeapon);
+                                                        Console.WriteLine(
+                                                            "Detected [TIMESHIFT 3] on (" + DemoStartTime + "):"
+                                                            + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
+                                                            Program.CurrentTimeString);
+                                                    }
                                                 }
 
                                                 LastTimeOut = 2;
@@ -4716,11 +4726,6 @@ namespace VolvoWrench.DG
             //    Console.WriteLine("Unknown delay/timer hack detected. (???)");
             //}
 
-            //if (LastTimeOutCount > 2)
-            //    Console.WriteLine(
-            //        "[DEBUG/TRACE MODE] Обнаружены незначительные искривления пространства и времени. Количество: " +
-            //        LastTimeOutCount);
-
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
             ViewDemoHelperComments.Seek(4, SeekOrigin.Begin);
@@ -5155,6 +5160,7 @@ namespace VolvoWrench.DG
         public static bool GameEnd = false;
         public static int LostStopAttackButton = 0;
         public static int ModifiedDemoFrames = 0;
+        public static int TimeShiftCount = 0;
 
         public class Player
         {
