@@ -16,6 +16,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
     /// </summary>
     public class Hlsooe
     {
+
         public enum DemoFrameType : sbyte
         {
             StartupPacket = 1,
@@ -108,12 +109,22 @@ namespace VolvoWrench.DemoStuff.GoldSource
             public string Magic;
         }
 
+        public struct FramesHren2
+        {
+            public DemoFrame Key;
+            public IFrame Value;
+            public FramesHren2(DemoFrame key, IFrame value)
+            {
+                this.Key = key;
+                this.Value = value;
+            }
+        }
         public class DemoDirectoryEntry
         {
             public int Filelength;
             public Dictionary<DemoFrame, ConsoleCommandFrame> Flags;
             public int FrameCount;
-            public Dictionary<DemoFrame, IFrame> Frames;
+            public List<FramesHren2> Frames;
             public int Offset;
             public float PlaybackTime;
             public int Type;
@@ -225,6 +236,16 @@ namespace VolvoWrench.DemoStuff.GoldSource
             public List<KeyValuePair<Bxt.RuntimeDataType, Bxt.BXTData>> Objects;
         }
 
+        public struct FramesHren
+        {
+            public DemoFrame Key;
+            public IFrame Value;
+            public FramesHren(DemoFrame key, IFrame value)
+            {
+                this.Key = key;
+                this.Value = value;
+            }
+        }
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct DemoDirectoryEntry
         {
@@ -233,7 +254,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
             public int FileLength;
             public int Flags;
             public int FrameCount;
-            public Dictionary<DemoFrame, IFrame> Frames;
+            public List<FramesHren> Frames;
             public int Offset;
             public float TrackTime;
             public int Type;
@@ -897,7 +918,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                 FrameCount = br.ReadInt32(),
                                 Offset = br.ReadInt32(),
                                 Filelength = br.ReadInt32(),
-                                Frames = new Dictionary<Hlsooe.DemoFrame, Hlsooe.IFrame>(),
+                                Frames = new List<Hlsooe.FramesHren2>(),
                                 Flags = new Dictionary<Hlsooe.DemoFrame, Hlsooe.ConsoleCommandFrame>()
                             };
                             hlsooeDemo.DirectoryEntries.Add(tempvar);
@@ -973,7 +994,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                         g.Msg = Encoding.ASCII.GetString(br.ReadBytes(spml))
                                             .Trim('\0')
                                             .Replace("\0", string.Empty);
-                                        entry.Frames.Add(currentDemoFrame, g);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2( currentDemoFrame, g));
                                         break;
                                     case Hlsooe.DemoFrameType.NetworkPacket:
                                         if (UnexpectedEof(br, 108))
@@ -1006,11 +1027,11 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                         b.Msg = Encoding.ASCII.GetString(br.ReadBytes(nml))
                                             .Trim('\0')
                                             .Replace("\0", string.Empty);
-                                        entry.Frames.Add(currentDemoFrame, b);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, b));
                                         break;
                                     case Hlsooe.DemoFrameType.Jumptime:
                                         //No extra stuff
-                                        entry.Frames.Add(currentDemoFrame, new Hlsooe.JumpTimeFrame());
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, new Hlsooe.JumpTimeFrame()));
                                         break;
                                     case Hlsooe.DemoFrameType.ConsoleCommand:
                                         if (UnexpectedEof(br, 4))
@@ -1034,7 +1055,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
 
                                         if (a.Command.Contains("changelevel2")) entry.Flags.Add(currentDemoFrame, a);
 
-                                        entry.Frames.Add(currentDemoFrame, a);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, a));
                                         break;
                                     case Hlsooe.DemoFrameType.Usercmd:
                                         if (UnexpectedEof(br, 4 + 4 + 2))
@@ -1057,7 +1078,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             Encoding.ASCII.GetString(br.ReadBytes(usercmdlength))
                                                 .Trim('\0')
                                                 .Replace("\0", string.Empty);
-                                        entry.Frames.Add(currentDemoFrame, c);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, c));
                                         break;
                                     case Hlsooe.DemoFrameType.Stringtables:
                                         var e = new Hlsooe.StringTablesFrame();
@@ -1076,7 +1097,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             .Trim('\0')
                                             .Replace("\0", string.Empty);
                                         e.Data = edata;
-                                        entry.Frames.Add(currentDemoFrame, e);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, e));
                                         break;
                                     case Hlsooe.DemoFrameType.NetworkDataTable:
                                         var d = new Hlsooe.NetworkDataTableFrame();
@@ -1094,11 +1115,11 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                         d.Data = Encoding.ASCII.GetString(br.ReadBytes(networktablelength))
                                             .Trim('\0')
                                             .Replace("\0", string.Empty);
-                                        entry.Frames.Add(currentDemoFrame, d);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, d));
                                         break;
                                     case Hlsooe.DemoFrameType.NextSection:
                                         nextSectionRead = true;
-                                        entry.Frames.Add(currentDemoFrame, new Hlsooe.NextSectionFrame());
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, new Hlsooe.NextSectionFrame()));
                                         break;
                                     default:
                                         if (UnexpectedEof(br, 108))
@@ -1133,7 +1154,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                         err.Msg = Encoding.ASCII.GetString(br.ReadBytes(dml))
                                             .Trim('\0')
                                             .Replace("\0", string.Empty);
-                                        entry.Frames.Add(currentDemoFrame, err);
+                                        entry.Frames.Add(new Hlsooe.FramesHren2(currentDemoFrame, err));
                                         break;
 
                                         #endregion
@@ -1238,7 +1259,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                 FrameCount = br.ReadInt32(),
                                 Offset = br.ReadInt32(),
                                 FileLength = br.ReadInt32(),
-                                Frames = new Dictionary<GoldSource.DemoFrame, GoldSource.IFrame>()
+                                Frames = new List<GoldSource.FramesHren>()
                             };
                             gDemo.DirectoryEntries.Add(tempvar);
                         }
@@ -1305,7 +1326,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                     switch (currentDemoFrame.Type)
                                     {
                                         case GoldSource.DemoFrameType.DemoStart: //No extra dat
-                                            entry.Frames.Add(currentDemoFrame, new GoldSource.DemoStartFrame());
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, new GoldSource.DemoStartFrame()));
                                             break;
                                         case GoldSource.DemoFrameType.ConsoleCommand:
                                             var ccframe = new GoldSource.ConsoleCommandFrame();
@@ -1322,7 +1343,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                                 .Trim('\0')
                                                 .Replace("\0", string.Empty);
                                             ccframe.BxtData = ExtractIncludedBytes(cmd);
-                                            entry.Frames.Add(currentDemoFrame, ccframe);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, ccframe));
                                             break;
                                         case GoldSource.DemoFrameType.ClientData:
                                             var cdframe = new GoldSource.ClientDataFrame();
@@ -1375,11 +1396,11 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             cdframe.Viewangles.Z = tmpfloat;
                                             cdframe.WeaponBits = br.ReadInt32();
                                             cdframe.Fov = br.ReadSingle();
-                                            entry.Frames.Add(currentDemoFrame, cdframe);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, cdframe));
                                             break;
                                         case GoldSource.DemoFrameType.NextSection:
                                             nextSectionRead = true;
-                                            entry.Frames.Add(currentDemoFrame, new GoldSource.NextSectionFrame());
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, new GoldSource.NextSectionFrame()));
                                             break;
                                         case GoldSource.DemoFrameType.Event:
                                             var eframe = new GoldSource.EventFrame();
@@ -1411,7 +1432,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             eframe.EventArguments.Iparam2 = br.ReadInt32();
                                             eframe.EventArguments.Bparam1 = br.ReadInt32();
                                             eframe.EventArguments.Bparam2 = br.ReadInt32();
-                                            entry.Frames.Add(currentDemoFrame, eframe);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, eframe));
                                             break;
                                         case GoldSource.DemoFrameType.WeaponAnim:
                                             var waframe = new GoldSource.WeaponAnimFrame();
@@ -1424,7 +1445,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             }
                                             waframe.Anim = br.ReadInt32();
                                             waframe.Body = br.ReadInt32();
-                                            entry.Frames.Add(currentDemoFrame, waframe);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, waframe));
                                             break;
                                         case GoldSource.DemoFrameType.Sound:
                                             var sframe = new GoldSource.SoundFrame();
@@ -1449,7 +1470,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             sframe.Volume = br.ReadSingle();
                                             sframe.Flags = br.ReadInt32();
                                             sframe.Pitch = br.ReadInt32();
-                                            entry.Frames.Add(currentDemoFrame, sframe);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, sframe));
                                             break;
                                         case GoldSource.DemoFrameType.DemoBuffer:
                                             var bframe = new GoldSource.DemoBufferFrame();
@@ -1469,7 +1490,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                                 // return gDemo;
                                             }
                                             bframe.Buffer = br.ReadBytes(buggerlength);
-                                            entry.Frames.Add(currentDemoFrame, bframe);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, bframe));
                                             break;
                                         case GoldSource.DemoFrameType.NetMsg:
                                         default:
@@ -1727,7 +1748,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                                 
                                             }
                                             nf.Msg = ByteArrayToString(nf.MsgBytes);
-                                            entry.Frames.Add(currentDemoFrame, nf);
+                                            entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, nf));
                                             break;
 
                                     }

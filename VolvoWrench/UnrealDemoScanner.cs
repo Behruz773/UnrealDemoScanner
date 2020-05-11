@@ -18,6 +18,7 @@ using ConsoleTables;
 using VolvoWrench.DemoStuff;
 using VolvoWrench.DemoStuff.GoldSource;
 using VolvoWrench.ExtensionMethods.MoreLinq;
+using static VolvoWrench.DemoStuff.GoldSource.GoldSource;
 using static VolvoWrench.DG.BitWriter;
 using static VolvoWrench.DG.Common;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -2422,6 +2423,7 @@ namespace VolvoWrench.DG
 
 
                 int frameindex = -1;
+
                 foreach (var frame in CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
                     .Frames)
                 {
@@ -3167,7 +3169,7 @@ namespace VolvoWrench.DG
                                     FoundFirstTime2 = true;
                                 }
 
-                                if (IsUserAlive() && nf.RParms.Health <= 0)
+                                if (UserAlive && nf.RParms.Health <= 0)
                                 {
                                     UserAlive = false;
                                     RealAlive = false;
@@ -3176,10 +3178,10 @@ namespace VolvoWrench.DG
                                         subnode.Text +=
                                             "LocalPlayer " + UserId + " killed[METHOD 2]!\n";
                                 }
-                                else if (CurrentTime - LastDeathTime < 0.05)
-                                {
-                                    if (nf.RParms.Health < 0) DeathsCoount2++;
-                                }
+                                //else if (CurrentTime - LastDeathTime < 0.05)
+                                //{
+                                //    if (nf.RParms.Health < 0) DeathsCoount2++;
+                                //}
 
 
                                 bool FoundDublicader = false;
@@ -3231,6 +3233,36 @@ namespace VolvoWrench.DG
                                     FirstAttack = true;
                                     NewAttack = true;
                                     attackscounter3++;
+                                }
+
+
+                                if (DisableAttackFromNextFrame > 0 && !FoundDublicader)
+                                {
+                                    if (!PreviewFrameAttacked && !CurrentFrameAttacked )
+                                    {
+                                        //NeedSearchAim2 = false;
+                                        //NeedWriteAim = false;
+                                        //IsNoAttackLastTime = CurrentTime;
+                                        //IsNoAttackLastTime2 = CurrentTime2;
+                                        //IsAttack = false;
+                                        //AttackCheck = -1;
+                                        //Aim2AttackDetected = false;
+                                        ////Console.WriteLine("-attack3");
+                                        //SelectSlot--;
+                                        //if (ShotFound > 2)
+                                        //    //Console.WriteLine("Shots:" + ShotFound);
+                                        //    ReallyAim2 = 1;
+                                        //else if (ShotFound > 1)
+                                        //    //Console.WriteLine("Shots2:" + ShotFound);
+                                        //    ReallyAim2 = 2;
+                                        //ShotFound = -1;
+                                    }
+                                    DisableAttackFromNextFrame = 0;
+                                }
+
+                                if (!CurrentFrameAttacked && !FoundDublicader)
+                                {
+                                    //DisableAttackFromNextFrame = 1;
                                 }
 
                                 if (NewAttack)
@@ -4170,14 +4202,14 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (DisableAttackFromNextFrame > 0)
-                                {
-                                    DisableAttackFromNextFrame--;
-                                    if (DisableAttackFromNextFrame == 0 &&
-                                        !CurrentFrameAttacked)
-                                        //Console.WriteLine("-attack1");
-                                        IsAttack = false;
-                                }
+                                //if (DisableAttackFromNextFrame > 0)
+                                //{
+                                //    DisableAttackFromNextFrame--;
+                                //    if (DisableAttackFromNextFrame == 0 &&
+                                //        !CurrentFrameAttacked)
+                                //        //Console.WriteLine("-attack1");
+                                //        IsAttack = false;
+                                //}
 
 
                                 if (!IsAttack)
@@ -4788,7 +4820,6 @@ namespace VolvoWrench.DG
                                 process.StartInfo.FileName = @"wav\decoder.exe";
                                 process.Start();
                                 process.WaitForExit();
-
                                 var filename = player.Name + "(" + player.Id + ").wav";
 
                                 foreach (var c in Path.GetInvalidFileNameChars())
@@ -5717,6 +5748,7 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("CurWeapon", MessageCurWeapon);
             AddUserMessageHandler("ResetHUD", MessageResetHud);
             AddUserMessageHandler("ScreenFade", MessageScreenFade);
+            AddUserMessageHandler("Health", MessageHealth);
         }
 
         // public so svc_deltadescription can be parsed elsewhere
@@ -7254,11 +7286,11 @@ namespace VolvoWrench.DG
                 Program.NeedSearchAim2 = false;
                 Program.Aim2AttackDetected = false;
                 Program.ShotFound = -1;
-                if (!Program.CurrentFrameAttacked && Program.IsAttack)
-                {
-                    //Console.WriteLine("-attack2");
-                    Program.DisableAttackFromNextFrame = 2;
-                }
+                //if (!Program.CurrentFrameAttacked && Program.IsAttack)
+                //{
+                //    //Console.WriteLine("-attack2");
+                //    //Program.DisableAttackFromNextFrame = 2;
+                //}
                 Program.SelectSlot = 0;
                 Program.WeaponChanged = true;
                 Program.AmmoCount = 0;
@@ -7302,6 +7334,11 @@ namespace VolvoWrench.DG
         {
             if (Program.needsaveframes) outDataStr += "ResetHud!\n";
             Program.UserAlive = true;
+        }
+        private void MessageHealth()
+        {
+            var health = BitBuffer.ReadByte();
+            //Console.WriteLine("Health:" + health);
         }
 
         private void MessageScreenFade()
@@ -8183,12 +8220,13 @@ namespace VolvoWrench.DG
                                             Program.NeedSearchAim2 = false;
                                             Program.Aim2AttackDetected = false;
                                             Program.ShotFound = -1;
-                                            if (!Program.CurrentFrameAttacked &&
-                                                Program.IsAttack)
-                                            {
-                                                //Console.WriteLine("-attack3");
-                                                // Program.DisableAttackFromNextFrame = 1;
-                                            }
+
+                                            //if (!Program.CurrentFrameAttacked &&
+                                            //    Program.IsAttack)
+                                            //{
+                                            //    //Console.WriteLine("-attack3");
+                                            //    // Program.DisableAttackFromNextFrame = 1;
+                                            //}
 
                                             Program.SelectSlot = 0;
                                             Program.WeaponChanged = true;
