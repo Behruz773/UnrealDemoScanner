@@ -2210,7 +2210,7 @@ namespace VolvoWrench.DG
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
-                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b7. Demo:" + DemoName +
+                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b8. Demo:" + DemoName +
                     ". DEMO TIME: 00:00:00";
             }
             catch
@@ -2256,7 +2256,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b7");
+                Console.WriteLine("Unreal Demo Scanner v1.33b8");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
             }
@@ -3433,7 +3433,7 @@ namespace VolvoWrench.DG
                                     lastnormalanswer = Program.CurrentTimeString;
 
                                     Console.Title =
-                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b7. Demo:" +
+                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b8. Demo:" +
                                         DemoName + ". DEMO TIME: " + Program.CurrentTimeString;
                                 }
                                 catch
@@ -3442,7 +3442,7 @@ namespace VolvoWrench.DG
                                     try
                                     {
                                         Console.Title =
-                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b7. Demo:" +
+                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b8. Demo:" +
                                             DemoName + ". DEMO TIME: " + lastnormalanswer;
                                     }
                                     catch
@@ -3450,7 +3450,7 @@ namespace VolvoWrench.DG
                                         try
                                         {
                                             Console.Title =
-                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b7. Demo:" +
+                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b8. Demo:" +
                                                 "BAD NAME" + ". DEMO TIME: " + lastnormalanswer;
                                         }
                                         catch
@@ -4620,7 +4620,7 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine("Unreal Demo Scanner v1.33b7 scan result:");
+            Console.WriteLine("Unreal Demo Scanner v1.33b8 scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
             //Console.WriteLine(nospreadtest2.ToString("F8"));
@@ -5097,7 +5097,6 @@ namespace VolvoWrench.DG
                     {
                         Console.WriteLine("Possible demoscanner bypass. Tried to kill frames:" + ModifiedDemoFrames);
                     }
-
 
                     Console.WriteLine("Maximum time between frames:" + Program.MaximumTimeBetweenFrames.ToString("F6"));
 
