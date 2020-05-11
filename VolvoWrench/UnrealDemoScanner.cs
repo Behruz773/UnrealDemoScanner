@@ -2422,12 +2422,11 @@ namespace VolvoWrench.DG
                                      .FrameCount);
 
 
-                int frameindex = -1;
-
-                foreach (var frame in CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
-                    .Frames)
+                for(int frameindex = 0; frameindex < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
+                    .Frames.Count; frameindex++)
                 {
-                    frameindex++;
+                    var frame = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
+                    .Frames[frameindex];
                     //CurrentNetMsgFrame
                     PreviewTime2 = CurrentTime2;
                     CurrentTime2 = frame.Key.Time + 0.1f;
