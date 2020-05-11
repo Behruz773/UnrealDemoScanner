@@ -1479,7 +1479,6 @@ namespace VolvoWrench.DG
         public static int ShotFound = -1;
         public static WeaponIdType LastWatchWeapon = WeaponIdType.WEAPON_NONE;
         public static int ReallyAim2;
-        public static int DisableAttackFromNextFrame;
         public static float LastJumpHackTime;
         public static bool NeedDetectBHOPHack;
         public static int LastTriggerCursor;
@@ -2073,7 +2072,7 @@ namespace VolvoWrench.DG
         }
         public static bool IsUserAlive()
         {
-            return RealAlive && IsRealWeapon( );
+            return RealAlive && IsRealWeapon();
         }
 
         public static string Truncate(string value, int maxLength)
@@ -2422,7 +2421,7 @@ namespace VolvoWrench.DG
                                      .FrameCount);
 
 
-                for(int frameindex = 0; frameindex < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
+                for (int frameindex = 0; frameindex < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
                     .Frames.Count; frameindex++)
                 {
                     var frame = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
@@ -3234,34 +3233,75 @@ namespace VolvoWrench.DG
                                     attackscounter3++;
                                 }
 
-
-                                if (DisableAttackFromNextFrame > 0 && !FoundDublicader)
+                                if (IsAttack)
                                 {
-                                    if (!PreviewFrameAttacked && !CurrentFrameAttacked )
+                                    if (!PreviewFrameAttacked && !CurrentFrameAttacked)
                                     {
-                                        //NeedSearchAim2 = false;
-                                        //NeedWriteAim = false;
-                                        //IsNoAttackLastTime = CurrentTime;
-                                        //IsNoAttackLastTime2 = CurrentTime2;
-                                        //IsAttack = false;
-                                        //AttackCheck = -1;
-                                        //Aim2AttackDetected = false;
-                                        ////Console.WriteLine("-attack3");
-                                        //SelectSlot--;
-                                        //if (ShotFound > 2)
-                                        //    //Console.WriteLine("Shots:" + ShotFound);
-                                        //    ReallyAim2 = 1;
-                                        //else if (ShotFound > 1)
-                                        //    //Console.WriteLine("Shots2:" + ShotFound);
-                                        //    ReallyAim2 = 2;
-                                        //ShotFound = -1;
-                                    }
-                                    DisableAttackFromNextFrame = 0;
-                                }
-
-                                if (!CurrentFrameAttacked && !FoundDublicader)
-                                {
-                                    //DisableAttackFromNextFrame = 1;
+                                        int tmpframeattacked = 0;
+                                        for (int n = frameindex + 1;
+                                            n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
+                                            n++)
+                                        {
+                                            if (tmpframeattacked == -1 || tmpframeattacked > 2)
+                                            {
+                                                if (tmpframeattacked > 2)
+                                                {
+                                                    CheckConsoleCommand("-attack(PROGRAM)");
+                                                }
+                                                break;
+                                            }
+                                            var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
+                                            switch (tmpframe.Key.Type)
+                                            {
+                                                case GoldSource.DemoFrameType.NetMsg:
+                                                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
+                                                    if (tmpnetmsgframe1 != nf)
+                                                    {
+                                                        if ((tmpnetmsgframe1.UCmd.Buttons & 1) > 0)
+                                                        {
+                                                            tmpframeattacked = -1;
+                                                            break;
+                                                        }
+                                                        else
+                                                        {
+                                                            tmpframeattacked++; 
+                                                        }
+                                                    }
+                                                    break;
+                                                case GoldSource.DemoFrameType.DemoStart:
+                                                    break;
+                                                case GoldSource.DemoFrameType.ConsoleCommand:
+                                                    break;
+                                                case GoldSource.DemoFrameType.ClientData:
+                                                    break;
+                                                case GoldSource.DemoFrameType.NextSection:
+                                                    break;
+                                                case GoldSource.DemoFrameType.Event:
+                                                    break;
+                                                case GoldSource.DemoFrameType.WeaponAnim:
+                                                    break;
+                                                case GoldSource.DemoFrameType.Sound:
+                                                    break;
+                                                case GoldSource.DemoFrameType.DemoBuffer:
+                                                    break;
+                                                default:
+                                                    var tmpnetmsgframe2 = (GoldSource.NetMsgFrame)tmpframe.Value;
+                                                    if (tmpnetmsgframe2 != nf)
+                                                    {
+                                                        if ((tmpnetmsgframe2.UCmd.Buttons & 1) > 0)
+                                                        {
+                                                            tmpframeattacked = -1;
+                                                            break;
+                                                        }
+                                                        else
+                                                        {
+                                                            tmpframeattacked++;
+                                                        }
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        }
                                 }
 
                                 if (NewAttack)
@@ -3583,7 +3623,7 @@ namespace VolvoWrench.DG
                                             if (CurrentFrameAttacked && CurrentFrameOnGround)
                                             {
                                                 var spreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
-                                                if ( spreadtest2 > nospreadtest2)
+                                                if (spreadtest2 > nospreadtest2)
                                                 {
                                                     nospreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
@@ -4199,16 +4239,6 @@ namespace VolvoWrench.DG
 
                                     ReallyAim2 = 0;
                                 }
-
-
-                                //if (DisableAttackFromNextFrame > 0)
-                                //{
-                                //    DisableAttackFromNextFrame--;
-                                //    if (DisableAttackFromNextFrame == 0 &&
-                                //        !CurrentFrameAttacked)
-                                //        //Console.WriteLine("-attack1");
-                                //        IsAttack = false;
-                                //}
 
 
                                 if (!IsAttack)
@@ -7285,11 +7315,6 @@ namespace VolvoWrench.DG
                 Program.NeedSearchAim2 = false;
                 Program.Aim2AttackDetected = false;
                 Program.ShotFound = -1;
-                //if (!Program.CurrentFrameAttacked && Program.IsAttack)
-                //{
-                //    //Console.WriteLine("-attack2");
-                //    //Program.DisableAttackFromNextFrame = 2;
-                //}
                 Program.SelectSlot = 0;
                 Program.WeaponChanged = true;
                 Program.AmmoCount = 0;
@@ -8219,13 +8244,6 @@ namespace VolvoWrench.DG
                                             Program.NeedSearchAim2 = false;
                                             Program.Aim2AttackDetected = false;
                                             Program.ShotFound = -1;
-
-                                            //if (!Program.CurrentFrameAttacked &&
-                                            //    Program.IsAttack)
-                                            //{
-                                            //    //Console.WriteLine("-attack3");
-                                            //    // Program.DisableAttackFromNextFrame = 1;
-                                            //}
 
                                             Program.SelectSlot = 0;
                                             Program.WeaponChanged = true;
