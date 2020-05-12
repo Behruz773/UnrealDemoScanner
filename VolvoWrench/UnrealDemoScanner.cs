@@ -1488,8 +1488,8 @@ namespace VolvoWrench.DG
         public static List<Player> playerList = new List<Player>();
         public static List<Player> fullPlayerList = new List<Player>();
         public static int maxfalsepositiveaim3 = 6;
-        public static bool FovHackDetected;
-        public static bool ThirdHackDetected;
+        public static int FovHackDetected = 0;
+        public static int ThirdHackDetected = 0;
         public static bool SearchAim6 = false;
         public static List<WindowResolution> playerresolution = new List<WindowResolution>();
         public static int CheatKey;
@@ -1513,19 +1513,21 @@ namespace VolvoWrench.DG
             if (IsJump && IsUserAlive())
             {
                 if (!isgroundchange)
+                {
                     if (isGround)
                     {
                         isgroundchange = true;
                         jumpscount++;
                     }
-
+                }
                 if (isgroundchange)
+                {
                     if (!isGround)
                     {
                         isgroundchange = false;
                         jumpscount++;
                     }
-
+                }
                 if (jumpscount > 4)
                 {
                     BHOPJumps.Add(isGround);
@@ -1544,22 +1546,32 @@ namespace VolvoWrench.DG
             var BHOPcount = 0;
             var i = 5;
             for (i = 5; i < BHOPJumps.Count - 5; i++)
-                if (BHOPJumps[i] && IsUserAlive())
+            {
+                if (BHOPJumps[i]/* && IsUserAlive()*/)
                     if (BHOPJumps[i - 2] == false)
                         if (BHOPJumps[i - 3] == false)
                             if (BHOPJumps[i - 4] == false)
                                 if (BHOPJumps[i + 2] == false)
                                     if (BHOPJumps[i + 3] == false)
                                         if (BHOPJumps[i + 4] == false)
-                                        {
-                                            AddViewDemoHelperComment("Detected [BHOP] jump.", 1.00f);
-                                            TextComments.WriteLine(
-                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
-                                            Console.WriteLine(
-                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
-                                            BHOPcount++;
-                                            i += 5;
-                                        }
+                                            if (BHOPJumpsTimes[i + 4] - BHOPJumpsTimes[i + 3] < 0.1)
+                                                if (BHOPJumpsTimes[i + 3] - BHOPJumpsTimes[i + 2] < 0.1)
+                                                    if (BHOPJumpsTimes[i + 2] - BHOPJumpsTimes[i + 1] < 0.1)
+                                                        if (BHOPJumpsTimes[i + 1] - BHOPJumpsTimes[i + 0] < 0.1)
+                                                            if (BHOPJumpsTimes[i + 0] - BHOPJumpsTimes[i - 1] < 0.1)
+                                                                if (BHOPJumpsTimes[i - 1] - BHOPJumpsTimes[i + 2] < 0.1)
+                                                                    if (BHOPJumpsTimes[i - 2] - BHOPJumpsTimes[i + 3] < 0.1)
+                                                                        if (BHOPJumpsTimes[i - 3] - BHOPJumpsTimes[i + 4] < 0.1)
+                                                                        {
+                                                                            AddViewDemoHelperComment("Detected [BHOP] jump.", 1.00f);
+                                                                            TextComments.WriteLine(
+                                                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
+                                                                            Console.WriteLine(
+                                                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
+                                                                            BHOPcount++;
+                                                                            i += 5;
+                                                                        }
+            }
         }
 
         public static void BHOPANALYZER()
@@ -3264,7 +3276,7 @@ namespace VolvoWrench.DG
                                                         }
                                                         else
                                                         {
-                                                            tmpframeattacked++; 
+                                                            tmpframeattacked++;
                                                         }
                                                     }
                                                     break;
@@ -3301,7 +3313,7 @@ namespace VolvoWrench.DG
                                                     break;
                                             }
                                         }
-                                        }
+                                    }
                                 }
 
                                 if (NewAttack)
@@ -3462,26 +3474,27 @@ namespace VolvoWrench.DG
 
                                 if (RealAlive && CurrentFrameAttacked)
                                     if (cdframeFov > 90)
-                                        if (!FovHackDetected)
+                                        if (FovHackDetected < 5)
                                         {
                                             TextComments.WriteLine(
                                                 "Detected [FOV HACK] on (" + CurrentTime +
                                                 "):" + Program.CurrentTimeString);
                                             AddViewDemoHelperComment(
                                                 "Detected [FOV HACK]. Weapon:" + CurrentWeapon);
-                                            Console.WriteLine(
+                                            Console.Write(
                                                 "Detected [FOV HACK] on (" + CurrentTime +
                                                 "):" + Program.CurrentTimeString);
                                             if (cdframeFov == ClientFov)
                                                 Console.Write("[BY SERVER ???]");
-                                            FovHackDetected = true;
+                                            Console.WriteLine();
+                                            FovHackDetected += 1;
                                         }
 
                                 if (RealAlive && CurrentFrameAttacked)
                                     if (GetDistance(new Point(nf.View.X, nf.View.Y),
                                         new Point(nf.RParms.Vieworg.X,
                                             nf.RParms.Vieworg.Y)) > 50)
-                                        if (!ThirdHackDetected && CurrentWeapon !=
+                                        if (ThirdHackDetected < 5 && CurrentWeapon !=
                                                                WeaponIdType.WEAPON_NONE
                                                                && CurrentWeapon !=
                                                                WeaponIdType.WEAPON_BAD &&
@@ -3497,7 +3510,7 @@ namespace VolvoWrench.DG
                                             Console.WriteLine(
                                                 "Detected [THIRD PERSON HACK] on (" +
                                                 CurrentTime + "):" + Program.CurrentTimeString);
-                                            ThirdHackDetected = true;
+                                            ThirdHackDetected += 1;
                                         }
 
                                 if (CurrentTime2 != 0.0)
@@ -4048,11 +4061,13 @@ namespace VolvoWrench.DG
                                 if (nf.RParms.Frametime > 0.0)
                                     averagefps2.Add(1000.0 / (1000.0 * nf.RParms.Frametime));
 
-                                if (CurrentFrameOnGround)
-                                    AddJumpToBHOPScan(true);
-                                else
-                                    AddJumpToBHOPScan(false);
-
+                                if (!FoundDublicader)
+                                {
+                                    if (CurrentFrameOnGround)
+                                        AddJumpToBHOPScan(true);
+                                    else
+                                        AddJumpToBHOPScan(false);
+                                }
                                 if (needsaveframes)
                                 {
                                     subnode.Text +=
@@ -4268,7 +4283,7 @@ namespace VolvoWrench.DG
                                         else if (SelectSlot > 0)
                                         {
                                             //  Console.WriteLine("Select weapon(" + Program.CurrentTime + ") " + Program.CurrentTimeString);
-                                        } 
+                                        }
                                         else if (attackscounter3 < 2)
                                         {
                                             //  Console.WriteLine("Select weapon(" + Program.CurrentTime + ") " + Program.CurrentTimeString);
