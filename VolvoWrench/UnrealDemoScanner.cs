@@ -82,6 +82,9 @@ namespace VolvoWrench.DG
         }
 
         public const double MAX_SPREAD_CONST = 0.00000381;
+        public const double MAX_SPREAD_CONST2 = 0.0000381;
+
+
 
         public static List<string> outFrames = null;
         public static bool needsaveframes = false;
@@ -3642,7 +3645,7 @@ namespace VolvoWrench.DG
                                                     nospreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
-                                                if (spreadtest2 > MAX_SPREAD_CONST)
+                                                if (spreadtest2 > MAX_SPREAD_CONST2)
                                                 {
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
@@ -4637,8 +4640,8 @@ namespace VolvoWrench.DG
 
             Console.WriteLine("Unreal Demo Scanner v1.33b8 scan result:");
 
-            //Console.WriteLine(nospreadtest.ToString("F8"));
-            //Console.WriteLine(nospreadtest2.ToString("F8"));
+            Console.WriteLine(nospreadtest.ToString("F8"));
+            Console.WriteLine(nospreadtest2.ToString("F8"));
 
             Console.ForegroundColor = ConsoleColor.DarkRed;
 
