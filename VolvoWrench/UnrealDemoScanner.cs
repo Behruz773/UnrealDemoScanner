@@ -3209,7 +3209,13 @@ namespace VolvoWrench.DG
 
 
                                 CurrentFrameAlive = IsRealWeapon() && UserAlive;
+
+                                if (!RealAlive && CurrentFrameAlive && PreviewFrameAlive)
+                                {
+                                    Program.LastAliveTime = CurrentTime;
+                                }
                                 RealAlive = CurrentFrameAlive && PreviewFrameAlive;
+
 
                                 if (FoundDublicader)
                                 {
@@ -3475,7 +3481,7 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                if (RealAlive && CurrentFrameAttacked)
+                                if (RealAlive && CurrentFrameAttacked && CurrentTime - LastAliveTime > 2.0f)
                                     if (cdframeFov > 90)
                                         if (FovHackDetected < 5)
                                         {
@@ -3497,7 +3503,7 @@ namespace VolvoWrench.DG
                                     if (GetDistance(new Point(nf.View.X, nf.View.Y),
                                         new Point(nf.RParms.Vieworg.X,
                                             nf.RParms.Vieworg.Y)) > 50)
-                                        if (ThirdHackDetected < 5 && CurrentWeapon !=
+                                        if (CurrentTime - LastAliveTime > 2.0f && ThirdHackDetected < 5 && CurrentWeapon !=
                                                                WeaponIdType.WEAPON_NONE
                                                                && CurrentWeapon !=
                                                                WeaponIdType.WEAPON_BAD &&
@@ -4640,8 +4646,8 @@ namespace VolvoWrench.DG
 
             Console.WriteLine("Unreal Demo Scanner v1.33b8 scan result:");
 
-            Console.WriteLine(nospreadtest.ToString("F8"));
-            Console.WriteLine(nospreadtest2.ToString("F8"));
+            //Console.WriteLine(nospreadtest.ToString("F8"));
+            //Console.WriteLine(nospreadtest2.ToString("F8"));
 
             Console.ForegroundColor = ConsoleColor.DarkRed;
 
@@ -5178,6 +5184,7 @@ namespace VolvoWrench.DG
         public static int LostStopAttackButton = 0;
         public static int ModifiedDemoFrames = 0;
         public static int TimeShiftCount = 0;
+        public static float LastAliveTime = 0.0f;
 
         public class Player
         {
