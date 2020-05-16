@@ -1704,11 +1704,14 @@ namespace VolvoWrench.DG
                     {
                         if (AutoAttackStrikes >= 4)
                         {
-                            //var tmpcol = Console.ForegroundColor;
-                            //Console.ForegroundColor = ConsoleColor.Gray;
-                            TextComments.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + Program.CurrentTimeString);
-                            AddViewDemoHelperComment("Detected [AIM TYPE 6]. Weapon:" + CurrentWeapon);
-                            Console.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + Program.CurrentTimeString);
+                            if (!IsTeleportus())
+                            {
+                                //var tmpcol = Console.ForegroundColor;
+                                //Console.ForegroundColor = ConsoleColor.Gray;
+                                TextComments.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + Program.CurrentTimeString);
+                                AddViewDemoHelperComment("Detected [AIM TYPE 6]. Weapon:" + CurrentWeapon);
+                                Console.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + Program.CurrentTimeString);
+                            }
                             //SilentAimDetected++;
                             //Console.ForegroundColor = tmpcol;
                             /*if (Program.AutoAttackStrikes > 0)
@@ -2069,7 +2072,7 @@ namespace VolvoWrench.DG
             var xDelta = p1.X - p2.X;
             var yDelta = p1.Y - p2.Y;
 
-            return Math.Sqrt(Math.Pow(xDelta, 2) + Math.Pow(yDelta, 2));
+            return Math.Abs(Math.Sqrt(Math.Pow(xDelta, 2) + Math.Pow(yDelta, 2)));
         }
 
         public static void PrintNodesRecursive(TreeNode oParentNode)
@@ -2440,7 +2443,6 @@ namespace VolvoWrench.DG
                 {
                     var frame = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
                     .Frames[frameindex];
-                    //CurrentNetMsgFrame
                     PreviewTime2 = CurrentTime2;
                     CurrentTime2 = frame.Key.Time + 0.1f;
                     CurrentFrameIdWeapon++;
@@ -2451,7 +2453,6 @@ namespace VolvoWrench.DG
                               frame.Key.Type.ToString().ToUpper();
                     var node = new TreeNode();
                     var subnode = new TreeNode();
-                    //bool nextframefound = false;
                     try
                     {
                         switch (frame.Key.Type)
@@ -2459,39 +2460,6 @@ namespace VolvoWrench.DG
                             case GoldSource.DemoFrameType.NetMsg:
                                 PreviewNetMsgFrame = CurrentNetMsgFrame;
                                 CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
-                                //foreach( var tmpframe in CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
-                                //     .Frames.Skip(frameindex + 1))
-                                //{
-                                //    if (nextframefound)
-                                //        break;
-                                //    switch (tmpframe.Key.Type)
-                                //    {
-                                //        case GoldSource.DemoFrameType.NetMsg:
-                                //            NextNetMsgFrame = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                //            nextframefound = true;
-                                //            break;
-                                //        case GoldSource.DemoFrameType.DemoStart:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.ConsoleCommand:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.ClientData:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.NextSection:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.Event:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.WeaponAnim:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.Sound:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.DemoBuffer:
-                                //            break;
-                                //        default:
-                                //            NextNetMsgFrame = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                //            nextframefound = true;
-                                //            break;
-                                //    }
-                                //}
                                 break;
                             case GoldSource.DemoFrameType.DemoStart:
                                 break;
@@ -2512,39 +2480,6 @@ namespace VolvoWrench.DG
                             default:
                                 PreviewNetMsgFrame = CurrentNetMsgFrame;
                                 CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
-                                //foreach (var tmpframe in CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
-                                //     .Frames.Skip(frameindex + 1))
-                                //{
-                                //    if (nextframefound)
-                                //        break;
-                                //    switch (tmpframe.Key.Type)
-                                //    {
-                                //        case GoldSource.DemoFrameType.NetMsg:
-                                //            NextNetMsgFrame = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                //            nextframefound = true;
-                                //            break;
-                                //        case GoldSource.DemoFrameType.DemoStart:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.ConsoleCommand:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.ClientData:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.NextSection:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.Event:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.WeaponAnim:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.Sound:
-                                //            break;
-                                //        case GoldSource.DemoFrameType.DemoBuffer:
-                                //            break;
-                                //        default:
-                                //            NextNetMsgFrame = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                //            nextframefound = true;
-                                //            break;
-                                //    }
-                                //}
                                 invalidframes++;
                                 break;
                         }
@@ -2597,6 +2532,34 @@ namespace VolvoWrench.DG
                                     subnode.Text += "}\n";
                                 }
 
+                                if (GetDistance(oldoriginpos,
+                                          new Point(cdframe.Origin.X,
+                                              cdframe.Origin.Y)) > 100)
+                                {
+                                    Program.LastTeleportusTime = CurrentTime;
+                                }
+                                else
+                                {
+                                    for (int n = frameindex + 1;
+                                          n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
+                                          n++)
+                                    {
+
+                                        var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
+                                        if (tmpframe.Key.Type == GoldSource.DemoFrameType.ClientData)
+                                        {
+                                            var cdframe2 = (GoldSource.ClientDataFrame)tmpframe.Value;
+
+                                            if (GetDistance(new Point(cdframe2.Origin.X, cdframe2.Origin.Y),
+                                            new Point(cdframe.Origin.X,
+                                                cdframe.Origin.Y)) > 200)
+                                            {
+                                                Program.LastTeleportusTime = CurrentTime;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
                                 if (CurrentTime != 0.0)
                                 {
                                     if (LastFpsCheckTime == 0.0)
@@ -2701,43 +2664,49 @@ namespace VolvoWrench.DG
                                            CurrentTime - Program.LastAim5DetectedReal < 0.5f) || (Program.LastAim5Detected != 0.0f &&
                                             CurrentTime - Program.LastAim5Detected < 0.5f))
                                             {
-                                                var tmpcol = Console.ForegroundColor;
-                                                Console.ForegroundColor = ConsoleColor.Gray;
-                                                TextComments.WriteLine(
-                                                    "WARN [AIM TYPE 5] on (" + CurrentTime +
-                                                    "):" + Program.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "WARN [AIM TYPE 5]. Weapon:" +
-                                                    CurrentWeapon);
-                                                Console.WriteLine(
-                                                    "WARN [AIM TYPE 5] on (" + CurrentTime +
-                                                    "):" + Program.CurrentTimeString + " (???)");
-                                                Console.ForegroundColor = tmpcol;
-                                                Program.LastAim5DetectedReal = 0.0f;
-                                                Program.LastAim5Detected = 0.0f;
+                                                if (!IsTeleportus())
+                                                {
+                                                    var tmpcol = Console.ForegroundColor;
+                                                    Console.ForegroundColor = ConsoleColor.Gray;
+                                                    TextComments.WriteLine(
+                                                        "WARN [AIM TYPE 5] on (" + CurrentTime +
+                                                        "):" + Program.CurrentTimeString);
+                                                    AddViewDemoHelperComment(
+                                                        "WARN [AIM TYPE 5]. Weapon:" +
+                                                        CurrentWeapon);
+                                                    Console.WriteLine(
+                                                        "WARN [AIM TYPE 5] on (" + CurrentTime +
+                                                        "):" + Program.CurrentTimeString + " (???)");
+                                                    Console.ForegroundColor = tmpcol;
+                                                    Program.LastAim5DetectedReal = 0.0f;
+                                                    Program.LastAim5Detected = 0.0f;
+                                                }
                                             }
                                         }
                                         else
                                         if (Program.LastAim5DetectedReal != 0.0f &&
                                             CurrentTime - Program.LastAim5DetectedReal < 0.5f)
                                         {
-                                            TextComments.WriteLine(
-                                                "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
-                                                "):" + Program.CurrentTimeString);
-                                            AddViewDemoHelperComment(
-                                                "Detected [AIM TYPE 5]. Weapon:" +
-                                                CurrentWeapon);
-                                            Console.WriteLine(
-                                                "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
-                                                "):" + Program.CurrentTimeString);
-                                            SilentAimDetected++;
-                                            Program.LastAim5DetectedReal = 0.0f;
-                                            Program.LastAim5Detected = 0.0f;
+                                            if (!IsTeleportus())
+                                            {
+                                                TextComments.WriteLine(
+                                                    "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
+                                                    "):" + Program.CurrentTimeString);
+                                                AddViewDemoHelperComment(
+                                                    "Detected [AIM TYPE 5]. Weapon:" +
+                                                    CurrentWeapon);
+                                                Console.WriteLine(
+                                                    "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
+                                                    "):" + Program.CurrentTimeString);
+                                                SilentAimDetected++;
+                                                Program.LastAim5DetectedReal = 0.0f;
+                                                Program.LastAim5Detected = 0.0f;
+                                            }
                                         }
                                         else if (Program.LastAim5Detected != 0.0f &&
                                             CurrentTime - Program.LastAim5Detected < 0.5f)
                                         {
-                                            if (SilentAimDetected > 1 || JumpHackCount > 1)
+                                            if ((SilentAimDetected > 1 || JumpHackCount > 1) && !IsTeleportus())
                                             {
                                                 TextComments.WriteLine(
                                                     "Detected [AIM TYPE 5] on (" + CurrentTime +
@@ -2894,7 +2863,7 @@ namespace VolvoWrench.DG
                                                 if (Aim8CurrentFrameViewanglesY !=
                                                     CurrentFrameViewanglesY &&
                                                     Aim8CurrentFrameViewanglesX !=
-                                                    CurrentFrameViewanglesX)
+                                                    CurrentFrameViewanglesX && !IsTeleportus())
                                                 {
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
@@ -2927,7 +2896,7 @@ namespace VolvoWrench.DG
                                             }
 
                                             if (Aim8CurrentFrameViewanglesY ==
-                                                    CurrentFrameViewanglesY/* &&
+                                                    CurrentFrameViewanglesY && !IsTeleportus()/* &&
                                                     Aim8CurrentFrameViewanglesX !=
                                                     CurrentFrameViewanglesX*/)
                                             {
@@ -3043,6 +3012,10 @@ namespace VolvoWrench.DG
                                 //Console.Write(" ");
                                 //Console.Write(SecondFound);
                                 //Console.Write("\n");
+
+                                oldoriginpos.X = cdframe.Origin.X;
+                                oldoriginpos.Y = cdframe.Origin.Y;
+
 
                                 PreviewFrameViewanglesX = CurrentFrameViewanglesX;
                                 PreviewFrameViewanglesY = CurrentFrameViewanglesY;
@@ -3388,7 +3361,7 @@ namespace VolvoWrench.DG
                                         {
                                             if (CurrentTime - LastJumpHackTime > 10.0)
                                             {
-                                                if (CurrentTime - LastJumpHackTime > 5.0)
+                                                if (!IsTeleportus())
                                                 {
                                                     AddViewDemoHelperComment(
                                                         "Detected [DUCKHACK] duck.", 1.00f);
@@ -3398,9 +3371,8 @@ namespace VolvoWrench.DG
                                                     Console.WriteLine(
                                                         "Detected [DUCKHACK] duck on (" +
                                                         CurrentTime + ") " + CurrentTimeString);
+                                                    LastJumpHackTime = CurrentTime;
                                                 }
-
-                                                LastJumpHackTime = CurrentTime;
                                             }
 
                                             JumpHackCount++;
@@ -3556,7 +3528,7 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (RealAlive)
+                                if (RealAlive && !IsTeleportus())
                                 {
                                     if (CurrentFrameAttacked || PreviewFrameAttacked)
                                     {
@@ -3853,7 +3825,7 @@ namespace VolvoWrench.DG
                                         if (LerpBeforeStopAttack > LerpBeforeAttack)
                                             if (LerpAfterAttack > LerpBeforeAttack)
                                                 if (CurrentFrameLerp == LerpBeforeAttack &&
-                                                    RealAlive && FirstAttack)
+                                                    RealAlive && FirstAttack && !IsTeleportus())
                                                 {
                                                     TextComments.WriteLine(
                                                         "Detected [AIM TYPE 4] on (" +
@@ -3934,7 +3906,7 @@ namespace VolvoWrench.DG
                                                     Console.ForegroundColor = tmpcol;
                                                     maxfalsepositiveaim3--;
                                                 }
-                                                else
+                                                else if (!IsTeleportus())
                                                 {
                                                     TextComments.WriteLine(
                                                         "Detected [AIM TYPE 3] on (" +
@@ -3991,7 +3963,8 @@ namespace VolvoWrench.DG
                                             if (CurrentTime - LastUnJumpTime > 0.5 &&
                                                 FirstJump)
                                             {
-                                                if (CurrentTime - LastJumpHackTime > 5.0)
+                                                if (CurrentTime - LastJumpHackTime > 2.5
+                                                    && !IsTeleportus())
                                                 {
                                                     AddViewDemoHelperComment(
                                                         "Detected [JUMPHACK] jump.", 1.00f);
@@ -4001,10 +3974,10 @@ namespace VolvoWrench.DG
                                                     Console.WriteLine(
                                                         "Detected [JUMPHACK] jump on (" +
                                                         CurrentTime + ") " + Program.CurrentTimeString);
-                                                }
 
-                                                LastJumpHackTime = CurrentTime;
-                                                JumpHackCount++;
+                                                    LastJumpHackTime = CurrentTime;
+                                                    JumpHackCount++;
+                                                }
                                             }
                                         }
 
@@ -4255,7 +4228,7 @@ namespace VolvoWrench.DG
                                                     "):" + Program.CurrentTimeString + " (???)");
                                                 Console.ForegroundColor = tmpcol;
                                             }
-                                            else
+                                            else if (!IsTeleportus())
                                             {
                                                 TextComments.WriteLine(
                                                     "Detected [AIM TYPE 2] on (" + CurrentTime +
@@ -4308,6 +4281,10 @@ namespace VolvoWrench.DG
                                         else if (!RealAlive)
                                         {
                                             //  Console.WriteLine("Dead (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
+                                        }
+                                        else if (IsTeleportus())
+                                        {
+                                            //  Console.WriteLine("Teleportus");
                                         }
                                         else
                                         {
@@ -4369,7 +4346,7 @@ namespace VolvoWrench.DG
                                         AimType1FalseDetect = false;
                                         if (FirstAttack)
                                         {
-                                            if (SilentAimDetected > 0 || JumpHackCount > 0)
+                                            if ((SilentAimDetected > 0 || JumpHackCount > 0) && !IsTeleportus())
                                             {
                                                 TextComments.WriteLine(
                                                     "Detected [AIM TYPE 1] on (" + CurrentTime +
@@ -4403,7 +4380,7 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                     {
-                                        if (FirstAttack)
+                                        if (FirstAttack && !IsTeleportus())
                                         {
                                             TextComments.WriteLine(
                                                 "Detected [AIM TYPE 1] on (" + CurrentTime +
@@ -4570,31 +4547,6 @@ namespace VolvoWrench.DG
                                 }
                                 //subnode.Text += @"msg = " + nf.Msg + "\n";
 
-                                if (RealAlive && CurrentFrameOnGround)
-                                {
-                                    onground_and_alive_tests++;
-
-                                    if (onground_and_alive_tests > 5 && CurrentTime != 0.0f)
-                                        if (GetDistance(oldoriginpos,
-                                            new Point(nf.RParms.Vieworg.X,
-                                                nf.RParms.Vieworg.Y)) > 500)
-                                        {
-                                            // MessageBox.Show("SPEEDHOOK");
-                                            speedhackdetects++;
-                                            speedhackdetect_time = CurrentTime;
-                                            if (needsaveframes)
-                                                subnode.Text +=
-                                                    @"speedhaaak " + CurrentTime + "\n";
-                                        }
-
-                                    oldoriginpos.X = nf.RParms.Vieworg.X;
-                                    oldoriginpos.Y = nf.RParms.Vieworg.Y;
-                                }
-                                else
-                                {
-                                    onground_and_alive_tests = 0;
-                                }
-
 
                                 if (needsaveframes)
                                 {
@@ -4612,6 +4564,8 @@ namespace VolvoWrench.DG
                                 PreviewFrameDuck = CurrentFrameDuck;
                                 PreviewFrameOnGround = CurrentFrameOnGround;
                                 PreviewFramePunchangleZ = CurrentFramePunchangleZ;
+
+
 
                                 SecondFound = false;
                                 SecondFound2 = false;
@@ -5185,6 +5139,12 @@ namespace VolvoWrench.DG
         public static int ModifiedDemoFrames = 0;
         public static int TimeShiftCount = 0;
         public static float LastAliveTime = 0.0f;
+        public static float LastTeleportusTime = 0.0f;
+
+        public static bool IsTeleportus()
+        {
+            return CurrentTime - LastTeleportusTime < 3.0f;
+        }
 
         public class Player
         {
