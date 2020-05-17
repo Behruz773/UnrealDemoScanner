@@ -116,6 +116,8 @@ namespace VolvoWrench.DG
         public static int UserId = -1;
         public static int UserId2 = -1;
 
+        public static List<string> PlayerUsernames = new List<string>();
+
         public static int jumpscount = 0;
         public static bool isgroundchange = false;
 
@@ -2069,8 +2071,8 @@ namespace VolvoWrench.DG
 
         public static double GetDistance(Point p1, Point p2)
         {
-            var xDelta = p1.X - p2.X;
-            var yDelta = p1.Y - p2.Y;
+            double xDelta = p2.X - p1.X;
+            double yDelta = p2.Y - p1.Y;
 
             return Math.Abs(Math.Sqrt(Math.Pow(xDelta, 2) + Math.Pow(yDelta, 2)));
         }
@@ -2424,7 +2426,10 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Start demo analyze.....");
-
+            Console.Write("Username and steamid:");
+            Program.UserNameAndSteamIDField = Console.CursorTop;
+            Program.UserNameAndSteamIDField2 = Console.CursorLeft;
+            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Cyan;
             halfLifeDemoParser = new HalfLifeDemoParser(CurrentDemoFile);
 
@@ -2534,8 +2539,9 @@ namespace VolvoWrench.DG
 
                                 if (GetDistance(oldoriginpos,
                                           new Point(cdframe.Origin.X,
-                                              cdframe.Origin.Y)) > 100)
+                                              cdframe.Origin.Y)) > 250)
                                 {
+                                    //Console.WriteLine("Teleportus " + CurrentTime);
                                     Program.LastTeleportusTime = CurrentTime;
                                 }
                                 else
@@ -2552,7 +2558,7 @@ namespace VolvoWrench.DG
 
                                             if (GetDistance(new Point(cdframe2.Origin.X, cdframe2.Origin.Y),
                                             new Point(cdframe.Origin.X,
-                                                cdframe.Origin.Y)) > 200)
+                                                cdframe.Origin.Y)) > 250)
                                             {
                                                 Program.LastTeleportusTime = CurrentTime;
                                             }
@@ -3197,8 +3203,8 @@ namespace VolvoWrench.DG
                                 {
                                     Program.LastAliveTime = CurrentTime;
                                 }
-                                RealAlive = CurrentFrameAlive && PreviewFrameAlive;
 
+                                RealAlive = CurrentFrameAlive && PreviewFrameAlive;
 
                                 if (FoundDublicader)
                                 {
@@ -3722,7 +3728,7 @@ namespace VolvoWrench.DG
                                         {
                                             Program.TimeShiftCount += 1;
 
-                                            if (Program.TimeShiftCount > 4)
+                                            if (Program.TimeShiftCount > 4 && CurrentTime - LastChokePacket > 60)
                                             {
                                                 TextComments.WriteLine(
                                                         "Detected [TIMESHIFT] on (" +
@@ -3764,7 +3770,7 @@ namespace VolvoWrench.DG
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
                                                     Program.TimeShiftCount += 1;
-                                                    if (Program.TimeShiftCount > 4)
+                                                    if (Program.TimeShiftCount > 4 && CurrentTime - LastChokePacket > 60)
                                                     {
                                                         TextComments.WriteLine(
                                                        "Detected [TIMESHIFT 2] on (" +
@@ -3788,7 +3794,7 @@ namespace VolvoWrench.DG
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
                                                     Program.TimeShiftCount += 1;
-                                                    if (Program.TimeShiftCount > 4)
+                                                    if (Program.TimeShiftCount > 4 && CurrentTime - LastChokePacket > 60)
                                                     {
                                                         TextComments.WriteLine(
                                                           "Detected [TIMESHIFT 3] on (" +
@@ -3838,7 +3844,7 @@ namespace VolvoWrench.DG
                                         if (LerpBeforeStopAttack > LerpBeforeAttack)
                                             if (LerpAfterAttack > LerpBeforeAttack)
                                                 if (CurrentFrameLerp == LerpBeforeAttack &&
-                                                    RealAlive && FirstAttack && !IsTeleportus())
+                                                    RealAlive && FirstAttack)
                                                 {
                                                     TextComments.WriteLine(
                                                         "Detected [AIM TYPE 4] on (" +
@@ -4132,8 +4138,49 @@ namespace VolvoWrench.DG
 
                                 //if (UserAlive)
                                 {
-                                    UserId = nf.RParms.Playernum + 1;
-                                    UserId2 = nf.RParms.Viewentity;
+                                    UserId = nf.RParms.Playernum;
+                                    UserId2 = nf.RParms.Viewentity - 1;
+                                }
+
+                                if (UserAlive)
+                                {
+                                    if (LastUsernameCheckTime == 0.0f || CurrentTime - LastUsernameCheckTime > 60)
+                                    {
+                                        LastUsernameCheckTime = CurrentTime;
+                                        string plname = "NONAME";
+                                        string plsteam = "NOSTEAM";
+                                        foreach (var player in fullPlayerList)
+                                        {
+                                            if (player.Name.Length <= 0) continue;
+                                            if (player.Slot == UserId)
+                                            {
+                                                plname = player.Name;
+                                                plsteam = player.Steam;
+                                            }
+                                        }
+
+                                        bool userfound = false;
+                                        foreach (var playername in PlayerUsernames)
+                                        {
+                                            if (playername == plname)
+                                            {
+                                                userfound = true;
+                                            }
+                                        }
+
+                                        if (!userfound)
+                                        {
+                                            PlayerUsernames.Add(plname);
+                                        }
+
+                                        var tmpcursortop = Console.CursorTop;
+                                        var tmpcursorleft = Console.CursorLeft;
+                                        Console.CursorTop = UserNameAndSteamIDField;
+                                        Console.CursorLeft = UserNameAndSteamIDField2;
+                                        Console.WriteLine(plname + "[" + plsteam + "]");
+                                        Console.CursorTop = tmpcursortop;
+                                        Console.CursorLeft = tmpcursorleft;
+                                    }
                                 }
 
                                 addresolution(nf.RParms.Viewport.Z, nf.RParms.Viewport.W);
@@ -5154,15 +5201,24 @@ namespace VolvoWrench.DG
         public static float LastAliveTime = 0.0f;
         public static float LastTeleportusTime = 0.0f;
         public static int Aim73FalseSkip = 4;
+        public static int UserNameAndSteamIDField;
+        public static int UserNameAndSteamIDField2;
+        public static float LastUsernameCheckTime = 0.0f;
+        public static int MessageCount = 0;
+        public static int SVC_CHOKEMSGID = 0;
+        public static uint LossPackets = 0;
+        public static int ChokePackets = 0;
+        public static float LastLossPacket;
+        public static float LastChokePacket;
 
         public static bool IsTeleportus()
         {
-            return CurrentTime - LastTeleportusTime < 3.0f;
+            return CurrentTime - LastTeleportusTime < 2.5f;
         }
 
         public class Player
         {
-            public byte Slot;
+            public int Slot;
             public string Name;
             public int Id;
             public Dictionary<string, string> InfoKeys;
@@ -5170,7 +5226,7 @@ namespace VolvoWrench.DG
             public Stream voicedata_stream;
             public int pid;
             private int VoiceExploit;
-
+            public string Steam;
 
             public void WriteVoice(int len, byte[] data)
             {
@@ -5192,7 +5248,7 @@ namespace VolvoWrench.DG
                 }
             }
 
-            public Player(byte slot, int id)
+            public Player(int slot, int id)
             {
                 this.pid = cipid++;
                 VoiceExploit = 0;
@@ -5202,6 +5258,7 @@ namespace VolvoWrench.DG
                 InfoKeys = new Dictionary<string, string>();
                 voicedata_stream = new MemoryStream();
                 voicedata = new BinaryWriter(voicedata_stream);
+                this.Steam = "NOSTEAM";
             }
         }
     }
@@ -5774,7 +5831,7 @@ namespace VolvoWrench.DG
                 MessagePacketEntities);
             AddMessageHandler((byte)MessageId.svc_deltapacketentities,
                 MessageDeltaPacketEntities);
-            AddMessageHandler((byte)MessageId.svc_choke, 0);
+            AddMessageHandler((byte)MessageId.svc_choke, MessageChoke);
             AddMessageHandler((byte)MessageId.svc_resourcelist, MessageResourceList);
             AddMessageHandler((byte)MessageId.svc_newmovevars, MessageNewMoveVars);
             AddMessageHandler((byte)MessageId.svc_resourcerequest, 8);
@@ -6075,6 +6132,7 @@ namespace VolvoWrench.DG
             // start parsing messages
             while (true)
             {
+                Program.MessageCount += 1;
                 if (Program.needsaveframes)
                 {
                     outDataStr +=
@@ -6493,8 +6551,6 @@ namespace VolvoWrench.DG
             if (s.Length == 0)
             {
                 // 0 length text = a player just left and another player's slot is being changed
-
-
                 player.Slot = slot;
                 Program.playerList[i] = player;
             }
@@ -6521,6 +6577,7 @@ namespace VolvoWrench.DG
                             key = "STEAMID";
                             infoKeyTokens[n + 1] =
                                 CalculateSteamId(infoKeyTokens[n + 1]);
+                            player.Steam = infoKeyTokens[n + 1];
                         }
 
                         // If the key already exists, overwrite it.
@@ -6567,6 +6624,16 @@ namespace VolvoWrench.DG
 
         public void MessageClientData()
         {
+            if (Program.SVC_CHOKEMSGID > 0)
+            {
+                if (Program.MessageCount - Program.SVC_CHOKEMSGID > 2)
+                {
+                    Console.WriteLine("Fakelag detected");
+                }
+                Program.SVC_CHOKEMSGID = 0;
+            }
+
+
             if (demo.GsDemoInfo.Header.NetProtocol <= 43)
                 BitBuffer.Endian = BitBuffer.EndianType.Big;
 
@@ -6597,7 +6664,18 @@ namespace VolvoWrench.DG
                 BitBuffer.Endian = BitBuffer.EndianType.Big;
 
             while (BitBuffer.ReadBoolean())
-                BitBuffer.SeekBits(24); // int32 each: slot, ping, loss
+            {
+                uint slotid = BitBuffer.ReadUnsignedBits(5);
+                uint pings = BitBuffer.ReadUnsignedBits(12);
+                uint loss = BitBuffer.ReadUnsignedBits(7);
+                if (slotid == Program.UserId && loss > 0)
+                {
+                    Program.LossPackets += loss;
+                    Program.LastLossPacket = Program.CurrentTime;
+                    //Console.WriteLine("LossPackets " + Program.CurrentTimeString);
+                    //Console.WriteLine("Ping " + slotid + " = " + pings + "; loss = " + loss);
+                }
+            }
 
             BitBuffer.SkipRemainingBits();
             BitBuffer.Endian = BitBuffer.EndianType.Little;
@@ -7098,6 +7176,20 @@ namespace VolvoWrench.DG
             BitBuffer.Endian = BitBuffer.EndianType.Little;
         }
 
+        private void MessageChoke()
+        {
+            Program.ChokePackets += 1;
+            Program.LastChokePacket = Program.CurrentTime;
+            //Console.WriteLine("ChokePackets " + Program.CurrentTimeString);
+            if (Program.SVC_CHOKEMSGID > 0)
+            {
+                Console.WriteLine("Fakelag2 detected");
+                Program.SVC_CHOKEMSGID = 0;
+            }
+            else
+                Program.SVC_CHOKEMSGID = Program.MessageCount;
+        }
+
         private void MessageNewMoveVars()
         {
             // TODO: see OHLDS, SV_SetMoveVars
@@ -7360,7 +7452,7 @@ namespace VolvoWrench.DG
             var isHeadShot = BitBuffer.ReadByte();
             var weapon = BitBuffer.ReadString();
 
-            if (iVictim == Program.UserId && iVictim == Program.UserId2)
+            if (iVictim == Program.UserId + 1)
             {
                 Program.LastDeathTime = Program.CurrentTime;
                 Program.UserAlive = false;
@@ -7368,7 +7460,7 @@ namespace VolvoWrench.DG
                 if (Program.needsaveframes)
                     outDataStr += "LocalPlayer " + iVictim + " killed!\n";
             }
-            else if (iKiller == Program.UserId && iKiller == Program.UserId2)
+            else if (iKiller == Program.UserId + 1)
             {
                 Program.KillsCount++;
             }
