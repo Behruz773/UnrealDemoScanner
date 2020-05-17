@@ -2228,7 +2228,7 @@ namespace VolvoWrench.DG
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
-                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b9. Demo:" + DemoName +
+                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b10. Demo:" + DemoName +
                     ". DEMO TIME: 00:00:00";
             }
             catch
@@ -2274,7 +2274,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b9");
+                Console.WriteLine("Unreal Demo Scanner v1.33b10");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
             }
@@ -2952,7 +2952,17 @@ namespace VolvoWrench.DG
                                     {
                                         //  Console.WriteLine("2");
                                         if (tmpXangle != 0.0 && tmpYangle != 0.0)
-                                            AimType7Event = 4;
+                                        {
+                                            Program.Aim73FalseSkip--;
+                                            if (Program.Aim73FalseSkip <= 0)
+                                            {
+                                                AimType7Event = 4;
+                                            }
+                                            else
+                                            {
+                                                AimType7Event = 0;
+                                            }
+                                        }
                                         else
                                             AimType7Event = 0;
                                         /*else
@@ -3228,8 +3238,9 @@ namespace VolvoWrench.DG
 
                                 if (IsAttack)
                                 {
-                                    if (!PreviewFrameAttacked && !CurrentFrameAttacked)
+                                    if (PreviewFrameAttacked && !CurrentFrameAttacked)
                                     {
+                                        var dublicheck = nf;
                                         int tmpframeattacked = 0;
                                         for (int n = frameindex + 1;
                                             n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
@@ -3251,6 +3262,7 @@ namespace VolvoWrench.DG
                                                     var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
                                                     if (tmpnetmsgframe1 != nf)
                                                     {
+                                                        dublicheck = tmpnetmsgframe1;
                                                         if ((tmpnetmsgframe1.UCmd.Buttons & 1) > 0)
                                                         {
                                                             tmpframeattacked = -1;
@@ -3282,6 +3294,7 @@ namespace VolvoWrench.DG
                                                     var tmpnetmsgframe2 = (GoldSource.NetMsgFrame)tmpframe.Value;
                                                     if (tmpnetmsgframe2 != nf)
                                                     {
+                                                        dublicheck = tmpnetmsgframe2;
                                                         if ((tmpnetmsgframe2.UCmd.Buttons & 1) > 0)
                                                         {
                                                             tmpframeattacked = -1;
@@ -3426,7 +3439,7 @@ namespace VolvoWrench.DG
                                     lastnormalanswer = Program.CurrentTimeString;
 
                                     Console.Title =
-                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b9. Demo:" +
+                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b10. Demo:" +
                                         DemoName + ". DEMO TIME: " + Program.CurrentTimeString;
                                 }
                                 catch
@@ -3435,7 +3448,7 @@ namespace VolvoWrench.DG
                                     try
                                     {
                                         Console.Title =
-                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b9. Demo:" +
+                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b10. Demo:" +
                                             DemoName + ". DEMO TIME: " + lastnormalanswer;
                                     }
                                     catch
@@ -3443,7 +3456,7 @@ namespace VolvoWrench.DG
                                         try
                                         {
                                             Console.Title =
-                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b9. Demo:" +
+                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b10. Demo:" +
                                                 "BAD NAME" + ". DEMO TIME: " + lastnormalanswer;
                                         }
                                         catch
@@ -4598,7 +4611,7 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine("Unreal Demo Scanner v1.33b9 scan result:");
+            Console.WriteLine("Unreal Demo Scanner v1.33b10 scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
             //Console.WriteLine(nospreadtest2.ToString("F8"));
@@ -5140,6 +5153,7 @@ namespace VolvoWrench.DG
         public static int TimeShiftCount = 0;
         public static float LastAliveTime = 0.0f;
         public static float LastTeleportusTime = 0.0f;
+        public static int Aim73FalseSkip = 4;
 
         public static bool IsTeleportus()
         {
