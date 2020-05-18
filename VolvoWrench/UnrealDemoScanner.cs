@@ -524,6 +524,8 @@ namespace VolvoWrench.DG
             if (LastStuffCmdCommand != "" && s == LastStuffCmdCommand.Trim())
             {
                 LastStuffCmdCommand = "";
+                CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";");
+                CommandsDump.Add(Program.CurrentTimeString + " : " + s + "(" + Program.CurrentTime + ") --> EXECUTED BY SERVER");
                 return;
             }
             LastStuffCmdCommand = "";
