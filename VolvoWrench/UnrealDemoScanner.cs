@@ -505,7 +505,7 @@ namespace VolvoWrench.DG
 
         public static List<string> CommandsDump = new List<string>();
 
-        public static void CheckConsoleCommand(string s2)
+        public static void CheckConsoleCommand(string s2, bool isstuff = false)
         {
             var s = s2.Trim();
 
@@ -521,8 +521,23 @@ namespace VolvoWrench.DG
                 }
             }
 
-            CommandsDump.Add(Program.CurrentTimeString + " : " + s + "("+ Program.CurrentTime +")\n");
-            CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";\n");
+            if (isstuff)
+            {
+                CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";");
+                CommandsDump.Add(Program.CurrentTimeString + " : " + s + "(" + Program.CurrentTime + ") --> STUFFCMD");
+            }
+            else
+            {
+                CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";");
+                CommandsDump.Add(Program.CurrentTimeString + " : " + s + "(" + Program.CurrentTime + ")");
+            }
+
+            if (s2 == LastStuffCmdCommand)
+            {
+                LastStuffCmdCommand = "~~~#~~~~~~~~~~~~";
+                return;
+            }
+            LastStuffCmdCommand = "~~~~~~~~~~№~~~~~";
 
             if (s.ToLower().IndexOf("-") > -1) FrameCrash++;
             if (s.ToLower().IndexOf("+") > -1) FrameCrash = 0;
@@ -4029,6 +4044,7 @@ namespace VolvoWrench.DG
         public static int ChokePackets = 0;
         public static float LastLossPacket;
         public static float LastChokePacket;
+        public static string LastStuffCmdCommand = "";
 
         public static bool IsTeleportus()
         {
@@ -5240,10 +5256,12 @@ namespace VolvoWrench.DG
 
         private void MessageStuffText()
         {
-            if (Program.needsaveframes)
-                outDataStr += "MessageStuffText:" + BitBuffer.ReadString();
-            else
+            string stuffstr =
                 BitBuffer.ReadString();
+            Program.LastStuffCmdCommand = stuffstr;
+            Program.CheckConsoleCommand(stuffstr, true);
+            if (Program.needsaveframes)
+                outDataStr += "MessageStuffText:" + stuffstr;
         }
 
         private void MessageServerInfo()
