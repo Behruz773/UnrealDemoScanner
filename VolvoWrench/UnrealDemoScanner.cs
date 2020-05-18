@@ -521,12 +521,11 @@ namespace VolvoWrench.DG
                 }
             }
 
-            if (s2 == LastStuffCmdCommand)
+            if (LastStuffCmdCommand != "" && s == LastStuffCmdCommand.Trim())
             {
                 LastStuffCmdCommand = "";
                 return;
             }
-
             LastStuffCmdCommand = "";
 
             if (isstuff)
@@ -1073,27 +1072,12 @@ namespace VolvoWrench.DG
 
             }
 
-            try
-            {
-                if (File.Exists("Commands.txt"))
-                {
-                    File.Delete("Commands.txt");
-                    File.Create("Commands.txt").Close();
-                }
-            }
-            catch
-            {
-            }
 
             try
             {
                 if (File.Exists("Frames.log"))
                     File.AppendAllText("Frames.log",
                         "Полный дамп демо в текстовом формате\n");
-
-                if (File.Exists("commands.txt"))
-                    File.AppendAllText("commands.txt",
-                        "Список некоторых команд отправленных игроком\n");
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
@@ -5262,6 +5246,7 @@ namespace VolvoWrench.DG
             if (Program.needsaveframes)
                 outDataStr += "MessageStuffText:" + stuffstr;
             Program.CheckConsoleCommand(stuffstr, true);
+
             Program.LastStuffCmdCommand = stuffstr;
         }
 
