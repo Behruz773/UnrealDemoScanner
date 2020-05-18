@@ -521,6 +521,14 @@ namespace VolvoWrench.DG
                 }
             }
 
+            if (s2 == LastStuffCmdCommand)
+            {
+                LastStuffCmdCommand = "";
+                return;
+            }
+
+            LastStuffCmdCommand = "";
+
             if (isstuff)
             {
                 CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";");
@@ -531,13 +539,6 @@ namespace VolvoWrench.DG
                 CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";");
                 CommandsDump.Add(Program.CurrentTimeString + " : " + s + "(" + Program.CurrentTime + ")");
             }
-
-            if (s2 == LastStuffCmdCommand)
-            {
-                LastStuffCmdCommand = "~~~#~~~~~~~~~~~~";
-                return;
-            }
-            LastStuffCmdCommand = "~~~~~~~~~~№~~~~~";
 
             if (s.ToLower().IndexOf("-") > -1) FrameCrash++;
             if (s.ToLower().IndexOf("+") > -1) FrameCrash = 0;
@@ -1050,7 +1051,7 @@ namespace VolvoWrench.DG
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
-                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b11. Demo:" + DemoName +
+                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" + DemoName +
                     ". DEMO TIME: 00:00:00";
             }
             catch
@@ -1096,7 +1097,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b11");
+                Console.WriteLine("Unreal Demo Scanner v1.33b12");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
             }
@@ -2265,7 +2266,7 @@ namespace VolvoWrench.DG
                                     lastnormalanswer = Program.CurrentTimeString;
 
                                     Console.Title =
-                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b11. Demo:" +
+                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" +
                                         DemoName + ". DEMO TIME: " + Program.CurrentTimeString;
                                 }
                                 catch
@@ -2274,7 +2275,7 @@ namespace VolvoWrench.DG
                                     try
                                     {
                                         Console.Title =
-                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b11. Demo:" +
+                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" +
                                             DemoName + ". DEMO TIME: " + lastnormalanswer;
                                     }
                                     catch
@@ -2282,7 +2283,7 @@ namespace VolvoWrench.DG
                                         try
                                         {
                                             Console.Title =
-                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b11. Demo:" +
+                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" +
                                                 "BAD NAME" + ". DEMO TIME: " + lastnormalanswer;
                                         }
                                         catch
@@ -3478,7 +3479,7 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine("Unreal Demo Scanner v1.33b11 scan result:");
+            Console.WriteLine("Unreal Demo Scanner v1.33b12 scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
             //Console.WriteLine(nospreadtest2.ToString("F8"));
@@ -5258,10 +5259,10 @@ namespace VolvoWrench.DG
         {
             string stuffstr =
                 BitBuffer.ReadString();
-            Program.LastStuffCmdCommand = stuffstr;
-            Program.CheckConsoleCommand(stuffstr, true);
             if (Program.needsaveframes)
                 outDataStr += "MessageStuffText:" + stuffstr;
+            Program.CheckConsoleCommand(stuffstr, true);
+            Program.LastStuffCmdCommand = stuffstr;
         }
 
         private void MessageServerInfo()
