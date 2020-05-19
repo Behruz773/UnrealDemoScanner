@@ -1034,7 +1034,7 @@ namespace VolvoWrench.DG
         public static GoldSource.NetMsgFrame PreviewNetMsgFrame = new GoldSource.NetMsgFrame();
         public static GoldSource.NetMsgFrame NextNetMsgFrame = new GoldSource.NetMsgFrame();
 
-
+        public static string TotalFreewareTool = "[ПОЛНОСТЬЮ БЕСПЛАТНЫЙ] [TOTALLY FREE]";
 
         [STAThread]
         private static void Main(string[] args)
@@ -1053,7 +1053,7 @@ namespace VolvoWrench.DG
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
                     "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" + DemoName +
-                    ". DEMO TIME: 00:00:00";
+                    "." + TotalFreewareTool;
             }
             catch
             {
@@ -1083,7 +1083,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b12");
+                Console.WriteLine("Unreal Demo Scanner v1.33b12" + TotalFreewareTool);
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
             }
@@ -1123,6 +1123,10 @@ namespace VolvoWrench.DG
                     CurrentDemoFilePath = Console.ReadLine().Replace("\"", "");
                 }
             }
+
+
+            if (TotalFreewareTool.Length != 37)
+                return;
 
             CurrentDemoFile = CrossDemoParser.Parse(CurrentDemoFilePath);
 
