@@ -1036,6 +1036,16 @@ namespace VolvoWrench.DG
 
         public static string TotalFreewareTool = "[ПОЛНОСТЬЮ БЕСПЛАТНЫЙ] [TOTALLY FREE]";
 
+
+
+        public static string SourceCode = "https://github.com/2020karaulov2020/UnrealDemoScanner";
+        public static int usagesrccode = 0;
+        public static string GetSourceCodeString( )
+        {
+            usagesrccode++;
+            return SourceCode;
+        }
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -1083,7 +1093,8 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b12" + TotalFreewareTool);
+                Console.WriteLine("Unreal Demo Scanner v1.33b12 " + TotalFreewareTool);
+                Console.WriteLine(GetSourceCodeString());
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
             }
@@ -1173,6 +1184,9 @@ namespace VolvoWrench.DG
                 return;
             }
 
+            if (SourceCode.Length != 53)
+                return;
+
             if (File.Exists(CurrentDemoFilePath.Remove(CurrentDemoFilePath.Length - 3) +
                             "cdb"))
             {
@@ -1244,6 +1258,8 @@ namespace VolvoWrench.DG
             Console.ForegroundColor = ConsoleColor.Cyan;
             halfLifeDemoParser = new HalfLifeDemoParser(CurrentDemoFile);
 
+            if (usagesrccode != 1)
+                return;
             for (var index = 0;
                 index < CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count;
                 index++)
