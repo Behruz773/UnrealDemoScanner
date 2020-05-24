@@ -1049,13 +1049,6 @@ namespace VolvoWrench.DG
 
         public static string SourceCode = "https://github.com/2020karaulov2020/UnrealDemoScanner";
         public static int usagesrccode = 0;
-        public static string GetSourceCodeString()
-        {
-            usagesrccode++;
-            VolvoWrench.Settings.asdf.asdf2++;
-            return SourceCode;
-        }
-
         [STAThread]
         private static void Main(string[] args)
         {
@@ -4112,6 +4105,15 @@ namespace VolvoWrench.DG
                 return 360.0 - angle;
         }
 
+
+        public static string GetSourceCodeString()
+        {
+            usagesrccode++;
+            VolvoWrench.Settings.asdf.asdf2++;
+            if (SourceCode.Length != 53)
+                throw new Exception("ANAL ERROR");
+            return SourceCode;
+        }
         private static void ParseGameData(byte[] msgBytes, ref string s)
         {
             halfLifeDemoParser.ParseGameDataMessages(msgBytes, ref s);
