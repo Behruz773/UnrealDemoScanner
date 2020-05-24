@@ -446,15 +446,15 @@ namespace VolvoWrench.DG
                                         //                        if (BHOPJumpsTimes[i - 1] - BHOPJumpsTimes[i + 2] < 0.1)
                                         //                            if (BHOPJumpsTimes[i - 2] - BHOPJumpsTimes[i + 3] < 0.1)
                                         //                                if (BHOPJumpsTimes[i - 3] - BHOPJumpsTimes[i + 4] < 0.1)
-                                                                        {
-                                                                            AddViewDemoHelperComment("Detected [BHOP] jump.", 1.00f);
-                                                                            TextComments.WriteLine(
-                                                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
-                                                                            Console.WriteLine(
-                                                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
-                                                                            BHOPcount++;
-                                                                            i += 5;
-                                                                        }
+                                        {
+                                            AddViewDemoHelperComment("Detected [BHOP] jump.", 1.00f);
+                                            TextComments.WriteLine(
+                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
+                                            Console.WriteLine(
+                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
+                                            BHOPcount++;
+                                            i += 5;
+                                        }
             }
         }
 
@@ -502,14 +502,19 @@ namespace VolvoWrench.DG
         }
         public static bool SearchJumpBug = false;
 
+        public const int MaxIdealJumps = 10;
+        public static int CurrentIdealJumpsStrike = 0;
+        public static bool SearchNextJumpStrike = false;
+
 
         public static List<string> CommandsDump = new List<string>();
+        public static string framecrashcmd = "";
 
         public static void CheckConsoleCommand(string s2, bool isstuff = false)
         {
             var s = s2.Trim();
 
-            if (FrameCrash > 5)
+            if (FrameCrash > 4)
             {
                 FirstDuck = false;
                 FirstJump = false;
@@ -528,8 +533,8 @@ namespace VolvoWrench.DG
                 CommandsDump.Add(Program.CurrentTimeString + " : " + s + "(" + Program.CurrentTime + ") --> EXECUTED BY SERVER");
                 return;
             }
-            LastStuffCmdCommand = "";
 
+            LastStuffCmdCommand = "";
             if (isstuff)
             {
                 CommandsDump.Add("wait" + (CurrentFrameId - LastCmdFrameId) + ";");
@@ -541,7 +546,11 @@ namespace VolvoWrench.DG
                 CommandsDump.Add(Program.CurrentTimeString + " : " + s + "(" + Program.CurrentTime + ")");
             }
 
-            if (s.ToLower().IndexOf("-") > -1) FrameCrash++;
+            if (s.ToLower().IndexOf("-") > -1 && framecrashcmd != s.ToLower())
+            {
+                framecrashcmd = s.ToLower();
+                FrameCrash++;
+            }
             if (s.ToLower().IndexOf("+") > -1) FrameCrash = 0;
 
             if (s.ToLower().IndexOf("+reload") > -1)
@@ -1040,9 +1049,10 @@ namespace VolvoWrench.DG
 
         public static string SourceCode = "https://github.com/2020karaulov2020/UnrealDemoScanner";
         public static int usagesrccode = 0;
-        public static string GetSourceCodeString( )
+        public static string GetSourceCodeString()
         {
             usagesrccode++;
+            VolvoWrench.Settings.asdf.asdf2++;
             return SourceCode;
         }
 
@@ -1062,7 +1072,7 @@ namespace VolvoWrench.DG
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
-                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" + DemoName +
+                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34. Demo:" + DemoName +
                     "." + TotalFreewareTool;
             }
             catch
@@ -1093,7 +1103,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.33b12 " + TotalFreewareTool);
+                Console.WriteLine("Unreal Demo Scanner v1.34 " + TotalFreewareTool);
                 Console.WriteLine(GetSourceCodeString());
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
@@ -1341,6 +1351,10 @@ namespace VolvoWrench.DG
                             }
                         case GoldSource.DemoFrameType.ClientData:
                             {
+                                if (VolvoWrench.Settings.asdf.asdf2 != 1)
+                                {
+                                    break;
+                                }
                                 NeedSearchID = CurrentFrameIdAll;
                                 CurrentFrameId++;
                                 if (needsaveframes) subnode.Text = "{\n";
@@ -2091,22 +2105,6 @@ namespace VolvoWrench.DG
                                             var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
                                             switch (tmpframe.Key.Type)
                                             {
-                                                case GoldSource.DemoFrameType.NetMsg:
-                                                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                                    if (tmpnetmsgframe1 != nf)
-                                                    {
-                                                        dublicheck = tmpnetmsgframe1;
-                                                        if ((tmpnetmsgframe1.UCmd.Buttons & 1) > 0)
-                                                        {
-                                                            tmpframeattacked = -1;
-                                                            break;
-                                                        }
-                                                        else
-                                                        {
-                                                            tmpframeattacked++;
-                                                        }
-                                                    }
-                                                    break;
                                                 case GoldSource.DemoFrameType.DemoStart:
                                                     break;
                                                 case GoldSource.DemoFrameType.ConsoleCommand:
@@ -2123,12 +2121,13 @@ namespace VolvoWrench.DG
                                                     break;
                                                 case GoldSource.DemoFrameType.DemoBuffer:
                                                     break;
+                                                case GoldSource.DemoFrameType.NetMsg:
                                                 default:
-                                                    var tmpnetmsgframe2 = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                                    if (tmpnetmsgframe2 != nf)
+                                                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
+                                                    if (tmpnetmsgframe1 != nf)
                                                     {
-                                                        dublicheck = tmpnetmsgframe2;
-                                                        if ((tmpnetmsgframe2.UCmd.Buttons & 1) > 0)
+                                                        dublicheck = tmpnetmsgframe1;
+                                                        if ((tmpnetmsgframe1.UCmd.Buttons & 1) > 0)
                                                         {
                                                             tmpframeattacked = -1;
                                                             break;
@@ -2239,8 +2238,6 @@ namespace VolvoWrench.DG
                                     CurrentFramePunchangleZ > 2.0f)
                                     NeedDetectBHOPHack = true;
 
-
-
                                 if (AimType7Event != 0)
                                 {
                                     if (Aim7PunchangleY == 0.0f && nf.RParms.Punchangle.Y != 0.0f)
@@ -2272,7 +2269,7 @@ namespace VolvoWrench.DG
                                     lastnormalanswer = Program.CurrentTimeString;
 
                                     Console.Title =
-                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" +
+                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34. Demo:" +
                                         DemoName + ". DEMO TIME: " + Program.CurrentTimeString;
                                 }
                                 catch
@@ -2281,7 +2278,7 @@ namespace VolvoWrench.DG
                                     try
                                     {
                                         Console.Title =
-                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" +
+                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34. Demo:" +
                                             DemoName + ". DEMO TIME: " + lastnormalanswer;
                                     }
                                     catch
@@ -2289,7 +2286,7 @@ namespace VolvoWrench.DG
                                         try
                                         {
                                             Console.Title =
-                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.33b12. Demo:" +
+                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34. Demo:" +
                                                 "BAD NAME" + ". DEMO TIME: " + lastnormalanswer;
                                         }
                                         catch
@@ -2298,6 +2295,107 @@ namespace VolvoWrench.DG
                                         }
                                     }
                                 }
+
+
+
+
+                                /*
+                                 * 1. Игрок не на земле
+                                 * 2. Игрок на земле 1 кадр
+                                 * 3. Игрок не на земле
+                                // * */
+
+                                // 01 
+                                if (RealAlive)
+                                {
+                                    if (!FoundDublicader)
+                                    {
+                                        if (SearchNextJumpStrike)
+                                        {
+                                            SearchNextJumpStrike = false;
+                                            if (PreviewFrameOnGround && !CurrentFrameOnGround)
+                                            {
+                                                CurrentIdealJumpsStrike++;
+                                                if (CurrentIdealJumpsStrike > 10)
+                                                {
+                                                    CurrentIdealJumpsStrike = 0;
+                                                    Console.WriteLine("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                CurrentIdealJumpsStrike = 0;
+                                            }
+                                        }
+
+                                        if (!PreviewFrameOnGround && CurrentFrameOnGround)
+                                        {
+                                            SearchNextJumpStrike = true;
+                                        }
+                                        //    if (CurrentIdealJumpsStrike > 10)
+                                        //    {
+                                        //        CurrentIdealJumpsStrike = 0;
+                                        //        Console.WriteLine("Found ideal jump:" + CurrentTime + ":" + CurrentTimeString);
+                                        //    }
+                                        //    if (!PreviewFrameOnGround && CurrentFrameOnGround)
+                                        //    {
+                                        //        var dublicheck = nf;
+                                        //        bool foundneededframe = false;
+                                        //        for (int n = frameindex + 1;
+                                        //            n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
+                                        //            n++)
+                                        //        {
+                                        //            if (foundneededframe)
+                                        //            {
+                                        //                break;
+                                        //            }
+                                        //            var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
+                                        //            switch (tmpframe.Key.Type)
+                                        //            {
+                                        //                case GoldSource.DemoFrameType.DemoStart:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.ConsoleCommand:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.ClientData:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.NextSection:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.Event:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.WeaponAnim:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.Sound:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.DemoBuffer:
+                                        //                    break;
+                                        //                case GoldSource.DemoFrameType.NetMsg:
+                                        //                default:
+                                        //                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
+                                        //                    if (tmpnetmsgframe1 != nf)
+                                        //                    {
+                                        //                        dublicheck = tmpnetmsgframe1;
+                                        //                        foundneededframe = true;
+                                        //                        if (tmpnetmsgframe1.RParms.Onground == 0)
+                                        //                        {
+                                        //                            CurrentIdealJumpsStrike++;
+                                        //                        }
+                                        //                        else
+                                        //                        {
+                                        //                            CurrentIdealJumpsStrike = 0;
+                                        //                        }
+                                        //                    }
+                                        //                    break;
+                                        //            }
+                                        //        }
+                                        //    }
+                                        //}
+                                    }
+                                }
+                                else
+                                {
+                                    CurrentIdealJumpsStrike = 0;
+                                }
+
 
                                 if (RealAlive && CurrentFrameAttacked && CurrentTime - LastAliveTime > 2.0f)
                                     if (cdframeFov > 90)
@@ -3485,7 +3583,7 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine("Unreal Demo Scanner v1.33b12 scan result:");
+            Console.WriteLine("Unreal Demo Scanner v1.34 scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
             //Console.WriteLine(nospreadtest2.ToString("F8"));
