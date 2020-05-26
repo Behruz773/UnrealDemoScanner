@@ -1233,35 +1233,66 @@ namespace VolvoWrench.DemoStuff.GoldSource
                             throw new Exception("E2");
                         }
                         //  return gDemo;
-                        var entryCount = br.ReadInt32();
+                       
+                        //if (entryCount < 1 || entryCount > 5)
+                        //{
+                        //   // entryCount = 2;
+                        //    Console.WriteLine(gDemo.Header.DemoProtocol);
+                        //    Console.WriteLine(gDemo.Header.NetProtocol);
+                        //    Console.WriteLine(gDemo.Header.MapName);
+                        //    Console.WriteLine(gDemo.Header.GameDir);
+                        //    Console.WriteLine(gDemo.Header.MapCrc);
+                        //    Console.WriteLine(gDemo.Header.DirectoryOffset);
+                        //    Console.WriteLine(entryCount);
+                        //    Console.WriteLine("Warning!Hacked demo! ");
+                        //}
 
-                        //if (entryCount < 1 || entryCount > 3) entryCount = 2;
-
-                        //if (gDemo.Header.DirectoryOffset == 0) entryCount = 2;
-
-                        for (var i = 0; i < entryCount; i++)
+                        if ( gDemo.Header.DirectoryOffset == 0 )
                         {
-                            if (UnexpectedEof(br, 4 + 64 + 4 + 4 + 4 + 4 + 4 + 4))
-                            {
-                                gDemo.ParsingErrors.Add("Unexpected end of file when reading the directory entries!");
-
-                                throw new Exception("E3");
-                            }
-                            //return gDemo;
+                            Console.WriteLine("Warning! Bad entries count! Using 'bruteforce' read method!");
                             var tempvar = new GoldSource.DemoDirectoryEntry
                             {
-                                Type = br.ReadInt32(),
+                                Type = 0,
                                 Description =
-                                    Encoding.ASCII.GetString(br.ReadBytes(64)).Trim('\0').Replace("\0", string.Empty),
-                                Flags = br.ReadInt32(),
-                                CdTrack = br.ReadInt32(),
-                                TrackTime = br.ReadSingle(),
-                                FrameCount = br.ReadInt32(),
-                                Offset = br.ReadInt32(),
-                                FileLength = br.ReadInt32(),
+                                       "Playback",
+                                Flags = 0,
+                                CdTrack = 0,
+                                TrackTime = 444.0f,
+                                FrameCount = 44444444,
+                                Offset = 0 ,
+                                FileLength = 0,
                                 Frames = new List<GoldSource.FramesHren>()
                             };
                             gDemo.DirectoryEntries.Add(tempvar);
+                        }
+                        else
+                        {
+                            var entryCount = br.ReadInt32();
+
+                            for (var i = 0; i < entryCount; i++)
+                            {
+                                if (UnexpectedEof(br, 4 + 64 + 4 + 4 + 4 + 4 + 4 + 4))
+                                {
+                                    gDemo.ParsingErrors.Add("Unexpected end of file when reading the directory entries!");
+
+                                    //  throw new Exception("E3");
+                                }
+                                //return gDemo;
+                                var tempvar = new GoldSource.DemoDirectoryEntry
+                                {
+                                    Type = br.ReadInt32(),
+                                    Description =
+                                        Encoding.ASCII.GetString(br.ReadBytes(64)).Trim('\0').Replace("\0", string.Empty),
+                                    Flags = br.ReadInt32(),
+                                    CdTrack = br.ReadInt32(),
+                                    TrackTime = br.ReadSingle(),
+                                    FrameCount = br.ReadInt32(),
+                                    Offset = br.ReadInt32(),
+                                    FileLength = br.ReadInt32(),
+                                    Frames = new List<GoldSource.FramesHren>()
+                                };
+                                gDemo.DirectoryEntries.Add(tempvar);
+                            }
                         }
                         //s1.Stop();
                         //var s2 = new System.Diagnostics.Stopwatch();
@@ -1274,12 +1305,15 @@ namespace VolvoWrench.DemoStuff.GoldSource
                             try
                             {
                                 dirid++;
-                                if (UnexpectedEof(br, entry.Offset - br.BaseStream.Position))
+                                if (entry.Offset != 0)
                                 {
-                                    gDemo.ParsingErrors.Add("Unexpected end of file when seeking to directory entry!");
-                                    throw new Exception("E4");
+                                    if (UnexpectedEof(br, entry.Offset - br.BaseStream.Position))
+                                    {
+                                        gDemo.ParsingErrors.Add("Unexpected end of file when seeking to directory entry!");
+                                        throw new Exception("E4");
+                                    }
+                                    br.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
                                 }
-                                br.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
                                 var ind = 0;
                                 var nextSectionRead = false;
                                 while (!nextSectionRead)
@@ -1287,9 +1321,10 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                     ind++;
                                     if (UnexpectedEof(br, 1 + 4 + 4))
                                     {
-                                        gDemo.ParsingErrors.Add(
+                                        if (entry.Offset != 0)
+                                            gDemo.ParsingErrors.Add(
                                             "Unexpected end of file when reading the header of the frame: " + ind + 1);
-                                        throw new Exception("E5");
+                                        break;
                                     }
 
                                     var type = br.ReadByte();
@@ -1315,14 +1350,14 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                         Index = ind
                                     };
 
-                                    Application.DoEvents();
+                                    // Application.DoEvents();
 
 
 
                                     // File.AppendAllText("events.log", currentDemoFrame.Type + "->" + currentDemoFrame.Index + "->" + currentDemoFrame.FrameIndex + "->" + currentDemoFrame.Time + "\n");
 
                                     #region Frame Switch
-
+                                    //Console.WriteLine(currentDemoFrame.Type);
                                     switch (currentDemoFrame.Type)
                                     {
                                         case GoldSource.DemoFrameType.DemoStart: //No extra dat
@@ -1399,6 +1434,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, cdframe));
                                             break;
                                         case GoldSource.DemoFrameType.NextSection:
+                                            if ( entry.Offset != 0 )
                                             nextSectionRead = true;
                                             entry.Frames.Add(new GoldSource.FramesHren(currentDemoFrame, new GoldSource.NextSectionFrame()));
                                             break;
@@ -1756,8 +1792,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                     #endregion
                                 }
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                Console.WriteLine("Fatal error:" + ex.Message);
                             }
 
                         //here

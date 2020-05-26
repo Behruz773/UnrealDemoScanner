@@ -127,6 +127,8 @@
     <FileAlignment>4096</FileAlignment>
     <DebugSymbols>true</DebugSymbols>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationFramework" />
