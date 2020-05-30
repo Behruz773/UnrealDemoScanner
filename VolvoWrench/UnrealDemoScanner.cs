@@ -44,7 +44,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.36";
+        public const string PROGRAMVERSION = "1.36fix";
 
 
         public enum WeaponIdType
@@ -809,8 +809,9 @@ namespace VolvoWrench.DG
             {
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveLeft < 1.0)
+                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveLeft < 0.3)
                     {
+                        //Console.WriteLine("1:" + (CurrentTime - Program.LastMoveLeft));
                         Program.DetectStrafeOptimizerStrikes++;
                     }
                     else
@@ -841,8 +842,9 @@ namespace VolvoWrench.DG
             {
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveRight < 1.0)
+                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveRight < 0.3)
                     {
+                        //Console.WriteLine("2:" + (CurrentTime - Program.LastMoveRight));
                         Program.DetectStrafeOptimizerStrikes++;
                     }
                     else
@@ -2295,9 +2297,9 @@ namespace VolvoWrench.DG
                                     FirstDuck = true;
                                     IsDuck = false;
                                 }
-                                else if (FirstDuck)
+                                if (FirstDuck)
                                 {
-                                    if (CurrentTime - LastUnDuckTime > 0.5 &&
+                                    if (!IsDuck && CurrentTime - LastUnDuckTime > 0.5 &&
                                         CurrentTime - LastDuckTime > 0.5)
                                     {
                                         if (CurrentFrameDuck && !IsDuck)
@@ -2305,6 +2307,8 @@ namespace VolvoWrench.DG
                                         }
                                         else if (!CurrentFrameDuck && IsDuck)
                                         {
+                                            //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
+                                            //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
                                             if (CurrentTime - LastJumpHackTime > 10.0)
                                             {
                                                 if (!IsTeleportus())
@@ -2319,9 +2323,8 @@ namespace VolvoWrench.DG
                                                         CurrentTime + ") " + CurrentTimeString);
                                                     LastJumpHackTime = CurrentTime;
                                                 }
+                                                JumpHackCount++;
                                             }
-
-                                            JumpHackCount++;
                                         }
                                     }
                                 }
