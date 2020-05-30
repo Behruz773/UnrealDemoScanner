@@ -44,7 +44,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.36fix";
+        public const string PROGRAMVERSION = "1.36fix2";
 
 
         public enum WeaponIdType
@@ -2299,20 +2299,38 @@ namespace VolvoWrench.DG
                                 }
                                 if (FirstDuck)
                                 {
-                                    if (!IsDuck && CurrentTime - LastUnDuckTime > 0.5 &&
-                                        CurrentTime - LastDuckTime > 0.5)
+                                    if (/*!IsDuck &&*/ CurrentTime - LastUnDuckTime > 0.8 &&
+                                        CurrentTime - LastDuckTime > 0.8)
                                     {
                                         if (CurrentFrameDuck && !IsDuck)
                                         {
+                                            if (CurrentTime - LastJumpHackTime > 10.0)
+                                            {
+                                                if (!IsTeleportus())
+                                                { 
+                                                    //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
+                                                    //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
+                                                    AddViewDemoHelperComment(
+                                                        "Detected [DUCKHACK2] duck.", 1.00f);
+                                                    TextComments.WriteLine(
+                                                        "Detected [DUCKHACK2] duck on (" +
+                                                        CurrentTime + ") " + CurrentTimeString);
+                                                    Console.WriteLine(
+                                                        "Detected [DUCKHACK2] duck on (" +
+                                                        CurrentTime + ") " + CurrentTimeString);
+                                                    LastJumpHackTime = CurrentTime;
+                                                    JumpHackCount++;
+                                                }
+                                            }
                                         }
                                         else if (!CurrentFrameDuck && IsDuck)
                                         {
-                                            //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
-                                            //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
                                             if (CurrentTime - LastJumpHackTime > 10.0)
                                             {
                                                 if (!IsTeleportus())
                                                 {
+                                                    //Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
+                                                    //Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
                                                     AddViewDemoHelperComment(
                                                         "Detected [DUCKHACK] duck.", 1.00f);
                                                     TextComments.WriteLine(
@@ -2322,8 +2340,8 @@ namespace VolvoWrench.DG
                                                         "Detected [DUCKHACK] duck on (" +
                                                         CurrentTime + ") " + CurrentTimeString);
                                                     LastJumpHackTime = CurrentTime;
+                                                    JumpHackCount++;
                                                 }
-                                                JumpHackCount++;
                                             }
                                         }
                                     }
@@ -2646,7 +2664,7 @@ namespace VolvoWrench.DG
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
 
-                                                if (spreadtest > MAX_SPREAD_CONST)
+                                                if (spreadtest > MAX_SPREAD_CONST && !Program.GameEnd)
                                                 {
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
@@ -2690,7 +2708,7 @@ namespace VolvoWrench.DG
                                                     nospreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
-                                                if (spreadtest2 > MAX_SPREAD_CONST2)
+                                                if (spreadtest2 > MAX_SPREAD_CONST2 && !Program.GameEnd)
                                                 {
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
@@ -4317,6 +4335,7 @@ namespace VolvoWrench.DG
         public static string GameDir = "";
         public static byte PlayerID = 255;
         public static bool DealthMatch = false;
+        public static float GameEndTime = 0.0f;
 
         public static bool IsTeleportus()
         {
@@ -5274,11 +5293,12 @@ namespace VolvoWrench.DG
                     if (!Program.GameEnd)
                     {
                         Program.GameEnd = true;
-                        Console.WriteLine("----------Конец игры / Game Over----------");
+                        Program.GameEndTime = Program.CurrentTime;
+                        Console.WriteLine("---------- [Конец игры / Game Over] ----------");
                     }
                     else
                     {
-                        Console.WriteLine("Detect two or more \"Game end\" messages. HPP HACK?");
+                        Console.WriteLine("Detect two or more \"Game end\" messages. HPP HACK DETECTED?");
                     }
                 }
 
@@ -6567,6 +6587,11 @@ namespace VolvoWrench.DG
 
         private void MessageDeath()
         {
+            if (Program.GameEnd && Program.CurrentTime - Program.GameEndTime > 5.0f)
+            {
+                Console.WriteLine("Detected kill after game end!");
+            }
+
             var len = BitBuffer.ReadByte();
             var iKiller = BitBuffer.ReadByte();
             var iVictim = BitBuffer.ReadByte();
