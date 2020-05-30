@@ -1324,6 +1324,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                         if (entry.Offset != 0)
                                             gDemo.ParsingErrors.Add(
                                             "Unexpected end of file when reading the header of the frame: " + ind + 1);
+                                        nextSectionRead = true;
                                         break;
                                     }
 
@@ -1370,8 +1371,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when reading console command at frame: " +
                                                     ind);
-                                                throw new Exception("E6");
-                                                // return gDemo;
+
+                                                nextSectionRead = true;
+                                                break;
                                             }
                                             var cmd = br.ReadBytes(64);
                                             ccframe.Command = Encoding.ASCII.GetString(cmd)
@@ -1387,7 +1389,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when reading clientdataframe at frame: " +
                                                     ind);
-                                                throw new Exception("E7");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 // return gDemo;
                                             }
                                             cdframe.Origin.X = br.ReadSingle();
@@ -1444,7 +1448,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file at when reading eventframe on frame: " + ind);
-                                                throw new Exception("E8");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 // return gDemo;
                                             }
                                             eframe.Flags = br.ReadInt32();
@@ -1476,7 +1482,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when reading weaponanim at frame: " + ind);
-                                                throw new Exception("E9");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 //return gDemo;
                                             }
                                             waframe.Anim = br.ReadInt32();
@@ -1489,7 +1497,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when reading sound channel at frame: " + ind);
-                                                throw new Exception("E");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 //  return gDemo;
                                             }
                                             sframe.Channel = br.ReadInt32();
@@ -1498,7 +1508,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when reading sound data at frame: " + ind);
-                                                throw new Exception("E10");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 //  return gDemo;
                                             }
                                             sframe.Sample = br.ReadBytes(samplelength);
@@ -1514,7 +1526,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when demobuffer data at frame: " + ind);
-                                                throw new Exception("E11");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 // return gDemo;
                                             }
                                             var buggerlength = br.ReadInt32();
@@ -1522,7 +1536,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when reading buffer data at frame: " + ind);
-                                                throw new Exception("E12");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 // return gDemo;
                                             }
                                             bframe.Buffer = br.ReadBytes(buggerlength);
@@ -1535,7 +1551,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             {
                                                 gDemo.ParsingErrors.Add(
                                                     "Unexpected end of file when default frame at frame: " + ind);
-                                                throw new Exception("E13");
+
+                                                nextSectionRead = true;
+                                                break;
                                                 // return gDemo;
                                             }
                                             nf.Timestamp = br.ReadSingle();

@@ -43,6 +43,10 @@ namespace VolvoWrench.DG
 #define IN_SCORE	16 */
     public static class Program
     {
+        public const string PROGRAMNAME = "Unreal Demo Scanner";
+        public const string PROGRAMVERSION = "1.36";
+
+
         public enum WeaponIdType
         {
             WEAPON_BAD = -1,
@@ -367,9 +371,6 @@ namespace VolvoWrench.DG
         public static bool NeedDetectBHOPHack;
         public static int LastTriggerCursor;
         public static float LastDeathTime;
-        public static string ServerName = "";
-        public static string MapName = "";
-        public static string GameDir = "";
         public static List<Player> playerList = new List<Player>();
         public static List<Player> fullPlayerList = new List<Player>();
         public static int maxfalsepositiveaim3 = 6;
@@ -806,9 +807,9 @@ namespace VolvoWrench.DG
 
             if (s.ToLower().IndexOf("+moveleft") > -1)
             {
-                if (RealAlive)
+                if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveRight)
+                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveLeft < 1.0)
                     {
                         Program.DetectStrafeOptimizerStrikes++;
                     }
@@ -826,7 +827,7 @@ namespace VolvoWrench.DG
             }
             else if (s.ToLower().IndexOf("-moveleft") > -1)
             {
-                if (RealAlive)
+                if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
                     Program.MoveLeft = false;
                     Program.LastUnMoveLeft = CurrentTime;
@@ -838,9 +839,9 @@ namespace VolvoWrench.DG
             }
             else if (s.ToLower().IndexOf("+moveright") > -1)
             {
-                if (RealAlive)
+                if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveLeft)
+                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveRight < 1.0)
                     {
                         Program.DetectStrafeOptimizerStrikes++;
                     }
@@ -858,7 +859,7 @@ namespace VolvoWrench.DG
             }
             else if (s.ToLower().IndexOf("-moveright") > -1)
             {
-                if (RealAlive)
+                if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
                     Program.MoveRight = false;
                     Program.LastUnMoveRight = CurrentTime;
@@ -1139,7 +1140,7 @@ namespace VolvoWrench.DG
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Title =
-                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.35. Demo:" + DemoName +
+                    "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner " + PROGRAMVERSION + ". Demo:" + DemoName +
                     "." + TotalFreewareTool;
             }
             catch
@@ -1170,7 +1171,7 @@ namespace VolvoWrench.DG
 
                 outFrames = new List<string>();
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unreal Demo Scanner v1.34fix " + TotalFreewareTool);
+                Console.WriteLine("Unreal Demo Scanner " + PROGRAMVERSION + " " + TotalFreewareTool);
                 Console.WriteLine(GetSourceCodeString());
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("THIS BASE CONTAIN NEXT CHEAT/HACK:");
@@ -1328,15 +1329,46 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Start demo analyze.....");
-            Console.Write("Username and steamid:");
-            Program.UserNameAndSteamIDField = Console.CursorTop;
-            Program.UserNameAndSteamIDField2 = Console.CursorLeft;
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Cyan;
             halfLifeDemoParser = new HalfLifeDemoParser(CurrentDemoFile);
 
             if (usagesrccode != 1)
                 return;
+
+
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Demo protocol : ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(CurrentDemoFile.GsDemoInfo.Header.DemoProtocol);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(". Net protocol : ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(CurrentDemoFile.GsDemoInfo.Header.NetProtocol);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Game directory : ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(CurrentDemoFile.GsDemoInfo.Header.GameDir);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(". Map name : ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("maps/" + CurrentDemoFile.GsDemoInfo.Header.MapName + ".bsp");
+
+            Console.ForegroundColor = ConsoleColor.Green;
+
+
+            Console.Write("Username and steamid : ");
+            Program.UserNameAndSteamIDField = Console.CursorTop;
+            Program.UserNameAndSteamIDField2 = Console.CursorLeft;
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
             for (var index = 0;
                 index < CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count;
                 index++)
@@ -2354,7 +2386,7 @@ namespace VolvoWrench.DG
                                     lastnormalanswer = Program.CurrentTimeString;
 
                                     Console.Title =
-                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34fix. Demo:" +
+                                        "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner " + PROGRAMVERSION + ". Demo:" +
                                         DemoName + ". DEMO TIME: " + Program.CurrentTimeString;
                                 }
                                 catch
@@ -2363,7 +2395,7 @@ namespace VolvoWrench.DG
                                     try
                                     {
                                         Console.Title =
-                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34fix. Demo:" +
+                                            "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner " + PROGRAMVERSION + ". Demo:" +
                                             DemoName + ". DEMO TIME: " + lastnormalanswer;
                                     }
                                     catch
@@ -2371,7 +2403,7 @@ namespace VolvoWrench.DG
                                         try
                                         {
                                             Console.Title =
-                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner v1.34fix. Demo:" +
+                                                "[ANTICHEAT/ANTIHACK] Unreal Demo Scanner " + PROGRAMVERSION + ". Demo:" +
                                                 "BAD NAME" + ". DEMO TIME: " + lastnormalanswer;
                                         }
                                         catch
@@ -3199,7 +3231,10 @@ namespace VolvoWrench.DG
                                         var tmpcursorleft = Console.CursorLeft;
                                         Console.CursorTop = UserNameAndSteamIDField;
                                         Console.CursorLeft = UserNameAndSteamIDField2;
+                                        var tmpconsolecolor = Console.ForegroundColor;
+                                        Console.ForegroundColor = ConsoleColor.Red;
                                         Console.WriteLine(plname + "[" + plsteam + "]");
+                                        Console.ForegroundColor = tmpconsolecolor;
                                         Console.CursorTop = tmpcursortop;
                                         Console.CursorLeft = tmpcursorleft;
                                     }
@@ -3680,7 +3715,7 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.WriteLine("Unreal Demo Scanner v1.34fix scan result:");
+            Console.WriteLine("Unreal Demo Scanner " + PROGRAMVERSION + " scan result:");
 
             //Console.WriteLine(nospreadtest.ToString("F8"));
             //Console.WriteLine(nospreadtest2.ToString("F8"));
@@ -3831,6 +3866,7 @@ namespace VolvoWrench.DG
                 {
                     try
                     {
+                        CommandsDump.Insert(0, "This file created by Unreal Demo Scanner\n\n");
                         File.WriteAllLines("Commands.txt", CommandsDump.ToArray());
                         Process.Start("Commands.txt");
                     }
@@ -4162,7 +4198,7 @@ namespace VolvoWrench.DG
                         Console.WriteLine("Dublicate frames: " + FrameDuplicates);
                     }
 
-                    if (LostStopAttackButton > 0)
+                    if (LostStopAttackButton > 3)
                     {
                         Console.WriteLine("Lost -attack commands: " + LostStopAttackButton + ". Possible bypass demoscanner?");
                     }
@@ -4173,6 +4209,12 @@ namespace VolvoWrench.DG
                     }
 
                     Console.WriteLine("Maximum time between frames:" + Program.MaximumTimeBetweenFrames.ToString("F6"));
+
+
+                    Console.WriteLine("ServerName:" + ServerName);
+                    Console.WriteLine("MapName:" + MapName);
+                    Console.WriteLine("GameDir:" + GameDir);
+                    Console.WriteLine("DealthMatch:" + DealthMatch);
 
                     if (playerList.Count > 0)
                         Console.WriteLine("Players: " + playerList.Count);
@@ -4266,6 +4308,12 @@ namespace VolvoWrench.DG
         public static bool DemoScannerBypassDetected = false;
         public static int FramesOnGround = 0;
         public static int FramesOnFly = 0;
+
+        public static string ServerName = "";
+        public static string MapName = "";
+        public static string GameDir = "";
+        public static byte PlayerID = 255;
+        public static bool DealthMatch = false;
 
         public static bool IsTeleportus()
         {
@@ -5491,7 +5539,8 @@ namespace VolvoWrench.DG
             Seek(28);
             demo.MaxClients = BitBuffer.ReadByte();
 
-            Seek(2); // ???, byte multiplayer
+            Program.PlayerID = BitBuffer.ReadByte();
+            Program.DealthMatch = BitBuffer.ReadByte() > 0;
 
             Program.GameDir = BitBuffer.ReadString(); // game dir
 
