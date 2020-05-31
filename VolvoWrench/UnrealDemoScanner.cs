@@ -607,6 +607,7 @@ namespace VolvoWrench.DG
             {
                 if (s.ToLower().IndexOf("+attack") > -1)
                 {
+                    
                     FirstAttack = true;
                     FrameCrash = 0;
                     attackscounter++;
@@ -700,8 +701,10 @@ namespace VolvoWrench.DG
                         }
 
                         if (AttackCheck < 0)
+                        {
                             //Console.WriteLine("Check attack start!");
                             AttackCheck = 1;
+                        }
                         Aim2AttackDetected = false;
                         NeedSearchAim2 = true;
                         IsAttack = true;
@@ -774,7 +777,7 @@ namespace VolvoWrench.DG
                     IsAttack = false;
                     AttackCheck = -1;
                     Aim2AttackDetected = false;
-                    //Console.WriteLine("-attack3");
+                   // Console.WriteLine("-attack3");
                     SelectSlot--;
                     if (ShotFound > 2)
                         //Console.WriteLine("Shots:" + ShotFound);
@@ -1374,6 +1377,15 @@ namespace VolvoWrench.DG
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Cyan;
+
+            //if (CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count > 1)
+            //{
+            //    if (CurrentDemoFile.GsDemoInfo.DirectoryEntries[1].TrackTime > CurrentDemoFile.GsDemoInfo.DirectoryEntries[0].TrackTime)
+            //    {
+            //        CurrentDemoFile.GsDemoInfo.DirectoryEntries.Reverse();
+            //    }
+            //}
+
             for (var index = 0;
                 index < CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count;
                 index++)
@@ -1382,7 +1394,6 @@ namespace VolvoWrench.DG
                     new TreeNode("Directory entry [" + (index + 1) + "] - " +
                                  CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
                                      .FrameCount);
-
 
                 for (int frameindex = 0; frameindex < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
                     .Frames.Count; frameindex++)
@@ -1811,38 +1822,75 @@ namespace VolvoWrench.DG
                                             // Console.WriteLine("11");
                                             if (AimType7Frames > 2)
                                             {
+                                                if (AimType7Event == 4)
+                                                {
+                                                    Program.Aim73FalseSkip--;
+                                                }
                                                 if (Aim8CurrentFrameViewanglesY !=
                                                     CurrentFrameViewanglesY &&
                                                     Aim8CurrentFrameViewanglesX !=
                                                     CurrentFrameViewanglesX && !IsTeleportus())
                                                 {
-                                                    var tmpcol = Console.ForegroundColor;
-                                                    Console.ForegroundColor = ConsoleColor.Gray;
+                                                    if (AimType7Event == 4 && Program.Aim73FalseSkip < 0)
+                                                    {
+                                                        var tmpcol = Console.ForegroundColor;
+                                                        Console.ForegroundColor = ConsoleColor.Gray;
 
-                                                    var tmpangle2 =
-                                                        AngleBetween(
-                                                                Aim8CurrentFrameViewanglesX, CurrentFrameViewanglesX);
-                                                    tmpangle2 +=
-                                                        AngleBetween(
-                                                                Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
+                                                        var tmpangle2 =
+                                                            AngleBetween(
+                                                                    Aim8CurrentFrameViewanglesX, CurrentFrameViewanglesX);
+                                                        tmpangle2 +=
+                                                            AngleBetween(
+                                                                    Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
 
-                                                    TextComments.WriteLine(
-                                                        GetAim7String(OldAimType7Frames,
-                                                            AimType7Frames, AimType7Event,
-                                                            tmpangle2) + " on (" + OldAimType7Time +
-                                                        "):" + Program.CurrentTimeString + " (???)");
-                                                    AddViewDemoHelperComment(
-                                                        GetAim7String(OldAimType7Frames,
-                                                            AimType7Frames, AimType7Event,
-                                                            tmpangle2) + " Weapon:" +
-                                                        CurrentWeapon + " (???)");
-                                                    Console.WriteLine(
-                                                        GetAim7String(OldAimType7Frames,
-                                                            AimType7Frames, AimType7Event,
-                                                            tmpangle2) + " on (" + OldAimType7Time +
-                                                        "):" + Program.CurrentTimeString + " (???)");
-                                                    Console.ForegroundColor = tmpcol;
+                                                        TextComments.WriteLine(
+                                                            GetAim7String(OldAimType7Frames,
+                                                                AimType7Frames, AimType7Event,
+                                                                tmpangle2) + " on (" + OldAimType7Time +
+                                                            "):" + Program.CurrentTimeString + " (???)");
+                                                        AddViewDemoHelperComment(
+                                                            GetAim7String(OldAimType7Frames,
+                                                                AimType7Frames, AimType7Event,
+                                                                tmpangle2) + " Weapon:" +
+                                                            CurrentWeapon + " (???)");
+                                                        Console.WriteLine(
+                                                            GetAim7String(OldAimType7Frames,
+                                                                AimType7Frames, AimType7Event,
+                                                                tmpangle2) + " on (" + OldAimType7Time +
+                                                            "):" + Program.CurrentTimeString + " (???)");
+                                                        Console.ForegroundColor = tmpcol;
+                                                    }
+                                                    else if (AimType7Event != 4)
+                                                    {
+                                                        var tmpcol = Console.ForegroundColor;
+                                                        Console.ForegroundColor = ConsoleColor.Gray;
+
+                                                        var tmpangle2 =
+                                                            AngleBetween(
+                                                                    Aim8CurrentFrameViewanglesX, CurrentFrameViewanglesX);
+                                                        tmpangle2 +=
+                                                            AngleBetween(
+                                                                    Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
+
+
+                                                        TextComments.WriteLine(
+                                                            GetAim7String(OldAimType7Frames,
+                                                                AimType7Frames, AimType7Event,
+                                                                tmpangle2) + " on (" + OldAimType7Time +
+                                                            "):" + Program.CurrentTimeString + " (???)");
+                                                        AddViewDemoHelperComment(
+                                                            GetAim7String(OldAimType7Frames,
+                                                                AimType7Frames, AimType7Event,
+                                                                tmpangle2) + " Weapon:" +
+                                                            CurrentWeapon + " (???)");
+                                                        Console.WriteLine(
+                                                            GetAim7String(OldAimType7Frames,
+                                                                AimType7Frames, AimType7Event,
+                                                                tmpangle2) + " on (" + OldAimType7Time +
+                                                            "):" + Program.CurrentTimeString + " (???)");
+                                                        Console.ForegroundColor = tmpcol;
+                                                    }
                                                 }
                                             }
 
@@ -1904,15 +1952,7 @@ namespace VolvoWrench.DG
                                         //  Console.WriteLine("2");
                                         if (tmpXangle != 0.0 && tmpYangle != 0.0)
                                         {
-                                            Program.Aim73FalseSkip--;
-                                            if (Program.Aim73FalseSkip <= 0)
-                                            {
-                                                AimType7Event = 4;
-                                            }
-                                            else
-                                            {
-                                                AimType7Event = 0;
-                                            }
+                                            AimType7Event = 4;
                                         }
                                         else
                                             AimType7Event = 0;
@@ -2303,16 +2343,16 @@ namespace VolvoWrench.DG
 
                                 if (FirstDuck && RealAlive)
                                 {
-                                    if (CurrentFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 0.25 &&
-                                    CurrentTime - LastDuckTime > 0.25)
+                                    if (CurrentFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 2.5 &&
+                                    CurrentTime - LastDuckTime > 2.5)
                                     {
                                         if (!IsTeleportus())
                                         {
                                             Program.DuckHack2Strikes++;
                                             if (Program.DuckHack2Strikes > 5 && CurrentTime - LastJumpHackTime > 10.0)
                                             {
-                                                //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
-                                                //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
+                                                Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
+                                                Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
                                                 AddViewDemoHelperComment(
                                                     "Detected [DUCKHACK2] duck.", 1.00f);
                                                 TextComments.WriteLine(
@@ -2336,7 +2376,7 @@ namespace VolvoWrench.DG
                                     }
 
 
-                                    if (!CurrentFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 1.5 &&
+                                    if (!CurrentFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 2.0 &&
                                     CurrentTime - LastDuckTime > 2.2)
                                     {
                                         if (!IsTeleportus())
@@ -2344,8 +2384,8 @@ namespace VolvoWrench.DG
                                             Program.DuckHack1Strikes++;
                                             if (Program.DuckHack1Strikes > 10 && CurrentTime - LastJumpHackTime > 10.0)
                                             {
-                                                Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
-                                                Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
+                                                //Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
+                                                //Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
                                                 AddViewDemoHelperComment(
                                                     "Detected [DUCKHACK] duck.", 1.00f);
                                                 TextComments.WriteLine(
@@ -2817,7 +2857,7 @@ namespace VolvoWrench.DG
                                         Program.MaximumTimeBetweenFrames = 0.01f;
                                     else
                                     {
-                                        if(!FoundDublicader && CurrentTime - PreviewTime > 0.5f && !Program.GameEnd && CurrentFrameId > 10)
+                                        if (!FoundDublicader && CurrentTime - PreviewTime > 0.5f && !Program.GameEnd && CurrentFrameId > 10)
                                         {
                                             Program.TimeShiftCount += 1;
 
@@ -3156,6 +3196,12 @@ namespace VolvoWrench.DG
                                         @"RParms.Onground  = " + nf.RParms.Onground + "\n";
                                 }
 
+                                if (nf.RParms.Intermission != 0)
+                                {
+                                    // Console.WriteLine("Intermiss");
+                                    Program.Intermission = true;
+                                }
+
                                 if (nf.RParms.Frametime > 0.0)
                                     averagefps2.Add(1000.0 / (1000.0 * nf.RParms.Frametime));
 
@@ -3239,6 +3285,22 @@ namespace VolvoWrench.DG
                                     UserId2 = nf.RParms.Viewentity - 1;
                                 }
 
+                                if (!UserAlive )
+                                {
+                                    if (ViewEntity == nf.RParms.Viewentity)
+                                    {
+                                        //Console.WriteLine("User alive 4" + " time " + Program.CurrentTimeString);
+                                        if (!Program.Intermission)
+                                        {
+                                            UserAlive = true;
+                                            FirstUserAlive = false;
+                                            LastAliveTime = CurrentTime;
+                                        }
+                                        Program.Intermission = false;
+                                        ViewEntity = -1;
+                                    }
+                                }
+
                                 if (UserAlive && CurrentTime != 0.0f)
                                 {
                                     if (UserId != UserId2 && !Program.DemoScannerBypassDetected)
@@ -3248,7 +3310,7 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                if (UserAlive)
+                                if (RealAlive)
                                 {
                                     if (LastUsernameCheckTime == 0.0f || CurrentTime - LastUsernameCheckTime > 60)
                                     {
@@ -3257,7 +3319,7 @@ namespace VolvoWrench.DG
                                         string plsteam = "NOSTEAM";
                                         foreach (var player in fullPlayerList)
                                         {
-                                            if (player.Name.Length <= 0) continue;
+                                            if (player.Name.Length == 0) continue;
                                             if (player.Slot == UserId)
                                             {
                                                 plname = player.Name;
@@ -3285,6 +3347,11 @@ namespace VolvoWrench.DG
                                         Console.CursorLeft = UserNameAndSteamIDField2;
                                         var tmpconsolecolor = Console.ForegroundColor;
                                         Console.ForegroundColor = ConsoleColor.Red;
+                                        for (int i = 0; i < 64; i++)
+                                        {
+                                            Console.Write(" ");
+                                        }
+                                        Console.CursorLeft = UserNameAndSteamIDField2;
                                         Console.Write(plname);
                                         Console.ForegroundColor = ConsoleColor.Cyan;
                                         Console.WriteLine(" [" + plsteam + "]");
@@ -3589,9 +3656,11 @@ namespace VolvoWrench.DG
                                         else
                                         {
                                             if (SkipNextAttack <= 0)
+                                            {
                                                 //File.AppendAllText("bug.log", "NeedWriteAim" + CurrentTime + " " + IsAttackLastTime + "\n");
                                                 // Console.WriteLine("Aim detected.......");
                                                 NeedWriteAim = true;
+                                            }
                                             SkipNextAttack = 0;
                                             AttackCheck--;
                                         }
@@ -4341,7 +4410,7 @@ namespace VolvoWrench.DG
         public static int TimeShiftCount = 0;
         public static float LastAliveTime = 0.0f;
         public static float LastTeleportusTime = 0.0f;
-        public static int Aim73FalseSkip = 5;
+        public static int Aim73FalseSkip = 2;
         public static int UserNameAndSteamIDField;
         public static int UserNameAndSteamIDField2;
         public static float LastUsernameCheckTime = 0.0f;
@@ -4366,12 +4435,14 @@ namespace VolvoWrench.DG
         public static string ServerName = "";
         public static string MapName = "";
         public static string GameDir = "";
-        public static byte PlayerID = 255;
+        public static byte StartPlayerID = 255;
         public static bool DealthMatch = false;
         public static float GameEndTime = 0.0f;
         public static int DuckHack2Strikes = 0;
         public static int DuckHack1Strikes = 0;
         public static bool FirstWeapon = false;
+        public static bool Intermission = false;
+        public static int ViewEntity = -1;
 
         public static bool IsTeleportus()
         {
@@ -5540,8 +5611,24 @@ namespace VolvoWrench.DG
         private void MessageView()
         {
             int entityview = BitBuffer.ReadInt16();
+
+            if (!Program.Intermission)
+            {
+                //Console.WriteLine("switch view to " + entityview + " player\n");
+                Program.ViewEntity = entityview;
+                if ( entityview == Program.UserId + 1 && Program.CurrentTimeString.Length > 0)
+                {
+                    //Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
+                    Program.UserAlive = true;
+                    Program.LastAliveTime = Program.CurrentTime;
+                    Program.FirstUserAlive = false;
+                }
+            }
+
             if (Program.needsaveframes)
+            {
                 outDataStr += "switch view to " + entityview + " player\n";
+            }
         }
 
         public void MessageSound()
@@ -5598,7 +5685,7 @@ namespace VolvoWrench.DG
             Seek(28);
             demo.MaxClients = BitBuffer.ReadByte();
 
-            Program.PlayerID = BitBuffer.ReadByte();
+            Program.StartPlayerID = BitBuffer.ReadByte();
             Program.DealthMatch = BitBuffer.ReadByte() > 0;
 
             Program.GameDir = BitBuffer.ReadString(); // game dir
@@ -6664,11 +6751,12 @@ namespace VolvoWrench.DG
 
         private void MessageResetHud()
         {
-            if (Program.FirstUserAlive)
-            {
-                Program.LastAliveTime = Program.CurrentTime;
-                Program.UserAlive = true;
-            }
+            //if (Program.FirstUserAlive)
+            //{
+            //    Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
+            //    Program.LastAliveTime = Program.CurrentTime;
+            //    Program.UserAlive = true;
+            //}
             //if (Program.needsaveframes) outDataStr += "ResetHud!\n";
             //   Program.UserAlive = true;
         }
@@ -7473,7 +7561,8 @@ namespace VolvoWrench.DG
                                             //Program.FirstUserAlive = false;
                                             Program.UserAlive = true;
                                             Program.LastAliveTime = Program.CurrentTime;
-                                            // Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
+
+                                           // Console.WriteLine("User alive 3" + " time " + Program.CurrentTimeString);
                                         }
                                         var reloadstatus =
                                             value != null ? (float)value : 1.0f;
