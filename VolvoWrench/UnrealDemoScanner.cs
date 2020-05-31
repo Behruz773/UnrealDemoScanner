@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Windows.Converters;
 using System.Windows.Data;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -44,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.36fix2";
+        public const string PROGRAMVERSION = "1.36fix3";
 
 
         public enum WeaponIdType
@@ -993,9 +994,11 @@ namespace VolvoWrench.DG
         }
         public static bool IsRealWeapon()
         {
-            return CurrentWeapon != WeaponIdType.WEAPON_NONE &&
+            var retval = CurrentWeapon != WeaponIdType.WEAPON_NONE &&
                    CurrentWeapon != WeaponIdType.WEAPON_BAD
                    && CurrentWeapon != WeaponIdType.WEAPON_BAD2;
+            //Console.WriteLine("Weapon:" + retval);
+            return retval;
         }
         public static bool IsUserAlive()
         {
@@ -2145,7 +2148,7 @@ namespace VolvoWrench.DG
 
                                 //if (!RealAlive && CurrentFrameAlive && PreviewFrameAlive)
                                 //{
-                                   
+
                                 //}
 
                                 RealAlive = CurrentFrameAlive && PreviewFrameAlive;
@@ -2297,54 +2300,78 @@ namespace VolvoWrench.DG
                                     FirstDuck = true;
                                     IsDuck = false;
                                 }
-                                if (FirstDuck)
+
+                                if (FirstDuck && RealAlive)
                                 {
-                                    if (/*!IsDuck &&*/ CurrentTime - LastUnDuckTime > 0.8 &&
-                                        CurrentTime - LastDuckTime > 0.8)
+                                    if (CurrentFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 0.25 &&
+                                    CurrentTime - LastDuckTime > 0.25)
                                     {
-                                        if (CurrentFrameDuck && !IsDuck)
+                                        if (!IsTeleportus())
                                         {
-                                            if (CurrentTime - LastJumpHackTime > 10.0)
+                                            Program.DuckHack2Strikes++;
+                                            if (Program.DuckHack2Strikes > 5 && CurrentTime - LastJumpHackTime > 10.0)
                                             {
-                                                if (!IsTeleportus())
-                                                { 
-                                                    //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
-                                                    //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [DUCKHACK2] duck.", 1.00f);
-                                                    TextComments.WriteLine(
-                                                        "Detected [DUCKHACK2] duck on (" +
-                                                        CurrentTime + ") " + CurrentTimeString);
-                                                    Console.WriteLine(
-                                                        "Detected [DUCKHACK2] duck on (" +
-                                                        CurrentTime + ") " + CurrentTimeString);
-                                                    LastJumpHackTime = CurrentTime;
-                                                    JumpHackCount++;
-                                                }
+                                                //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
+                                                //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
+                                                AddViewDemoHelperComment(
+                                                    "Detected [DUCKHACK2] duck.", 1.00f);
+                                                TextComments.WriteLine(
+                                                    "Detected [DUCKHACK2] duck on (" +
+                                                    CurrentTime + ") " + CurrentTimeString);
+                                                Console.WriteLine(
+                                                    "Detected [DUCKHACK2] duck on (" +
+                                                    CurrentTime + ") " + CurrentTimeString);
+                                                LastJumpHackTime = CurrentTime;
+                                                JumpHackCount++;
                                             }
                                         }
-                                        else if (!CurrentFrameDuck && IsDuck)
+                                        else
                                         {
-                                            if (CurrentTime - LastJumpHackTime > 10.0)
-                                            {
-                                                if (!IsTeleportus())
-                                                {
-                                                    //Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
-                                                    //Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [DUCKHACK] duck.", 1.00f);
-                                                    TextComments.WriteLine(
-                                                        "Detected [DUCKHACK] duck on (" +
-                                                        CurrentTime + ") " + CurrentTimeString);
-                                                    Console.WriteLine(
-                                                        "Detected [DUCKHACK] duck on (" +
-                                                        CurrentTime + ") " + CurrentTimeString);
-                                                    LastJumpHackTime = CurrentTime;
-                                                    JumpHackCount++;
-                                                }
-                                            }
+                                            Program.DuckHack2Strikes = 0;
                                         }
                                     }
+                                    else
+                                    {
+                                        Program.DuckHack2Strikes = 0;
+                                    }
+
+
+                                    if (!CurrentFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 1.5 &&
+                                    CurrentTime - LastDuckTime > 2.2)
+                                    {
+                                        if (!IsTeleportus())
+                                        {
+                                            Program.DuckHack1Strikes++;
+                                            if (Program.DuckHack1Strikes > 10 && CurrentTime - LastJumpHackTime > 10.0)
+                                            {
+                                                Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
+                                                Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
+                                                AddViewDemoHelperComment(
+                                                    "Detected [DUCKHACK] duck.", 1.00f);
+                                                TextComments.WriteLine(
+                                                    "Detected [DUCKHACK] duck on (" +
+                                                    CurrentTime + ") " + CurrentTimeString);
+                                                Console.WriteLine(
+                                                    "Detected [DUCKHACK] duck on (" +
+                                                    CurrentTime + ") " + CurrentTimeString);
+                                                LastJumpHackTime = CurrentTime;
+                                                JumpHackCount++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Program.DuckHack1Strikes = 0;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Program.DuckHack1Strikes = 0;
+                                    }
+                                }
+                                else
+                                {
+                                    Program.DuckHack2Strikes = 0;
+                                    Program.DuckHack1Strikes = 0;
                                 }
 
                                 if (nf.RParms.Onground != 0)
@@ -2357,7 +2384,7 @@ namespace VolvoWrench.DG
                                     Program.FramesOnGround++;
                                     Program.FramesOnFly = 0;
                                 }
-                               
+
 
 
                                 if (!PreviewFrameOnGround && !CurrentFrameOnGround)
@@ -2790,11 +2817,11 @@ namespace VolvoWrench.DG
                                         Program.MaximumTimeBetweenFrames = 0.01f;
                                     else
                                     {
-                                        if (CurrentTime - PreviewTime > 0.5f && !Program.GameEnd && CurrentFrameId > 10)
+                                        if(!FoundDublicader && CurrentTime - PreviewTime > 0.5f && !Program.GameEnd && CurrentFrameId > 10)
                                         {
                                             Program.TimeShiftCount += 1;
 
-                                            if (Program.TimeShiftCount > 4 && CurrentTime - LastChokePacket > 60)
+                                            if (LastTimeOut != 1 && Program.TimeShiftCount - Program.LossPackets > 4 + Program.ChokePackets && CurrentTime - LastChokePacket > 60)
                                             {
                                                 TextComments.WriteLine(
                                                         "Detected [TIMESHIFT] on (" +
@@ -2807,6 +2834,7 @@ namespace VolvoWrench.DG
                                                     + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
 
                                                     Program.CurrentTimeString);
+                                                LastTimeOut = 1;
                                             }
                                         }
                                         if (CurrentTime - PreviewTime > Program.MaximumTimeBetweenFrames)
@@ -2836,8 +2864,11 @@ namespace VolvoWrench.DG
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
                                                     Program.TimeShiftCount += 1;
-                                                    if (Program.TimeShiftCount > 4 && CurrentTime - LastChokePacket > 60)
+                                                    if (LastTimeOut != 2 && Program.TimeShiftCount - Program.LossPackets > 4 + Program.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
+                                                        //Console.WriteLine("1 " + Program.LossPackets);
+                                                        //Console.WriteLine("2 " + Program.ChokePackets);
+                                                        //Console.WriteLine("3 " + Program.TimeShiftCount);
                                                         TextComments.WriteLine(
                                                        "Detected [TIMESHIFT 2] on (" +
                                                        CurrentTime + "):" + Program.CurrentTimeString);
@@ -2848,9 +2879,9 @@ namespace VolvoWrench.DG
                                                             "Detected [TIMESHIFT 2] on (" + DemoStartTime + "):"
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                             Program.CurrentTimeString);
+                                                        LastTimeOut = 2;
                                                     }
                                                 }
-                                                LastTimeOut = 1;
                                                 //Console.WriteLine("Second.");
                                             }
 
@@ -2860,7 +2891,7 @@ namespace VolvoWrench.DG
                                                 if (!FoundDublicader && !Program.GameEnd)
                                                 {
                                                     Program.TimeShiftCount += 1;
-                                                    if (Program.TimeShiftCount > 4 && CurrentTime - LastChokePacket > 60)
+                                                    if (LastTimeOut != 3 && Program.TimeShiftCount - Program.LossPackets > 4 + Program.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
                                                         TextComments.WriteLine(
                                                           "Detected [TIMESHIFT 3] on (" +
@@ -2872,10 +2903,10 @@ namespace VolvoWrench.DG
                                                             "Detected [TIMESHIFT 3] on (" + DemoStartTime + "):"
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                             Program.CurrentTimeString);
+                                                        LastTimeOut = 3;
                                                     }
                                                 }
 
-                                                LastTimeOut = 2;
                                                 //Console.WriteLine("Second2.");
                                             }
                                         }
@@ -3254,7 +3285,9 @@ namespace VolvoWrench.DG
                                         Console.CursorLeft = UserNameAndSteamIDField2;
                                         var tmpconsolecolor = Console.ForegroundColor;
                                         Console.ForegroundColor = ConsoleColor.Red;
-                                        Console.WriteLine(plname + "[" + plsteam + "]");
+                                        Console.Write(plname);
+                                        Console.ForegroundColor = ConsoleColor.Cyan;
+                                        Console.WriteLine(" [" + plsteam + "]");
                                         Console.ForegroundColor = tmpconsolecolor;
                                         Console.CursorTop = tmpcursortop;
                                         Console.CursorLeft = tmpcursorleft;
@@ -4308,7 +4341,7 @@ namespace VolvoWrench.DG
         public static int TimeShiftCount = 0;
         public static float LastAliveTime = 0.0f;
         public static float LastTeleportusTime = 0.0f;
-        public static int Aim73FalseSkip = 4;
+        public static int Aim73FalseSkip = 5;
         public static int UserNameAndSteamIDField;
         public static int UserNameAndSteamIDField2;
         public static float LastUsernameCheckTime = 0.0f;
@@ -4336,6 +4369,9 @@ namespace VolvoWrench.DG
         public static byte PlayerID = 255;
         public static bool DealthMatch = false;
         public static float GameEndTime = 0.0f;
+        public static int DuckHack2Strikes = 0;
+        public static int DuckHack1Strikes = 0;
+        public static bool FirstWeapon = false;
 
         public static bool IsTeleportus()
         {
@@ -6531,15 +6567,15 @@ namespace VolvoWrench.DG
 
             var clip = BitBuffer.ReadSByte();
 
-            if (cStatus < 1)
-            {
-
-                return;
-            }
-
             //Console.WriteLine(Program.UserAlive.ToString() + " = " + cStatus
             //     + " = " + weaponid.ToString() + " = " + clip);
 
+            if (Program.FirstWeapon == true && cStatus < 1)
+            {
+                return;
+            }
+
+            Program.FirstWeapon = true;
             //if (Program.CurrentWeapon != weaponid &&
             //    weaponid != Program.WeaponIdType.WEAPON_BAD &&
             //    weaponid != Program.WeaponIdType.WEAPON_BAD2 &&
@@ -6551,7 +6587,7 @@ namespace VolvoWrench.DG
             //}
 
 
-            if (Program.IsUserAlive() && Program.CurrentWeapon != weaponid &&
+            if (Program.UserAlive && Program.CurrentWeapon != weaponid &&
                 weaponid != Program.WeaponIdType.WEAPON_BAD &&
                 weaponid != Program.WeaponIdType.WEAPON_BAD2)
             {
@@ -6607,7 +6643,7 @@ namespace VolvoWrench.DG
                 Program.DeathsCoount++;
                 if (Program.needsaveframes)
                     outDataStr += "LocalPlayer " + iVictim + " killed!\n";
-               // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
+                // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
             }
             else if (iKiller == Program.UserId + 1)
             {
@@ -7437,7 +7473,7 @@ namespace VolvoWrench.DG
                                             //Program.FirstUserAlive = false;
                                             Program.UserAlive = true;
                                             Program.LastAliveTime = Program.CurrentTime;
-                                           // Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
+                                            // Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
                                         }
                                         var reloadstatus =
                                             value != null ? (float)value : 1.0f;
