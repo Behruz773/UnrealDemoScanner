@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.36fix3";
+        public const string PROGRAMVERSION = "1.36fix4";
 
 
         public enum WeaponIdType
@@ -607,7 +607,7 @@ namespace VolvoWrench.DG
             {
                 if (s.ToLower().IndexOf("+attack") > -1)
                 {
-                    
+
                     FirstAttack = true;
                     FrameCrash = 0;
                     attackscounter++;
@@ -777,7 +777,7 @@ namespace VolvoWrench.DG
                     IsAttack = false;
                     AttackCheck = -1;
                     Aim2AttackDetected = false;
-                   // Console.WriteLine("-attack3");
+                    // Console.WriteLine("-attack3");
                     SelectSlot--;
                     if (ShotFound > 2)
                         //Console.WriteLine("Shots:" + ShotFound);
@@ -3285,13 +3285,15 @@ namespace VolvoWrench.DG
                                     UserId2 = nf.RParms.Viewentity - 1;
                                 }
 
-                                if (!UserAlive )
+                                Program.ViewModel = nf.Viewmodel;
+
+                                if (!UserAlive)
                                 {
                                     if (ViewEntity == nf.RParms.Viewentity)
                                     {
-                                        //Console.WriteLine("User alive 4" + " time " + Program.CurrentTimeString);
-                                        if (!Program.Intermission)
+                                        if (!Program.Intermission && FirstUserAlive && nf.Viewmodel != 0)
                                         {
+                                            Console.WriteLine("User alive 4" + " time " + Program.CurrentTimeString);
                                             UserAlive = true;
                                             FirstUserAlive = false;
                                             LastAliveTime = CurrentTime;
@@ -4019,13 +4021,15 @@ namespace VolvoWrench.DG
 
                 if (command == "5")
                 {
-                    if (!File.Exists(@"wav\decoder.exe"))
+                    string CurrentDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    if (!File.Exists(CurrentDir +
+                            @"\wav\decoder.exe"))
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
 
                         Console.WriteLine(
-                            "No decoder found at path " + Directory.GetCurrentDirectory() +
-                            @"wav\decoder.exe");
+                            "No decoder found at path " + CurrentDir +
+                            @"\wav\decoder.exe");
 
                         continue;
                     }
@@ -4053,7 +4057,7 @@ namespace VolvoWrench.DG
                             {
                                 try
                                 {
-                                    File.Delete(@"wav\input.wav.enc");
+                                    File.Delete(CurrentDir + @"\wav\input.wav.enc");
                                 }
                                 catch
                                 {
@@ -4061,7 +4065,7 @@ namespace VolvoWrench.DG
 
                                 try
                                 {
-                                    File.Delete(@"wav\output.speex.wav");
+                                    File.Delete(CurrentDir + @"\wav\output.speex.wav");
                                 }
                                 catch
                                 {
@@ -4069,7 +4073,7 @@ namespace VolvoWrench.DG
 
                                 try
                                 {
-                                    File.Delete(@"wav\output.silk.wav");
+                                    File.Delete(CurrentDir + @"\wav\output.silk.wav");
                                 }
                                 catch
                                 {
@@ -4077,7 +4081,7 @@ namespace VolvoWrench.DG
 
                                 try
                                 {
-                                    File.Delete(@"wav\output.opus.wav");
+                                    File.Delete(CurrentDir + @"\wav\output.opus.wav");
                                 }
                                 catch
                                 {
@@ -4088,9 +4092,11 @@ namespace VolvoWrench.DG
                                 player.voicedata_stream.Seek(0, SeekOrigin.Begin);
                                 var data2 = binaryReader.ReadBytes(
                                     (int)player.voicedata_stream.Length);
-                                File.WriteAllBytes(@"wav\input.wav.enc", data2);
+                                File.WriteAllBytes(CurrentDir + @"\wav\input.wav.enc", data2);
                                 var process = new Process();
-                                process.StartInfo.FileName = @"wav\decoder.exe";
+                                process.StartInfo.FileName = CurrentDir +
+                            @"\wav\decoder.exe";
+                                process.StartInfo.WorkingDirectory = CurrentDir;
                                 process.Start();
                                 process.WaitForExit();
                                 var filename = player.Name + "(" + player.Id + ").wav";
@@ -4112,21 +4118,21 @@ namespace VolvoWrench.DG
                                     fileexistcount++;
                                 }
 
-                                if (File.Exists(@"wav\output.opus.wav"))
-                                    File.Move(@"wav\output.opus.wav", @"out\2_" + filename);
-                                else if (File.Exists(@"wav\output.silk.wav"))
-                                    File.Move(@"wav\output.silk.wav", @"out\1_" + filename);
-                                else if (File.Exists(@"wav\output.speex.wav"))
-                                    File.Move(@"wav\output.speex.wav", @"out\" + filename);
+                                if (File.Exists(CurrentDir + @"\wav\output.opus.wav"))
+                                    File.Move(CurrentDir + @"\wav\output.opus.wav", @"out\2_" + filename);
+                                else if (File.Exists(@"\wav\output.silk.wav"))
+                                    File.Move(CurrentDir + @"\wav\output.silk.wav", @"out\1_" + filename);
+                                else if (File.Exists(@"\wav\output.speex.wav"))
+                                    File.Move(CurrentDir + @"\wav\output.speex.wav", @"out\" + filename);
                             }
                         }
 
                         Console.WriteLine("Success players voice decode!");
-                        Process.Start(Directory.GetCurrentDirectory() + @"\out\");
+                        Process.Start(CurrentDir + @"\out\");
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Player voice decode error!");
+                        Console.WriteLine("Player voice decode error:" + ex.Message);
                     }
                 }
 
@@ -4443,6 +4449,7 @@ namespace VolvoWrench.DG
         public static bool FirstWeapon = false;
         public static bool Intermission = false;
         public static int ViewEntity = -1;
+        public static int ViewModel = -1;
 
         public static bool IsTeleportus()
         {
@@ -5615,10 +5622,11 @@ namespace VolvoWrench.DG
             if (!Program.Intermission)
             {
                 //Console.WriteLine("switch view to " + entityview + " player\n");
-                Program.ViewEntity = entityview;
-                if ( entityview == Program.UserId + 1 && Program.CurrentTimeString.Length > 0)
+                if (Program.ViewModel > 0)
+                    Program.ViewEntity = entityview;
+                if (entityview == Program.UserId + 1 && Program.CurrentTimeString.Length > 0)
                 {
-                    //Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
+                    Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
                     Program.UserAlive = true;
                     Program.LastAliveTime = Program.CurrentTime;
                     Program.FirstUserAlive = false;
@@ -6736,7 +6744,7 @@ namespace VolvoWrench.DG
             {
                 if (!Program.UserAlive && Program.CurrentTime - Program.LastDeathTime > 5.0f)
                 {
-                    //Console.WriteLine("User alive 1" + " time " + Program.CurrentTimeString);
+                    Console.WriteLine("User alive 1" + " time " + Program.CurrentTimeString);
                     Program.UserAlive = true;
                     Program.LastAliveTime = Program.CurrentTime;
                     Program.FirstUserAlive = false;
@@ -7562,7 +7570,7 @@ namespace VolvoWrench.DG
                                             Program.UserAlive = true;
                                             Program.LastAliveTime = Program.CurrentTime;
 
-                                           // Console.WriteLine("User alive 3" + " time " + Program.CurrentTimeString);
+                                            Console.WriteLine("User alive 3" + " time " + Program.CurrentTimeString);
                                         }
                                         var reloadstatus =
                                             value != null ? (float)value : 1.0f;
