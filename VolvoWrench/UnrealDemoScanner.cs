@@ -1506,7 +1506,7 @@ namespace VolvoWrench.DG
                                               cdframe.Origin.Y)) > 250)
                                 {
                                     Program.PlayerTeleportus++;
-                                    //Console.WriteLine("Teleportus " + CurrentTime);
+                                   // Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     Program.LastTeleportusTime = CurrentTime;
                                 }
                                 else
@@ -2459,6 +2459,14 @@ namespace VolvoWrench.DG
                                     Program.FramesOnFly = 0;
                                 }
 
+                                if (NewAttack)
+                                {
+                                    if (!CurrentFrameOnGround)
+                                    {
+                                        Program.AirShots++;
+                                    }
+                                }
+
 
 
                                 if (!PreviewFrameOnGround && !CurrentFrameOnGround)
@@ -2858,19 +2866,19 @@ namespace VolvoWrench.DG
                                         else if (viewanglesforsearch != nf.RParms.ClViewangles)
                                         {
                                             AimType8Warn++;
-                                            if (AimType8Warn > 0)
+                                            if (AimType8Warn == 1)
                                             {
                                                 AimType8WarnTime = CurrentTime;
-                                                AimType8Warn = 0;
+                                                //AimType8Warn = -1;
                                             }
                                         }
                                         else if (viewanglesforsearch != nf.UCmd.Viewangles)
                                         {
                                             AimType8Warn++;
-                                            if (AimType8Warn > 0)
+                                            if (AimType8Warn == 1)
                                             {
                                                 AimType8WarnTime2 = CurrentTime;
-                                                AimType8Warn = 0;
+                                                //AimType8Warn = -1;
                                             }
                                         }
                                         else
@@ -4280,6 +4288,9 @@ namespace VolvoWrench.DG
                     Console.WriteLine("Reload type 1:" + Reloads);
                     Console.WriteLine("Reload type 2:" + Reloads2);
                     Console.WriteLine("Shots fired:" + attackscounter4);
+                    Console.WriteLine("Attack in air:" + Program.AirShots);
+                    Console.WriteLine("Teleport count:" + Program.PlayerTeleportus);
+
 
                     table = new ConsoleTable("СМЕРТЕЙ/DEATHS", "(2) СМЕРТЕЙ / DEATHS",
                         "УБИЙСТВ /KILLS");
@@ -4493,6 +4504,7 @@ namespace VolvoWrench.DG
         public static bool FirstBypassKill = true;
         public static int BypassCount = 0;
         public static float LastMovementHackTime = 0.0f;
+        public static int AirShots = 0;
 
         public static bool IsTeleportus()
         {
