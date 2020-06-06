@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.37fix1";
+        public const string PROGRAMVERSION = "1.37fix2";
 
 
         public enum WeaponIdType
@@ -476,8 +476,6 @@ namespace VolvoWrench.DG
                                         if (BHOPJumps[i + 4] == false)
                                         {
                                             if (firstdetectid == 0) firstdetectid = i;
-
-
                                             BHOPcount++;
                                             i += 5;
                                         }
@@ -803,7 +801,7 @@ namespace VolvoWrench.DG
                 LastUnDuckTime = CurrentTime;
             }
 
-            if (Program.DetectStrafeOptimizerStrikes > 6)
+            if (Program.DetectStrafeOptimizerStrikes > 7)
             {
                 Program.DetectStrafeOptimizerStrikes = 0;
                 Console.WriteLine("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
@@ -1500,6 +1498,17 @@ namespace VolvoWrench.DG
                                     subnode.Text += @"Fov = " + cdframe.Fov + "\n";
                                     subnode.Text += "}\n";
                                 }
+
+                                //if (cdframe.WeaponBits != 0)
+                                //{
+                                //    if (!UserAlive && !FirstUserAlive && CurrentTime - LastDeathTime > 5.0)
+                                //    {
+                                //        Console.WriteLine("User alive 55" + " time " + Program.CurrentTimeString);
+                                //        UserAlive = true;
+                                //        FirstUserAlive = false;
+                                //        LastAliveTime = CurrentTime;
+                                //    }
+                                //}
 
                                 if (GetDistance(oldoriginpos,
                                           new Point(cdframe.Origin.X,
@@ -2726,7 +2735,7 @@ namespace VolvoWrench.DG
                                 {
                                     if (CurrentFrameAttacked || PreviewFrameAttacked)
                                     {
-                                        if (CurrentTime - AimType8WarnTime < 0.250f)
+                                        if (CurrentTime - AimType8WarnTime < 0.350f)
                                         {
                                             var tmpcol = Console.ForegroundColor;
                                             Console.ForegroundColor = ConsoleColor.Gray;
@@ -2742,7 +2751,7 @@ namespace VolvoWrench.DG
                                             Console.ForegroundColor = tmpcol;
                                             AimType8WarnTime = 0.0f;
                                         }
-                                        else if (CurrentTime - AimType8WarnTime2 < 0.250f)
+                                        else if (CurrentTime - AimType8WarnTime2 < 0.350f)
                                         {
                                             var tmpcol = Console.ForegroundColor;
                                             Console.ForegroundColor = ConsoleColor.Gray;
@@ -2865,8 +2874,11 @@ namespace VolvoWrench.DG
                                         }
                                         else if (viewanglesforsearch != nf.RParms.ClViewangles)
                                         {
+                                            if (AimType8Warn > 10)
+                                                AimType8Warn = 0;
                                             AimType8Warn++;
-                                            if (AimType8Warn == 1)
+                                            if (AimType8Warn == 1 ||
+                                                AimType8Warn == 2)
                                             {
                                                 AimType8WarnTime = CurrentTime;
                                                 //AimType8Warn = -1;
@@ -2874,8 +2886,11 @@ namespace VolvoWrench.DG
                                         }
                                         else if (viewanglesforsearch != nf.UCmd.Viewangles)
                                         {
+                                            if (AimType8Warn > 10)
+                                                AimType8Warn = 0;
                                             AimType8Warn++;
-                                            if (AimType8Warn == 1)
+                                            if (AimType8Warn == 1 ||
+                                                AimType8Warn == 2)
                                             {
                                                 AimType8WarnTime2 = CurrentTime;
                                                 //AimType8Warn = -1;
@@ -5152,6 +5167,9 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("ResetHUD", MessageResetHud);
             AddUserMessageHandler("ScreenFade", MessageScreenFade);
             AddUserMessageHandler("Health", MessageHealth);
+            AddUserMessageHandler("Crosshair", MessageCrosshair);
+
+            AddUserMessageHandler("ScoreAttrib", MessageScoreAttrib);
         }
 
         // public so svc_deltadescription can be parsed elsewhere
@@ -5679,13 +5697,13 @@ namespace VolvoWrench.DG
                 //Console.WriteLine("switch view to " + entityview + " player\n");
                 if (Program.ViewModel > 0)
                     Program.ViewEntity = entityview;
-                if (entityview == Program.UserId + 1 && Program.CurrentTimeString.Length > 0)
-                {
-                    // Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
-                    Program.UserAlive = true;
-                    Program.LastAliveTime = Program.CurrentTime;
-                    Program.FirstUserAlive = false;
-                }
+                //if (entityview == Program.UserId + 1 && Program.CurrentTimeString.Length > 0)
+                //{
+                //    Console.WriteLine("User alive 2" + " time " + Program.CurrentTimeString);
+                //    Program.UserAlive = true;
+                //    Program.LastAliveTime = Program.CurrentTime;
+                //    Program.FirstUserAlive = false;
+                //}
             }
 
             if (Program.needsaveframes)
@@ -6815,7 +6833,7 @@ namespace VolvoWrench.DG
             {
                 if (!Program.UserAlive && Program.CurrentTime - Program.LastDeathTime > 5.0f)
                 {
-                    // Console.WriteLine("User alive 1" + " time " + Program.CurrentTimeString);
+                    //Console.WriteLine("User alive 1" + " time " + Program.CurrentTimeString);
                     if (!Program.FirstUserAlive)
                     {
                         Program.UserAlive = true;
@@ -6862,6 +6880,27 @@ namespace VolvoWrench.DG
         {
             var health = BitBuffer.ReadByte();
             //Console.WriteLine("Health:" + health);
+        }
+        private void MessageCrosshair()
+        {
+            var cross = BitBuffer.ReadByte();
+            //Console.WriteLine("cross:" + cross);
+        }
+        private void MessageScoreAttrib()
+        {
+            var pid = BitBuffer.ReadByte();
+            var flags = BitBuffer.ReadByte();
+            if (pid == Program.UserId + 1 && (flags & 1) == 0)
+            {
+                if (!Program.UserAlive)
+                {
+                    Program.UserAlive = true;
+                    Program.LastAliveTime = Program.CurrentTime;
+                    Program.FirstUserAlive = false;
+                    //Console.WriteLine("User alive 9" + " time " + Program.CurrentTimeString);
+                }
+                // Console.WriteLine("pid " + pid + ":" + flags + "->" + Program.IsUserAlive() + " : " + Program.CurrentTimeString);
+            }
         }
 
         private void MessageScreenFade()
@@ -7658,12 +7697,12 @@ namespace VolvoWrench.DG
                                         {
                                             var solidid =
                                             value != null ? (uint)value : (uint)0;
-                                            if (solidid > 0 && !Program.UserAlive && !Program.Intermission)
+                                            if (solidid > 0 && !Program.UserAlive && !Program.Intermission && !Program.FirstUserAlive)
                                             {
                                                 Program.UserAlive = true;
                                                 Program.LastAliveTime = Program.CurrentTime;
                                                 Program.FirstUserAlive = false;
-                                                //Console.WriteLine("User alive 8" + " time " + Program.CurrentTimeString);
+                                                // Console.WriteLine("User alive 8" + " time " + Program.CurrentTimeString);
                                             }
                                         }
                                     }
