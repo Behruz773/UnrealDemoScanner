@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.37";
+        public const string PROGRAMVERSION = "1.37fix1";
 
 
         public enum WeaponIdType
@@ -4464,8 +4464,8 @@ namespace VolvoWrench.DG
         public static float LastLossPacket;
         public static float LastChokePacket;
         public static string LastStuffCmdCommand = "";
-        public static bool MoveLeft = false;
-        public static bool MoveRight = false;
+        public static bool MoveLeft = true;
+        public static bool MoveRight = true;
         public static float LastUnMoveLeft = 0.0f;
         public static float LastMoveLeft = 0.0f;
         public static int DetectStrafeOptimizerStrikes;
