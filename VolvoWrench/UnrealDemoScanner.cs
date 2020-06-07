@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.37fix2";
+        public const string PROGRAMVERSION = "1.38";
 
 
         public enum WeaponIdType
@@ -594,7 +594,7 @@ namespace VolvoWrench.DG
             if (s.ToLower().IndexOf("slot") > -1 || s.ToLower().IndexOf("invprev") > -1 ||
                 s.ToLower().IndexOf("invnext") > -1)
             {
-                SkipNextAttack = 1;
+                SkipNextAttack = 2;
                 SelectSlot = 2;
                 NeedSearchAim2 = false;
                 Aim2AttackDetected = false;
@@ -791,6 +791,7 @@ namespace VolvoWrench.DG
             {
                 FrameCrash = 0;
                 IsDuck = true;
+                Program.DuckStrikes++;
                 FirstDuck = true;
                 LastDuckTime = CurrentTime;
             }
@@ -799,13 +800,27 @@ namespace VolvoWrench.DG
                 IsDuck = false;
                 FirstDuck = true;
                 LastUnDuckTime = CurrentTime;
+                Program.DuckStrikes = 0;
             }
 
-            if (Program.DetectStrafeOptimizerStrikes > 7)
+            if (Program.DetectStrafeOptimizerStrikes > 6)
             {
                 Program.DetectStrafeOptimizerStrikes = 0;
                 Console.WriteLine("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
             }
+
+            //here future forward hack detection
+            if (s.ToLower().IndexOf("+forward") > -1)
+            {
+                Program.InForward = true;
+                Program.LastMoveForward = CurrentTime;
+            }
+            else if (s.ToLower().IndexOf("-forward") > -1)
+            {
+                Program.InForward = false;
+                Program.DetectStrafeOptimizerStrikes = 0;
+            }
+
 
             if (s.ToLower().IndexOf("+moveleft") > -1)
             {
@@ -813,7 +828,7 @@ namespace VolvoWrench.DG
                 Program.LastMoveLeft = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveLeft < 0.4)
+                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveLeft < 0.33)
                     {
                         //Console.WriteLine("1:" + (CurrentTime - Program.LastMoveLeft));
                         Program.DetectStrafeOptimizerStrikes++;
@@ -846,7 +861,7 @@ namespace VolvoWrench.DG
                 Program.LastMoveRight = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveRight < 0.4)
+                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveRight < 0.33)
                     {
                         //Console.WriteLine("2:" + (CurrentTime - Program.LastMoveRight));
                         Program.DetectStrafeOptimizerStrikes++;
@@ -931,6 +946,8 @@ namespace VolvoWrench.DG
             else if (s.ToLower().IndexOf("-jump") > -1)
             {
                 FirstJump = true;
+                if (Program.DetectStrafeOptimizerStrikes > 3)
+                    Program.DetectStrafeOptimizerStrikes--;
                 if (IsUserAlive())
                 {
                     JumpCount4++;
@@ -1515,7 +1532,7 @@ namespace VolvoWrench.DG
                                               cdframe.Origin.Y)) > 250)
                                 {
                                     Program.PlayerTeleportus++;
-                                   // Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
+                                    // Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     Program.LastTeleportusTime = CurrentTime;
                                 }
                                 else
@@ -2180,6 +2197,7 @@ namespace VolvoWrench.DG
                                     Program.FirstUserAlive = false;
                                     RealAlive = false;
                                     DeathsCoount2++;
+                                    //Console.WriteLine("Using dangerous dead detection method:" + Program.CurrentTimeString);
                                     if (needsaveframes)
                                         subnode.Text +=
                                             "LocalPlayer " + UserId + " killed[METHOD 2]!\n";
@@ -2224,7 +2242,7 @@ namespace VolvoWrench.DG
                                 }
                                 else
                                 {
-                                    if (SkipNextAttack == 2) SkipNextAttack = 0;
+                                    if (SkipNextAttack == 2) SkipNextAttack = 1;
                                 }
 
 
@@ -2234,9 +2252,23 @@ namespace VolvoWrench.DG
                                 PreviewTime = CurrentTime;
                                 CurrentTime = nf.RParms.Time;
                                 if ((nf.UCmd.Buttons & 1) > 0)
+                                {
+                                    if (CurrentFrameAttacked && !FoundDublicader)
+                                    {
+                                        Program.FrameAttackStrike++;
+                                        Program.FrameUnattackStrike = 0;
+                                    }
                                     CurrentFrameAttacked = true;
+                                }
                                 else
+                                {
+                                    if (!CurrentFrameAttacked && !FoundDublicader)
+                                    {
+                                        Program.FrameUnattackStrike++;
+                                        Program.FrameAttackStrike = 0;
+                                    }
                                     CurrentFrameAttacked = false;
+                                }
 
                                 NewAttack = false;
 
@@ -2252,7 +2284,7 @@ namespace VolvoWrench.DG
                                     if (((nf.UCmd.Buttons & 512) > 0) || ((nf.UCmd.Buttons & 1024) > 0))
                                     {
                                         if (!Program.MoveLeft && !Program.MoveRight && CurrentTime - LastMoveLeft > 2.0 &&
-                                            CurrentTime - LastMoveRight > 2.0 && CurrentTime - LastUnMoveLeft > 2.0 && 
+                                            CurrentTime - LastMoveRight > 2.0 && CurrentTime - LastUnMoveLeft > 2.0 &&
                                             CurrentTime - LastUnMoveRight > 2.0)
                                         {
                                             if (CurrentTime - LastMovementHackTime > 5.0)
@@ -2373,20 +2405,20 @@ namespace VolvoWrench.DG
                                 else
                                     CurrentFrameDuck = false;
 
-                                if (!FirstDuck && CurrentFrameDuck)
+                                if (!FirstDuck && CurrentFrameDuck && PreviewFrameDuck)
                                 {
                                     FirstDuck = true;
                                     IsDuck = true;
                                 }
-                                else if (!FirstDuck && !CurrentFrameDuck)
+                                else if (!FirstDuck && !CurrentFrameDuck && !PreviewFrameDuck)
                                 {
                                     FirstDuck = true;
                                     IsDuck = false;
                                 }
 
-                                if (FirstDuck && RealAlive)
+                                if (FirstDuck && RealAlive && /*InForward &&*/ CurrentTime - LastAliveTime > 5.0 && (CurrentTime - Program.LastMoveLeft < 20.0 || CurrentTime - Program.LastMoveRight < 20.0))
                                 {
-                                    if (CurrentFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 10.0 &&
+                                    if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 10.0 &&
                                     CurrentTime - LastDuckTime > 10.0)
                                     {
                                         if (!IsTeleportus())
@@ -2419,16 +2451,16 @@ namespace VolvoWrench.DG
                                     }
 
 
-                                    if (!CurrentFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 2.0 &&
-                                    CurrentTime - LastDuckTime > 2.2)
+                                    if (!CurrentFrameDuck && !PreviewFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 2.5 &&
+                                    CurrentTime - LastDuckTime > 2.5)
                                     {
-                                        if (!IsTeleportus())
+                                        if (!IsTeleportus() && Program.DuckStrikes < 2)
                                         {
                                             Program.DuckHack1Strikes++;
                                             if (Program.DuckHack1Strikes > 10 && CurrentTime - LastJumpHackTime > 10.0)
                                             {
-                                                //Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
-                                                //Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
+                                                //    Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
+                                                //    Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
                                                 AddViewDemoHelperComment(
                                                     "Detected [DUCKHACK] duck.", 1.00f);
                                                 TextComments.WriteLine(
@@ -2656,7 +2688,7 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (RealAlive && CurrentFrameAttacked && CurrentTime - LastAliveTime > 2.0f)
+                                if (RealAlive && CurrentFrameAttacked && CurrentTime - LastDeathTime > 10.0f && CurrentTime - LastAliveTime > 2.0f)
                                     if (cdframeFov > 90)
                                         if (FovHackDetected < 5)
                                         {
@@ -2674,28 +2706,38 @@ namespace VolvoWrench.DG
                                             FovHackDetected += 1;
                                         }
 
-                                if (RealAlive && CurrentFrameAttacked)
-                                    if (GetDistance(new Point(nf.View.X, nf.View.Y),
-                                        new Point(nf.RParms.Vieworg.X,
-                                            nf.RParms.Vieworg.Y)) > 50)
-                                        if (CurrentTime - LastAliveTime > 2.0f && ThirdHackDetected < 5 && CurrentWeapon !=
-                                                               WeaponIdType.WEAPON_NONE
-                                                               && CurrentWeapon !=
-                                                               WeaponIdType.WEAPON_BAD &&
-                                                               CurrentWeapon !=
-                                                               WeaponIdType.WEAPON_BAD2)
-                                        {
-                                            TextComments.WriteLine(
-                                                "Detected [THIRD PERSON HACK] on (" +
-                                                CurrentTime + "):" + Program.CurrentTimeString);
-                                            AddViewDemoHelperComment(
-                                                "Detected [THIRD PERSON HACK]. Weapon:" +
-                                                CurrentWeapon);
-                                            Console.WriteLine(
-                                                "Detected [THIRD PERSON HACK] on (" +
-                                                CurrentTime + "):" + Program.CurrentTimeString);
-                                            ThirdHackDetected += 1;
-                                        }
+                                if (RealAlive && CurrentFrameAttacked && GetDistance(new Point(nf.View.X, nf.View.Y),
+                                    new Point(nf.RParms.Vieworg.X,
+                                        nf.RParms.Vieworg.Y)) > 50)
+                                {
+                                    if (Program.NeedDetectThirdPersonHack)
+                                    {
+                                        Program.NeedDetectThirdPersonHack = false;
+                                        TextComments.WriteLine(
+                                            "Detected [THIRD PERSON HACK] on (" +
+                                            CurrentTime + "):" + Program.CurrentTimeString);
+                                        AddViewDemoHelperComment(
+                                            "Detected [THIRD PERSON HACK]. Weapon:" +
+                                            CurrentWeapon);
+                                        Console.WriteLine(
+                                            "Detected [THIRD PERSON HACK] on (" +
+                                            CurrentTime + "):" + Program.CurrentTimeString);
+                                        ThirdHackDetected += 1;
+                                    }
+                                    else if (CurrentTime - LastAliveTime > 2.0f && CurrentTime - LastDeathTime > 10.0f && ThirdHackDetected < 5 && CurrentWeapon !=
+                                                           WeaponIdType.WEAPON_NONE
+                                                           && CurrentWeapon !=
+                                                           WeaponIdType.WEAPON_BAD &&
+                                                           CurrentWeapon !=
+                                                           WeaponIdType.WEAPON_BAD2)
+                                    {
+                                        Program.NeedDetectThirdPersonHack = true;
+                                    }
+                                }
+                                else
+                                {
+                                    Program.NeedDetectThirdPersonHack = false;
+                                }
 
                                 if (CurrentTime2 != 0.0)
                                 {
@@ -2756,13 +2798,13 @@ namespace VolvoWrench.DG
                                             var tmpcol = Console.ForegroundColor;
                                             Console.ForegroundColor = ConsoleColor.Gray;
                                             TextComments.WriteLine(
-                                                "WARN [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
+                                                "DETECTED [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
                                                 "):" + Program.CurrentTimeString + " (???)");
                                             AddViewDemoHelperComment(
-                                                "WARN [AIM TYPE 8.2] ???. Weapon:" +
+                                                "DETECTED [AIM TYPE 8.2] ???. Weapon:" +
                                                 CurrentWeapon, 0.75f);
                                             Console.WriteLine(
-                                                "WARN [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
+                                                "DETECTED [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
                                                 "):" + Program.CurrentTimeString + " (???)");
                                             Console.ForegroundColor = tmpcol;
                                             AimType8WarnTime2 = 0.0f;
@@ -2773,7 +2815,8 @@ namespace VolvoWrench.DG
                                     {
                                         if (viewanglesforsearch.X != nf.RParms.Viewangles.X)
                                         {
-                                            if (CurrentFrameAttacked && CurrentFrameOnGround)
+                                            if (CurrentFrameAttacked && CurrentFrameOnGround && CurrentTime - LastDeathTime > 2.0 
+                                                && CurrentTime - LastAliveTime > 2.0)
                                             {
                                                 var spreadtest = Math.Round(viewanglesforsearch.X - nf.RParms.Viewangles.X + nf.RParms.Punchangle.X, 8, MidpointRounding.AwayFromZero);
                                                 if (spreadtest > nospreadtest)
@@ -2782,8 +2825,10 @@ namespace VolvoWrench.DG
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
 
-                                                if (spreadtest > MAX_SPREAD_CONST && !Program.GameEnd)
+                                                if (Program.NoSpreadDetectionTime != CurrentTime && spreadtest > MAX_SPREAD_CONST && !Program.GameEnd)
                                                 {
+                                                    Program.NoSpreadDetectionTime = CurrentTime;
+                                                   //Console.WriteLine(spreadtest.ToString("F8"));
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
                                                     TextComments.WriteLine(
@@ -2818,7 +2863,8 @@ namespace VolvoWrench.DG
                                         }
                                         if (viewanglesforsearch.Y != nf.RParms.Viewangles.Y)
                                         {
-                                            if (CurrentFrameAttacked && CurrentFrameOnGround)
+                                            if (CurrentFrameAttacked && CurrentFrameOnGround && CurrentTime - LastDeathTime > 2.0
+                                                && CurrentTime - LastAliveTime > 2.0)
                                             {
                                                 var spreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                 if (spreadtest2 > nospreadtest2)
@@ -2826,8 +2872,9 @@ namespace VolvoWrench.DG
                                                     nospreadtest2 = Math.Round(viewanglesforsearch.Y - nf.RParms.Viewangles.Y + nf.RParms.Punchangle.Y, 8, MidpointRounding.AwayFromZero);
                                                     //Console.WriteLine(nospreadtest.ToString("F8"));
                                                 }
-                                                if (spreadtest2 > MAX_SPREAD_CONST2 && !Program.GameEnd)
+                                                if (Program.NoSpreadDetectionTime != CurrentTime && spreadtest2 > MAX_SPREAD_CONST2 && !Program.GameEnd)
                                                 {
+                                                    Program.NoSpreadDetectionTime = CurrentTime;
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
                                                     TextComments.WriteLine(
@@ -4520,6 +4567,13 @@ namespace VolvoWrench.DG
         public static int BypassCount = 0;
         public static float LastMovementHackTime = 0.0f;
         public static int AirShots = 0;
+        public static bool InForward = false;
+        public static float LastMoveForward = 0.0f;
+        public static int DuckStrikes = 0;
+        public static bool NeedDetectThirdPersonHack = false;
+        public static float NoSpreadDetectionTime = 0.0f;
+        public static int FrameUnattackStrike = 0;
+        public static int FrameAttackStrike = 0;
 
         public static bool IsTeleportus()
         {
@@ -5168,7 +5222,7 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("ScreenFade", MessageScreenFade);
             AddUserMessageHandler("Health", MessageHealth);
             AddUserMessageHandler("Crosshair", MessageCrosshair);
-
+            AddUserMessageHandler("Spectator", MessageSpectator);
             AddUserMessageHandler("ScoreAttrib", MessageScoreAttrib);
         }
 
@@ -6795,7 +6849,7 @@ namespace VolvoWrench.DG
                 Program.AmmoCount = 0;
                 // Program.IsAttackSkipTimes = 0;
                 if (Program.CurrentWeapon != Program.WeaponIdType.WEAPON_NONE)
-                    Program.SkipNextAttack = 1;
+                    Program.SkipNextAttack = 2;
 
                 Program.IsNoAttackLastTime = Program.CurrentTime + 1.0f;
                 Program.NeedCheckAttack = false;
@@ -6827,7 +6881,7 @@ namespace VolvoWrench.DG
                 Program.DeathsCoount++;
                 if (Program.needsaveframes)
                     outDataStr += "LocalPlayer " + iVictim + " killed!\n";
-                // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
+               // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
             }
             else if (iKiller == Program.UserId + 1)
             {
@@ -6841,7 +6895,7 @@ namespace VolvoWrench.DG
                     }
                     Program.FirstUserAlive = false;
                     if (!Program.FirstBypassKill)
-                    { 
+                    {
                         if (Program.BypassCount > 1)
                         {
                             var tmpcolor = Console.ForegroundColor;
@@ -6885,6 +6939,24 @@ namespace VolvoWrench.DG
         {
             var cross = BitBuffer.ReadByte();
             //Console.WriteLine("cross:" + cross);
+        }
+        private void MessageSpectator()
+        {
+            var clientid = BitBuffer.ReadByte();
+            var unknown = BitBuffer.ReadByte();
+            if (Program.UserId2 + 1 == clientid)
+            {
+                if (Program.UserAlive)
+                {
+                    Program.LastDeathTime = Program.CurrentTime;
+                    Program.FirstUserAlive = false;
+                    Program.UserAlive = false;
+                    Program.RealAlive = false;
+                    Program.DeathsCoount++;
+                    Console.WriteLine("Forcing user dead because he join to spectator! (" + Program.CurrentTimeString + ")");
+                }
+                //Console.WriteLine("Entity:" + clientid + " is spectator!" + Program.CurrentTimeString);
+            }
         }
         private void MessageScoreAttrib()
         {
@@ -7766,7 +7838,7 @@ namespace VolvoWrench.DG
                                 {
                                     if (entryList[index].Name == "weaponanim")
                                         if (Program.SelectSlot > 0)
-                                            Program.SkipNextAttack = 1;
+                                            Program.SkipNextAttack = 2;
 
                                     if (entryList[index].Name == "fov")
                                     {
@@ -7833,7 +7905,7 @@ namespace VolvoWrench.DG
                                             // Program.IsAttackSkipTimes = 0;
                                             if (Program.CurrentWeapon !=
                                                 Program.WeaponIdType.WEAPON_NONE)
-                                                Program.SkipNextAttack = 1;
+                                                Program.SkipNextAttack = 2;
 
                                             Program.IsNoAttackLastTime =
                                                 Program.CurrentTime + 1.0f;
