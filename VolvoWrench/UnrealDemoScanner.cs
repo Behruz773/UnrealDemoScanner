@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.39";
+        public const string PROGRAMVERSION = "1.39 hotfix";
 
 
         public enum WeaponIdType
@@ -628,7 +628,9 @@ namespace VolvoWrench.DG
                             AutoAttackStrikes = 0;
                         }
                         else if (WeaponAvaiabled && CurrentFrameId - LastCmdFrameId <= 7
-                                                 && CurrentFrameId - LastCmdFrameId > 1)
+                                                 && CurrentFrameId - LastCmdFrameId > 1 &&
+                                                 CurrentFrameIdWeapon - WeaponAvaiabledFrameId <= 7
+                                                 && CurrentFrameIdWeapon - WeaponAvaiabledFrameId > 1)
                         {
                             if (CurrentWeapon == WeaponIdType.WEAPON_DEAGLE ||
                                 CurrentWeapon == WeaponIdType.WEAPON_USP ||
