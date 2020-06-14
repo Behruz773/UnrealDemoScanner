@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.38";
+        public const string PROGRAMVERSION = "1.39";
 
 
         public enum WeaponIdType
@@ -605,7 +605,6 @@ namespace VolvoWrench.DG
             {
                 if (s.ToLower().IndexOf("+attack") > -1)
                 {
-
                     FirstAttack = true;
                     FrameCrash = 0;
                     attackscounter++;
@@ -621,14 +620,15 @@ namespace VolvoWrench.DG
                                 AddViewDemoHelperComment("Detected [AIM TYPE 6]. Weapon:" + CurrentWeapon);
                                 Console.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + Program.CurrentTimeString);
                             }
+
                             //SilentAimDetected++;
                             //Console.ForegroundColor = tmpcol;
                             /*if (Program.AutoAttackStrikes > 0)
                                 Console.WriteLine("Reset combo 3 ( " + Program.AutoAttackStrikes + " )");*/
                             AutoAttackStrikes = 0;
                         }
-                        else if (WeaponAvaiabled && CurrentFrameIdWeapon - WeaponAvaiabledFrameId <= 7
-                                                 && CurrentFrameIdWeapon - WeaponAvaiabledFrameId > 1)
+                        else if (WeaponAvaiabled && CurrentFrameId - LastCmdFrameId <= 7
+                                                 && CurrentFrameId - LastCmdFrameId > 1)
                         {
                             if (CurrentWeapon == WeaponIdType.WEAPON_DEAGLE ||
                                 CurrentWeapon == WeaponIdType.WEAPON_USP ||
@@ -803,7 +803,7 @@ namespace VolvoWrench.DG
                 Program.DuckStrikes = 0;
             }
 
-            if (Program.DetectStrafeOptimizerStrikes > 6)
+            if (Program.DetectStrafeOptimizerStrikes > 8)
             {
                 Program.DetectStrafeOptimizerStrikes = 0;
                 Console.WriteLine("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
@@ -820,7 +820,10 @@ namespace VolvoWrench.DG
                 Program.InForward = false;
                 Program.DetectStrafeOptimizerStrikes = 0;
             }
-
+            if (s.ToLower().IndexOf("+use") > -1)
+            {
+                Program.LastUseTime = CurrentTime;
+            }
 
             if (s.ToLower().IndexOf("+moveleft") > -1)
             {
@@ -828,18 +831,21 @@ namespace VolvoWrench.DG
                 Program.LastMoveLeft = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveLeft < 0.33)
+                    if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveRight < 0.33
+                        && CurrentTime - Program.LastMoveRight > 0.01)
                     {
-                        //Console.WriteLine("1:" + (CurrentTime - Program.LastMoveLeft));
+                       // Console.WriteLine("1:" + (CurrentTime - Program.LastMoveLeft));
                         Program.DetectStrafeOptimizerStrikes++;
                     }
                     else
                     {
+                       // Console.WriteLine("Reset 2:" + CurrentTime + "->" + LastUnMoveRight);
                         Program.DetectStrafeOptimizerStrikes = 0;
                     }
                 }
                 else
                 {
+                  //  Console.WriteLine("Reset 1");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
             }
@@ -852,6 +858,7 @@ namespace VolvoWrench.DG
                 }
                 else
                 {
+                   // Console.WriteLine("Reset 3");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
             }
@@ -861,18 +868,20 @@ namespace VolvoWrench.DG
                 Program.LastMoveRight = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveRight < 0.33)
+                    if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveLeft < 0.33)
                     {
-                        //Console.WriteLine("2:" + (CurrentTime - Program.LastMoveRight));
+                      //  Console.WriteLine("2:" + (CurrentTime - Program.LastMoveLeft));
                         Program.DetectStrafeOptimizerStrikes++;
                     }
                     else
                     {
+                      //  Console.WriteLine("Reset 4");
                         Program.DetectStrafeOptimizerStrikes = 0;
                     }
                 }
                 else
                 {
+                   // Console.WriteLine("Reset 5");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
             }
@@ -885,6 +894,7 @@ namespace VolvoWrench.DG
                 }
                 else
                 {
+                    //Console.WriteLine("Reset 6");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
             }
@@ -1157,6 +1167,21 @@ namespace VolvoWrench.DG
             catch
             {
                 Console.WriteLine("Output to external file...");
+            }
+
+            foreach(var arg in args)
+            {
+                if (arg.IndexOf("alive") > 0)
+                {
+                    Program.CurrentWeapon = WeaponIdType.WEAPON_AK47;
+                    Program.CurrentFrameAlive = true;
+                    Program.PreviewFrameAlive = true;
+                    Program.LastAliveTime = 1.0f;
+                    Program.RealAlive = true;
+                    Program.UserAlive = true;
+                    Program.FirstUserAlive = false;
+                    Console.WriteLine("SCAN WITH FORCE USER ALIVE AT START DEMO!");
+                }
             }
 
             try
@@ -2418,8 +2443,8 @@ namespace VolvoWrench.DG
 
                                 if (FirstDuck && RealAlive && /*InForward &&*/ CurrentTime - LastAliveTime > 5.0 && (CurrentTime - Program.LastMoveLeft < 20.0 || CurrentTime - Program.LastMoveRight < 20.0))
                                 {
-                                    if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 10.0 &&
-                                    CurrentTime - LastDuckTime > 10.0)
+                                    if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 60.0 &&
+                                    CurrentTime - LastDuckTime > 60.0)
                                     {
                                         if (!IsTeleportus())
                                         {
@@ -2815,7 +2840,7 @@ namespace VolvoWrench.DG
                                     {
                                         if (viewanglesforsearch.X != nf.RParms.Viewangles.X)
                                         {
-                                            if (CurrentFrameAttacked && CurrentFrameOnGround && CurrentTime - LastDeathTime > 2.0 
+                                            if (CurrentFrameAttacked && CurrentFrameOnGround && CurrentTime - LastDeathTime > 2.0
                                                 && CurrentTime - LastAliveTime > 2.0)
                                             {
                                                 var spreadtest = Math.Round(viewanglesforsearch.X - nf.RParms.Viewangles.X + nf.RParms.Punchangle.X, 8, MidpointRounding.AwayFromZero);
@@ -2828,7 +2853,7 @@ namespace VolvoWrench.DG
                                                 if (Program.NoSpreadDetectionTime != CurrentTime && spreadtest > MAX_SPREAD_CONST && !Program.GameEnd)
                                                 {
                                                     Program.NoSpreadDetectionTime = CurrentTime;
-                                                   //Console.WriteLine(spreadtest.ToString("F8"));
+                                                    //Console.WriteLine(spreadtest.ToString("F8"));
                                                     var tmpcol = Console.ForegroundColor;
                                                     Console.ForegroundColor = ConsoleColor.Gray;
                                                     TextComments.WriteLine(
@@ -3409,10 +3434,11 @@ namespace VolvoWrench.DG
 
                                 if (UserAlive && CurrentTime != 0.0f)
                                 {
-                                    if (UserId != UserId2 && !Program.DemoScannerBypassDetected)
+                                    if (UserId != UserId2 && !Program.DemoScannerBypassDetected &&
+                                        CurrentTime - LastUseTime > 60)
                                     {
                                         DemoScannerBypassDetected = true;
-                                        Console.WriteLine("Detected [DEMO SCANER BYPASS] ???");
+                                        Console.WriteLine("Detected [DEMO SCANER BYPASS] ??? " + CurrentTimeString);
                                     }
                                 }
 
@@ -4574,6 +4600,7 @@ namespace VolvoWrench.DG
         public static float NoSpreadDetectionTime = 0.0f;
         public static int FrameUnattackStrike = 0;
         public static int FrameAttackStrike = 0;
+        public static float LastUseTime = 0.0f;
 
         public static bool IsTeleportus()
         {
@@ -6881,7 +6908,7 @@ namespace VolvoWrench.DG
                 Program.DeathsCoount++;
                 if (Program.needsaveframes)
                     outDataStr += "LocalPlayer " + iVictim + " killed!\n";
-               // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
+                // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
             }
             else if (iKiller == Program.UserId + 1)
             {
