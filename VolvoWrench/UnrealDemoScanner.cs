@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.39 hotfix";
+        public const string PROGRAMVERSION = "1.39 hotfix2";
 
 
         public enum WeaponIdType
@@ -805,7 +805,7 @@ namespace VolvoWrench.DG
                 Program.DuckStrikes = 0;
             }
 
-            if (Program.DetectStrafeOptimizerStrikes > 8)
+            if (Program.DetectStrafeOptimizerStrikes > 5)
             {
                 Program.DetectStrafeOptimizerStrikes = 0;
                 Console.WriteLine("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
@@ -819,8 +819,12 @@ namespace VolvoWrench.DG
             }
             else if (s.ToLower().IndexOf("-forward") > -1)
             {
+                if (Program.InForward && Program.DetectStrafeOptimizerStrikes >= 3)
+                {
+                    Program.DetectStrafeOptimizerStrikes--;
+                    Program.DetectStrafeOptimizerStrikes--;
+                }
                 Program.InForward = false;
-                Program.DetectStrafeOptimizerStrikes = 0;
             }
             if (s.ToLower().IndexOf("+use") > -1)
             {
@@ -833,6 +837,10 @@ namespace VolvoWrench.DG
                 Program.LastMoveLeft = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
+                    /*  Игрок нажал +moveleft если в это время была отжата клавиша -moveright,
+                     *  и между текущим временем и последним нажатием +moveright прошло меньше 330мс
+                     *  но больше чем 10мс
+                     *  то +1 детект*/
                     if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveRight < 0.33
                         && CurrentTime - Program.LastMoveRight > 0.01)
                     {
@@ -958,8 +966,10 @@ namespace VolvoWrench.DG
             else if (s.ToLower().IndexOf("-jump") > -1)
             {
                 FirstJump = true;
-                if (Program.DetectStrafeOptimizerStrikes > 3)
-                    Program.DetectStrafeOptimizerStrikes--;
+                //if (Program.DetectStrafeOptimizerStrikes > 3)
+                //{
+                //    Program.DetectStrafeOptimizerStrikes--;
+                //}
                 if (IsUserAlive())
                 {
                     JumpCount4++;
