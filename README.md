@@ -1,7 +1,7 @@
 # UnrealDemoScanner
 Unreal Demo Scanner for CS 1.6
 
-ClearDemos/ClearDemos2 - for test new detections before adding it to code. This directory contain only clear demos ( without using hacks )
+ClearDemos/ClearDemos2 - for test false detections before adding it to code. This directory contain only clear demos ( without using hacks )
 
 CheatDemos - only cheat demos.
 
