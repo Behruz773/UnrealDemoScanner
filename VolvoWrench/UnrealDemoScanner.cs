@@ -833,8 +833,6 @@ namespace VolvoWrench.DG
 
             if (s.ToLower().IndexOf("+moveleft") > -1)
             {
-                Program.MoveLeft = true;
-                Program.LastMoveLeft = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
                     /*  Игрок нажал +moveleft если в это время была отжата клавиша -moveright,
@@ -844,61 +842,61 @@ namespace VolvoWrench.DG
                     if (CurrentTime == LastUnMoveRight && CurrentTime - Program.LastMoveRight < 0.33
                         && CurrentTime - Program.LastMoveRight > 0.01)
                     {
-                       // Console.WriteLine("1:" + (CurrentTime - Program.LastMoveLeft));
+                        // Console.WriteLine("1:" + (CurrentTime - Program.LastMoveLeft));
                         Program.DetectStrafeOptimizerStrikes++;
                     }
                     else
                     {
-                       // Console.WriteLine("Reset 2:" + CurrentTime + "->" + LastUnMoveRight);
+                        // Console.WriteLine("Reset 2:" + CurrentTime + "->" + LastUnMoveRight);
                         Program.DetectStrafeOptimizerStrikes = 0;
                     }
                 }
                 else
                 {
-                  //  Console.WriteLine("Reset 1");
+                    //  Console.WriteLine("Reset 1");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
+                Program.MoveLeft = true;
+                Program.LastMoveLeft = CurrentTime;
             }
             else if (s.ToLower().IndexOf("-moveleft") > -1)
             {
-                Program.MoveLeft = false;
-                Program.LastUnMoveLeft = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
                 }
                 else
                 {
-                   // Console.WriteLine("Reset 3");
+                    // Console.WriteLine("Reset 3");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
+                Program.MoveLeft = false;
+                Program.LastUnMoveLeft = CurrentTime;
             }
             else if (s.ToLower().IndexOf("+moveright") > -1)
             {
-                Program.MoveRight = true;
-                Program.LastMoveRight = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
                     if (CurrentTime == LastUnMoveLeft && CurrentTime - Program.LastMoveLeft < 0.33)
                     {
-                      //  Console.WriteLine("2:" + (CurrentTime - Program.LastMoveLeft));
+                        //  Console.WriteLine("2:" + (CurrentTime - Program.LastMoveLeft));
                         Program.DetectStrafeOptimizerStrikes++;
                     }
                     else
                     {
-                      //  Console.WriteLine("Reset 4");
+                        //  Console.WriteLine("Reset 4");
                         Program.DetectStrafeOptimizerStrikes = 0;
                     }
                 }
                 else
                 {
-                   // Console.WriteLine("Reset 5");
+                    // Console.WriteLine("Reset 5");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
+                Program.MoveRight = true;
+                Program.LastMoveRight = CurrentTime;
             }
             else if (s.ToLower().IndexOf("-moveright") > -1)
             {
-                Program.MoveRight = false;
-                Program.LastUnMoveRight = CurrentTime;
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
                 }
@@ -907,9 +905,9 @@ namespace VolvoWrench.DG
                     //Console.WriteLine("Reset 6");
                     Program.DetectStrafeOptimizerStrikes = 0;
                 }
+                Program.MoveRight = false;
+                Program.LastUnMoveRight = CurrentTime;
             }
-
-
 
             if (s.ToLower().IndexOf("+jump") > -1)
             {
@@ -1181,7 +1179,7 @@ namespace VolvoWrench.DG
                 Console.WriteLine("Output to external file...");
             }
 
-            foreach(var arg in args)
+            foreach (var arg in args)
             {
                 if (arg.IndexOf("alive") > 0)
                 {
@@ -2316,13 +2314,27 @@ namespace VolvoWrench.DG
                                     attackscounter3++;
                                 }
 
-                                if (RealAlive)
+                                if (RealAlive && !IsTeleportus())
                                 {
-                                    if (((nf.UCmd.Buttons & 512) > 0) || ((nf.UCmd.Buttons & 1024) > 0))
+
+
+                                }
+
+                                if (RealAlive && !IsTeleportus())
+                                {
+                                    if (((nf.UCmd.Buttons & 512) > 0)
+                                        || ((nf.UCmd.Buttons & 1024) > 0))
                                     {
-                                        if (!Program.MoveLeft && !Program.MoveRight && CurrentTime - LastMoveLeft > 2.0 &&
-                                            CurrentTime - LastMoveRight > 2.0 && CurrentTime - LastUnMoveLeft > 2.0 &&
-                                            CurrentTime - LastUnMoveRight > 2.0)
+                                        //Console.WriteLine("MovementPressed " +
+                                        //    (Program.MoveLeft ? "MOVELEFT PRESSED |" : "NO MOVELEFT |") + " " +
+                                        //    (Program.MoveRight ? "MOVERIGHT PRESSED |" : "NO MOVERIGHT |") + " " +
+                                        //    +CurrentTime + " " +
+                                        //    LastMoveLeft + " " + LastMoveRight + " " + LastUnMoveLeft + " " + LastUnMoveRight + 
+                                        //    " -> " + nf.UCmd.Sidemove);
+
+                                        if (!Program.MoveLeft && !Program.MoveRight && CurrentTime - LastMoveLeft > 0.5 &&
+                                            CurrentTime - LastMoveRight > 0.5 && CurrentTime - LastUnMoveLeft > 0.5 &&
+                                            CurrentTime - LastUnMoveRight > 0.5)
                                         {
                                             if (CurrentTime - LastMovementHackTime > 5.0)
                                             {
