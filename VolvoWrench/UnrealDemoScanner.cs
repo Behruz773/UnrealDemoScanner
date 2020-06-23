@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.39 hotfix2";
+        public const string PROGRAMVERSION = "1.40";
 
 
         public enum WeaponIdType
@@ -826,6 +826,20 @@ namespace VolvoWrench.DG
                 }
                 Program.InForward = false;
             }
+
+
+            if (s.ToLower().IndexOf("+strafe") > -1)
+            {
+                Program.InStrafe = true;
+                Program.LastStrafeEnabled = CurrentTime;
+            }
+            else if (s.ToLower().IndexOf("-strafe") > -1)
+            {
+                Program.InStrafe = false;
+                Program.LastStrafeDisabled = CurrentTime;
+            }
+
+
             if (s.ToLower().IndexOf("+use") > -1)
             {
                 Program.LastUseTime = CurrentTime;
@@ -2316,8 +2330,48 @@ namespace VolvoWrench.DG
 
                                 if (RealAlive && !IsTeleportus())
                                 {
+                                    if (Program.MoveLeft && !Program.MoveRight)
+                                    {
+                                        Program.MoveLeftStrike++;
+                                    }
+                                    else if (Program.MoveRight && !Program.MoveLeft)
+                                    {
+                                        Program.MoveRightStrike++;
+                                    }
+                                    else
+                                    {
+                                        Program.MoveRightStrike = 0;
+                                        Program.MoveLeftStrike = 0;
+                                    }
 
-
+                                    if (nf.UCmd.Sidemove < -100 || nf.UCmd.Sidemove > 100)
+                                    {
+                                        if (!Program.InStrafe && !Program.MoveLeft && !Program.MoveRight && CurrentTime - LastMoveLeft > 0.5 &&
+                                            CurrentTime - LastMoveRight > 0.5 && CurrentTime - LastUnMoveLeft > 0.5 &&
+                                            CurrentTime - LastUnMoveRight > 0.5 &&
+                                            CurrentTime - LastStrafeDisabled > 0.5 &&
+                                            CurrentTime - LastStrafeEnabled > 0.5)
+                                        {
+                                            if (CurrentTime - LastMovementHackTime > 2.5)
+                                            {
+                                                AddViewDemoHelperComment(
+                                                      "Detected [MOVEMENT TYPE 2] hack.", 1.00f);
+                                                TextComments.WriteLine(
+                                                    "Detected [MOVEMENT TYPE 2] hack on (" +
+                                                    CurrentTime + ") " + CurrentTimeString);
+                                                Console.WriteLine(
+                                                    "Detected [MOVEMENT TYPE 2] hack on (" +
+                                                    CurrentTime + ") " + CurrentTimeString);
+                                                LastMovementHackTime = CurrentTime;
+                                            }
+                                            JumpHackCount++;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Program.MoveRightStrike = 0;
+                                    Program.MoveLeftStrike = 0;
                                 }
 
                                 if (RealAlive && !IsTeleportus())
@@ -2336,7 +2390,7 @@ namespace VolvoWrench.DG
                                             CurrentTime - LastMoveRight > 0.5 && CurrentTime - LastUnMoveLeft > 0.5 &&
                                             CurrentTime - LastUnMoveRight > 0.5)
                                         {
-                                            if (CurrentTime - LastMovementHackTime > 5.0)
+                                            if (CurrentTime - LastMovementHackTime > 2.5)
                                             {
                                                 AddViewDemoHelperComment(
                                                       "Detected [MOVEMENT] hack.", 1.00f);
@@ -4625,6 +4679,11 @@ namespace VolvoWrench.DG
         public static int FrameUnattackStrike = 0;
         public static int FrameAttackStrike = 0;
         public static float LastUseTime = 0.0f;
+        public static int MoveLeftStrike = 0;
+        public static int MoveRightStrike = 0;
+        public static bool InStrafe = false;
+        public static float LastStrafeDisabled = 0.0f;
+        public static float LastStrafeEnabled = 0.0f;
 
         public static bool IsTeleportus()
         {
