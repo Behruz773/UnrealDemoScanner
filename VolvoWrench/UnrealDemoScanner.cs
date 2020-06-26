@@ -1140,7 +1140,6 @@ namespace VolvoWrench.DG
                 }
             }
 
-
             foreach (var arg in args)
             {
                 if (arg.IndexOf("-alive") > -1)
@@ -3055,6 +3054,8 @@ namespace VolvoWrench.DG
 
                                             if (LastTimeOut != 1 && Program.TimeShiftCount - Program.LossPackets > 4 + Program.ChokePackets && CurrentTime - LastChokePacket > 60)
                                             {
+                                                var tmpcol = Console.ForegroundColor;
+                                                Console.ForegroundColor = ConsoleColor.Gray;
                                                 TextComments.WriteLine(
                                                         "Detected [TIMESHIFT] on (" +
                                                         CurrentTime + "):" + Program.CurrentTimeString);
@@ -3067,6 +3068,9 @@ namespace VolvoWrench.DG
 
                                                     Program.CurrentTimeString);
                                                 LastTimeOut = 1;
+
+                                                
+                                                Console.ForegroundColor = tmpcol;
                                             }
                                         }
                                         if (CurrentTime - PreviewTime > Program.MaximumTimeBetweenFrames)
@@ -3098,6 +3102,8 @@ namespace VolvoWrench.DG
                                                     Program.TimeShiftCount += 1;
                                                     if (LastTimeOut != 2 && Program.TimeShiftCount - Program.LossPackets > 4 + Program.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
+                                                        var tmpcol = Console.ForegroundColor;
+                                                        Console.ForegroundColor = ConsoleColor.Gray;
                                                         //Console.WriteLine("1 " + Program.LossPackets);
                                                         //Console.WriteLine("2 " + Program.ChokePackets);
                                                         //Console.WriteLine("3 " + Program.TimeShiftCount);
@@ -3112,6 +3118,8 @@ namespace VolvoWrench.DG
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                             Program.CurrentTimeString);
                                                         LastTimeOut = 2;
+
+                                                        Console.ForegroundColor = tmpcol
                                                     }
                                                 }
                                                 //Console.WriteLine("Second.");
@@ -3125,6 +3133,8 @@ namespace VolvoWrench.DG
                                                     Program.TimeShiftCount += 1;
                                                     if (LastTimeOut != 3 && Program.TimeShiftCount - Program.LossPackets > 4 + Program.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
+                                                        var tmpcol = Console.ForegroundColor;
+                                                        Console.ForegroundColor = ConsoleColor.Gray;
                                                         TextComments.WriteLine(
                                                           "Detected [TIMESHIFT 3] on (" +
                                                           CurrentTime + "):" + Program.CurrentTimeString);
@@ -3136,6 +3146,8 @@ namespace VolvoWrench.DG
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                             Program.CurrentTimeString);
                                                         LastTimeOut = 3;
+
+                                                        Console.ForegroundColor = tmpcol;
                                                     }
                                                 }
 
