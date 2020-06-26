@@ -45,8 +45,11 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.40";
+        public const string PROGRAMVERSION = "1.41";
 
+        public static bool DEBUG_ENABLED = false;
+
+        public static bool NO_TELEPORT = false;
 
         public enum WeaponIdType
         {
@@ -92,7 +95,7 @@ namespace VolvoWrench.DG
 
 
         public static List<string> outFrames = null;
-        public static bool needsaveframes = false;
+        public static bool DUMP_ALL_FRAMES = false;
 
         public static float CurrentTime = 0.0f;
         public static float CurrentTime2 = 0.0f;
@@ -103,8 +106,6 @@ namespace VolvoWrench.DG
         public static float PreviewTime3 = 0.0f;
 
         public static List<string> hackList = new List<string>();
-        public static List<bool> BHOPJumps = new List<bool>();
-        public static List<float> BHOPJumpsTimes = new List<float>();
         public static bool IsJump = false;
         public static bool FirstJump = false;
         public static bool FirstAttack = false;
@@ -202,7 +203,6 @@ namespace VolvoWrench.DG
 
         public static int FrameDuplicates = 0;
 
-        public static float LastJumpHack = 0.0f;
         public static float LastJumpTime = 0.0f;
         public static float LastUnJumpTime = 0.0f;
 
@@ -299,16 +299,6 @@ namespace VolvoWrench.DG
         public static int NeedSearchID = 0;
         public static DemoStuff.L4D2Branch.PortalStuff.Result.DPoint3D viewanglesforsearch = new DemoStuff.L4D2Branch.PortalStuff.Result.DPoint3D();
 
-        /*
-            
-            Движение прицелом 4 кадра подряд: ВВЕРХ, ВНИЗ, ВВЕРХ, ВНИЗ
-            Движение прицелом 4 кадра подряд: ВЛЕВО, ВПРАВО, ВЛЕВО, ВПРАВО
-            
-            > < > <
-            ^_^_
-            
-         */
-
         public static bool CurrentMovementLeft = false;
         public static int LeftRightMovements = 0;
         public static bool CurrentMovementTop = false;
@@ -369,7 +359,7 @@ namespace VolvoWrench.DG
         public static WeaponIdType LastWatchWeapon = WeaponIdType.WEAPON_NONE;
         public static int ReallyAim2;
         public static float LastJumpHackTime;
-        public static bool NeedDetectBHOPHack;
+        public static bool NeedDetectBHOPHack = false;
         public static int LastTriggerCursor;
         public static float LastDeathTime;
         public static List<Player> playerList = new List<Player>();
@@ -394,116 +384,9 @@ namespace VolvoWrench.DG
         public static int AimType7Event;
         public static int BadVoicePacket;
 
-
-        public static void AddJumpToBHOPScan(bool isGround)
-        {
-            if (IsJump && IsUserAlive())
-            {
-                if (!isgroundchange)
-                {
-                    if (isGround)
-                    {
-                        isgroundchange = true;
-                        jumpscount++;
-                    }
-                }
-                if (isgroundchange)
-                {
-                    if (!isGround)
-                    {
-                        isgroundchange = false;
-                        jumpscount++;
-                    }
-                }
-                if (jumpscount > 4)
-                {
-                    BHOPJumps.Add(isGround);
-                    BHOPJumpsTimes.Add(CurrentTime);
-                }
-            }
-            else
-            {
-                isgroundchange = false;
-                jumpscount = 0;
-            }
-        }
-
-        public static void BHOPANALYZERMUTE()
-        {
-            var BHOPcount = 0;
-            var i = 5;
-            for (i = 5; i < BHOPJumps.Count - 5; i++)
-            {
-                if (BHOPJumps[i]/* && IsUserAlive()*/)
-                    if (BHOPJumps[i - 2] == false)
-                        if (BHOPJumps[i - 3] == false)
-                            if (BHOPJumps[i - 4] == false)
-                                if (BHOPJumps[i + 2] == false)
-                                    if (BHOPJumps[i + 3] == false)
-                                        if (BHOPJumps[i + 4] == false)
-                                        //    if (BHOPJumpsTimes[i + 4] - BHOPJumpsTimes[i + 3] < 0.1)
-                                        //        if (BHOPJumpsTimes[i + 3] - BHOPJumpsTimes[i + 2] < 0.1)
-                                        //            if (BHOPJumpsTimes[i + 2] - BHOPJumpsTimes[i + 1] < 0.1)
-                                        //                if (BHOPJumpsTimes[i + 1] - BHOPJumpsTimes[i + 0] < 0.1)
-                                        //                    if (BHOPJumpsTimes[i + 0] - BHOPJumpsTimes[i - 1] < 0.1)
-                                        //                        if (BHOPJumpsTimes[i - 1] - BHOPJumpsTimes[i + 2] < 0.1)
-                                        //                            if (BHOPJumpsTimes[i - 2] - BHOPJumpsTimes[i + 3] < 0.1)
-                                        //                                if (BHOPJumpsTimes[i - 3] - BHOPJumpsTimes[i + 4] < 0.1)
-                                        {
-                                            AddViewDemoHelperComment("Detected [BHOP] jump.", 1.00f);
-                                            TextComments.WriteLine(
-                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
-                                            Console.WriteLine(
-                                                "Detected [BHOP] jump on (" + BHOPJumpsTimes[i] + ") " + Program.CurrentTimeString);
-                                            BHOPcount++;
-                                            i += 5;
-                                        }
-            }
-        }
-
-        public static void BHOPANALYZER()
-        {
-            var BHOPcount = 0;
-            var i = 5;
-            var firstdetectid = 0;
-            for (i = 5; i < BHOPJumps.Count - 5; i++)
-                if (BHOPJumps[i] && IsUserAlive())
-                    if (BHOPJumps[i - 2] == false)
-                        if (BHOPJumps[i - 3] == false)
-                            if (BHOPJumps[i - 4] == false)
-                                if (BHOPJumps[i + 2] == false)
-                                    if (BHOPJumps[i + 3] == false)
-                                        if (BHOPJumps[i + 4] == false)
-                                        {
-                                            if (firstdetectid == 0) firstdetectid = i;
-                                            BHOPcount++;
-                                            i += 5;
-                                        }
-
-            if (BHOPcount > 0)
-            {
-                TextComments.WriteLine("Detected hack with [BHOP]. Detect count:" + BHOPcount);
-                Console.WriteLine("Detected hack with [BHOP]. Detect count:" + BHOPcount);
-                Console.WriteLine("First usage at " + BHOPJumpsTimes[firstdetectid] + " second game time.");
-            }
-
-            if (JumpErrors > 0)
-            {
-                TextComments.WriteLine("Detected \"MOUSE JUMP\". Detect count:" + JumpErrors);
-                Console.WriteLine("Detected \"MOUSE JUMP\". Detect count:" + JumpErrors);
-                // Console.WriteLine("Last using at " + LastJumpHack + " second game time.");
-            }
-
-            if (JumpErrors2 > 0)
-            {
-                TextComments.WriteLine("Detected \"+jump;wait;-jump; like alias\". Detect count:" + JumpErrors2);
-                Console.WriteLine("Detected \"+jump;wait;-jump; like alias\". Detect count:" + JumpErrors2);
-                // Console.WriteLine("Last using at " + LastJumpHack + " second game time.");
-            }
-        }
         public static bool SearchJumpBug = false;
 
-        public const int MaxIdealJumps = 10;
+        public const int MaxIdealJumps = 7;
         public static int CurrentIdealJumpsStrike = 0;
         public static bool SearchNextJumpStrike = false;
 
@@ -928,6 +811,19 @@ namespace VolvoWrench.DG
                 SearchJumpBug = true;
                 FrameCrash = 0;
                 FirstJump = true;
+                BHOP_GroundWarn = 0;
+                BHOP_JumpWarn = 0;
+                BHOP_GroundSearchDirection = 0;
+
+                if (RealAlive)
+                {
+                    NeedDetectBHOPHack = true;
+                }
+                else
+                {
+                    NeedDetectBHOPHack = false;
+                }
+
                 if (IsUserAlive())
                 {
                     JumpCount++;
@@ -935,7 +831,6 @@ namespace VolvoWrench.DG
                     {
                         JumpErrors++;
                         // Console.Write("11");
-                        LastJumpHack = CurrentTime;
                         //if (JumpErrors < 50)
                         //{
                         //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
@@ -948,15 +843,12 @@ namespace VolvoWrench.DG
                         //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
-                        BHOPJumps.Clear();
-                        BHOPJumpsTimes.Clear();
                     }
 
                     if (IsJump)
                     {
                         JumpErrors++;
                         // Console.Write("22");
-                        LastJumpHack = CurrentTime;
                         //if (JumpErrors < 50)
                         //{
                         //    Console.WriteLine("Вероятно Detected скрипт распрыжки on (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
@@ -966,9 +858,10 @@ namespace VolvoWrench.DG
                         //    Console.WriteLine("Вероятно Detected скрипт распрыжки on (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
-                        BHOPJumps.Clear();
-                        BHOPJumpsTimes.Clear();
                     }
+                    if (Program.DEBUG_ENABLED)
+                        Console.WriteLine("JUMP ID [" + JumpCount + "] OFFSET [" + (CurrentFrameId - LastCmdFrameId) + "]  at (" + CurrentTime + ") : " + CurrentTimeString);
+
                 }
 
                 LastJumpTime = CurrentTime;
@@ -989,7 +882,6 @@ namespace VolvoWrench.DG
                     {
                         //Console.Write("33");
                         JumpErrors++;
-                        LastJumpHack = CurrentTime;
                         //if (JumpErrors < 50)
                         //{
                         //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
@@ -1002,8 +894,6 @@ namespace VolvoWrench.DG
                         //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
-                        BHOPJumps.Clear();
-                        BHOPJumpsTimes.Clear();
                     }
 
                     if (!IsJump && SearchJumpBug)
@@ -1014,9 +904,23 @@ namespace VolvoWrench.DG
                         //Console.WriteLine("Jump unknown script at time: (" + Program.CurrentTime + ") " + Program.CurrentTimeString);
                         //Console.WriteLine("time: (" + (Program.CurrentTime - LastUnJumpTime) + ") ");
                         //Console.WriteLine("time: (" + (Program.CurrentTime - LastJumpTime) + ") ");
-                        LastJumpHack = CurrentTime;
-                        BHOPJumps.Clear();
-                        BHOPJumpsTimes.Clear();
+                    }
+
+
+                    if (BHOP_JumpWarn > 2)
+                    {
+                        BHOPcount += BHOP_JumpWarn - 1;
+                        if (CurrentTime - LastBhopTime > 1.0)
+                            Console.WriteLine("Detected [BHOP TYPE 1] at (" + CurrentTime + ") " + Program.CurrentTimeString + " [" + (BHOP_JumpWarn - 1) + "]" + " times.");
+                        LastBhopTime = CurrentTime;
+                    }
+
+                    if (BHOP_GroundWarn > 2)
+                    {
+                        BHOPcount += BHOP_GroundWarn - 1;
+                        if (CurrentTime - LastBhopTime > 1.0)
+                            Console.WriteLine("Detected [BHOP TYPE 2] at (" + CurrentTime + ") " + Program.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.");
+                        LastBhopTime = CurrentTime;
                     }
 
                     LastJumpTime = CurrentTime;
@@ -1025,6 +929,10 @@ namespace VolvoWrench.DG
                 LastUnJumpTime = CurrentTime;
                 JumpHackCount2 = 0;
                 IsJump = false;
+                BHOP_GroundWarn = 0;
+                BHOP_JumpWarn = 0;
+                BHOP_GroundSearchDirection = 0;
+                NeedDetectBHOPHack = false;
             }
 
             LastCmdFrameId = CurrentFrameId;
@@ -1186,26 +1094,11 @@ namespace VolvoWrench.DG
         {
             try
             {
-                Console.SetBufferSize(Console.BufferWidth, 5555);
+                Console.SetBufferSize(Console.BufferWidth, 2555);
             }
             catch
             {
                 Console.WriteLine("Output to external file...");
-            }
-
-            foreach (var arg in args)
-            {
-                if (arg.IndexOf("alive") > 0)
-                {
-                    Program.CurrentWeapon = WeaponIdType.WEAPON_AK47;
-                    Program.CurrentFrameAlive = true;
-                    Program.PreviewFrameAlive = true;
-                    Program.LastAliveTime = 1.0f;
-                    Program.RealAlive = true;
-                    Program.UserAlive = true;
-                    Program.FirstUserAlive = false;
-                    Console.WriteLine("SCAN WITH FORCE USER ALIVE AT START DEMO!");
-                }
             }
 
             try
@@ -1220,11 +1113,68 @@ namespace VolvoWrench.DG
 
             }
 
+
+
+
+            foreach (var arg in args)
+            {
+                if (arg.IndexOf("-debug") > -1)
+                {
+                    Program.DEBUG_ENABLED = true;
+                }
+            }
+
+            foreach (var arg in args)
+            {
+                if (arg.IndexOf("-noteleport") > -1)
+                {
+                    Program.NO_TELEPORT = true;
+                }
+            }
+
+            foreach (var arg in args)
+            {
+                if (arg.IndexOf("-dump") > -1)
+                {
+                    Program.DUMP_ALL_FRAMES = true;
+                }
+            }
+
+
+            foreach (var arg in args)
+            {
+                if (arg.IndexOf("-alive") > -1)
+                {
+                    Program.CurrentWeapon = WeaponIdType.WEAPON_AK47;
+                    Program.CurrentFrameAlive = true;
+                    Program.PreviewFrameAlive = true;
+                    Program.LastAliveTime = 1.0f;
+                    Program.RealAlive = true;
+                    Program.UserAlive = true;
+                    Program.FirstUserAlive = false;
+                    Console.WriteLine("SCAN WITH FORCE USER ALIVE AT START DEMO!");
+                }
+            }
+
+
+            var CurrentDemoFilePath = "";
+            var filefound = false;
+
+            foreach (var arg in args)
+            {
+                CurrentDemoFilePath = arg.Replace("\"", "");
+                if (File.Exists(CurrentDemoFilePath))
+                {
+                    filefound = true;
+                    break;
+                }
+            }
+
+
             try
             {
-                if (File.Exists("Frames.log"))
+                if (DUMP_ALL_FRAMES)
                 {
-                    needsaveframes = true;
                     File.Delete("Frames.log");
                     File.Create("Frames.log").Close();
                 }
@@ -1257,6 +1207,7 @@ namespace VolvoWrench.DG
             Console.WriteLine("[BHOP]");
             Console.WriteLine("[JUMPHACK]");
             Console.WriteLine("[WHEELJUMP]");
+            Console.WriteLine("[STRAFEHACK]");
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine("(???) / WARN - есть высокая вероятность ложного срабатывания");
             Console.WriteLine("(???) / WARN - result can be false positive 50/50");
@@ -1264,16 +1215,6 @@ namespace VolvoWrench.DG
 
             Console.WriteLine("Drag & drop .dem file. Or enter path manually:");
 
-            var CurrentDemoFilePath = "";
-            var filefound = false;
-            if (args.Length > 0)
-            {
-                CurrentDemoFilePath = args[args.Length - 1].Replace("\"", "");
-                if (!File.Exists(CurrentDemoFilePath))
-                    Console.WriteLine("WATAL ERROR! File not found! Try again:");
-                else
-                    filefound = true;
-            }
 
             if (!filefound)
             {
@@ -1524,7 +1465,7 @@ namespace VolvoWrench.DG
                             break;
                         case GoldSource.DemoFrameType.ConsoleCommand:
                             {
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text = "{\n";
                                     subnode.Text +=
@@ -1533,7 +1474,7 @@ namespace VolvoWrench.DG
 
                                 CheckConsoleCommand(
                                     ((GoldSource.ConsoleCommandFrame)frame.Value).Command);
-                                if (needsaveframes) subnode.Text += "}\n";
+                                if (DUMP_ALL_FRAMES) subnode.Text += "}\n";
                                 break;
                             }
                         case GoldSource.DemoFrameType.ClientData:
@@ -1544,11 +1485,11 @@ namespace VolvoWrench.DG
                                 }
                                 NeedSearchID = CurrentFrameIdAll;
                                 CurrentFrameId++;
-                                if (needsaveframes) subnode.Text = "{\n";
+                                if (DUMP_ALL_FRAMES) subnode.Text = "{\n";
                                 var cdframe = (GoldSource.ClientDataFrame)frame.Value;
 
                                 viewanglesforsearch = cdframe.Viewangles;
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text += @"Origin.X = " + cdframe.Origin.X + "\n";
                                     subnode.Text += @"Origin.Y = " + cdframe.Origin.Y + "\n";
@@ -1581,7 +1522,8 @@ namespace VolvoWrench.DG
                                               cdframe.Origin.Y)) > 250)
                                 {
                                     Program.PlayerTeleportus++;
-                                    // Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
+                                    if (Program.DEBUG_ENABLED)
+                                        Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     Program.LastTeleportusTime = CurrentTime;
                                 }
                                 else
@@ -1617,7 +1559,7 @@ namespace VolvoWrench.DG
                                         if ((CurrentTimeDesync =
                                             Math.Abs(CurrentTime - LastFpsCheckTime)) > 1.0)
                                         {
-                                            if (needsaveframes)
+                                            if (DUMP_ALL_FRAMES)
                                                 subnode.Text =
                                                     "CurrentFps:" + CurrentFps + "\n";
                                             if (CurrentFps > RealFpsMax)
@@ -2108,15 +2050,15 @@ namespace VolvoWrench.DG
                             }
                         case GoldSource.DemoFrameType.NextSection:
                             {
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                     subnode.Text = @"End of the DirectoryEntry!";
                                 break;
                             }
                         case GoldSource.DemoFrameType.Event:
                             {
-                                if (needsaveframes) subnode.Text = "{\n";
+                                if (DUMP_ALL_FRAMES) subnode.Text = "{\n";
                                 var eframe = (GoldSource.EventFrame)frame.Value;
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text += @"Flags = " + eframe.Flags + "\n";
                                     subnode.Text += @"Index = " + eframe.Index + "\n";
@@ -2169,9 +2111,9 @@ namespace VolvoWrench.DG
                             }
                         case GoldSource.DemoFrameType.WeaponAnim:
                             {
-                                if (needsaveframes) subnode.Text = "{\n";
+                                if (DUMP_ALL_FRAMES) subnode.Text = "{\n";
                                 var waframe = (GoldSource.WeaponAnimFrame)frame.Value;
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text += @"Anim = " + waframe.Anim + "\n";
                                     subnode.Text += @"Body = " + waframe.Body + "\n";
@@ -2183,9 +2125,9 @@ namespace VolvoWrench.DG
                             }
                         case GoldSource.DemoFrameType.Sound:
                             {
-                                if (needsaveframes) subnode.Text = "{\n";
+                                if (DUMP_ALL_FRAMES) subnode.Text = "{\n";
                                 var sframe = (GoldSource.SoundFrame)frame.Value;
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text += @"Channel = " + sframe.Channel + "\n";
                                     subnode.Text += @"Sample = " + sframe.Sample + "\n";
@@ -2247,7 +2189,7 @@ namespace VolvoWrench.DG
                                     RealAlive = false;
                                     DeathsCoount2++;
                                     //Console.WriteLine("Using dangerous dead detection method:" + Program.CurrentTimeString);
-                                    if (needsaveframes)
+                                    if (DUMP_ALL_FRAMES)
                                         subnode.Text +=
                                             "LocalPlayer " + UserId + " killed[METHOD 2]!\n";
                                 }
@@ -2262,7 +2204,7 @@ namespace VolvoWrench.DG
 
                                 if (CurrentTime != 0.0f && nf == PreviewNetMsgFrame)
                                 {
-                                    if (needsaveframes)
+                                    if (DUMP_ALL_FRAMES)
                                         subnode.Text += "[D U B L I C A D E R]";
                                     FoundDublicader = true;
                                     FrameDuplicates++;
@@ -2487,7 +2429,14 @@ namespace VolvoWrench.DG
                                 else
                                     CurrentFrameJumped = false;
 
-                                if (!PreviewFrameJumped && CurrentFrameJumped) JumpCount2++;
+                                if (PreviewFrameJumped && !CurrentFrameJumped)
+                                {
+                                    if (NeedDetectBHOPHack && RealAlive)
+                                    {
+                                        BHOP_JumpWarn++;
+                                    }
+                                    JumpCount2++;
+                                }
 
                                 //if (FirstAttack && CurrentTime == IsAttackLastTime)
                                 //{
@@ -2612,22 +2561,56 @@ namespace VolvoWrench.DG
                                 }
 
 
-
                                 if (!PreviewFrameOnGround && !CurrentFrameOnGround)
                                 {
                                     Program.FramesOnFly++;
                                     Program.FramesOnGround = 0;
                                 }
 
+                                if (!PreviewFrameOnGround && CurrentFrameOnGround)
+                                {
+                                    if (NeedDetectBHOPHack && RealAlive)
+                                    {
+                                        Program.BHOP_GroundSearchDirection = 1;
+                                    }
+                                    JumpCount3++;
+                                }
+                                else if (PreviewFrameOnGround && CurrentFrameOnGround)
+                                {
+                                    if (NeedDetectBHOPHack && RealAlive && Program.BHOP_GroundSearchDirection > 0)
+                                    {
+                                        Program.BHOP_GroundSearchDirection += 1;
+                                    }
+                                    else
+                                    {
+                                        Program.BHOP_GroundSearchDirection = 0;
+                                    }
+                                }
+                                else if (PreviewFrameOnGround && !CurrentFrameOnGround)
+                                {
+                                    if (NeedDetectBHOPHack && RealAlive)
+                                    {
+                                        if (Program.BHOP_GroundSearchDirection < 5)
+                                        {
+                                            Program.BHOP_GroundWarn++;
+                                        }
+                                        Program.BHOP_GroundSearchDirection = 0;
+                                    }
+                                }
+                                //if (NeedDetectBHOPHack)
+                                //{
+                                //    NeedDetectBHOPHack = false;
+                                //    if (!CurrentFrameOnGround && CurrentFramePunchangleZ > 2.0f)
+                                //    {
+                                //        Console.WriteLine("BHOP");
+                                //    }
+                                //}
 
-
-                                if (!PreviewFrameOnGround && CurrentFrameOnGround) JumpCount3++;
-
-                                if (!PreviewFrameOnGround && CurrentFrameOnGround &&
-                                    RealAlive
-                                    && PreviewFramePunchangleZ == 0.0f &&
-                                    CurrentFramePunchangleZ > 2.0f)
-                                    NeedDetectBHOPHack = true;
+                                //if (!PreviewFrameOnGround && CurrentFrameOnGround &&
+                                //    RealAlive
+                                //    && PreviewFramePunchangleZ == 0.0f &&
+                                //    CurrentFramePunchangleZ > 2.0f)
+                                //    NeedDetectBHOPHack = true;
 
                                 if (AimType7Event != 0)
                                 {
@@ -2707,11 +2690,13 @@ namespace VolvoWrench.DG
                                             if (PreviewFrameOnGround && !CurrentFrameOnGround)
                                             {
                                                 CurrentIdealJumpsStrike++;
-                                                if (CurrentIdealJumpsStrike > 7)
+                                                if (CurrentIdealJumpsStrike > MaxIdealJumps)
                                                 {
                                                     CurrentIdealJumpsStrike = 0;
                                                     Console.WriteLine("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
                                                 }
+                                                if (Program.DEBUG_ENABLED)
+                                                    Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
                                             }
                                             else
                                             {
@@ -2854,7 +2839,7 @@ namespace VolvoWrench.DG
                                                 Math.Abs(CurrentTime2 - LastFpsCheckTime2)) >
                                             1.0)
                                         {
-                                            if (needsaveframes)
+                                            if (DUMP_ALL_FRAMES)
                                                 subnode.Text =
                                                     "CurrentFps2:" + CurrentFps2 + "\n";
 
@@ -3166,14 +3151,6 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                //if (NeedDetectBHOPHack)
-                                //{
-                                //    NeedDetectBHOPHack = false;
-                                //    if (!CurrentFrameOnGround && CurrentFramePunchangleZ > 2.0f && PreviewFramePunchangleZ > CurrentFramePunchangleZ)
-                                //    {
-                                //        Console.WriteLine("BHOP");
-                                //    }
-                                //}
 
                                 if (NeedDetectLerpAfterAttack)
                                 {
@@ -3354,7 +3331,7 @@ namespace VolvoWrench.DG
                                     JumpHackCount2 = 0;
                                 }
 
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text = "{\n";
                                     subnode.Text +=
@@ -3412,14 +3389,7 @@ namespace VolvoWrench.DG
                                 if (nf.RParms.Frametime > 0.0)
                                     averagefps2.Add(1000.0 / (1000.0 * nf.RParms.Frametime));
 
-                                if (!FoundDublicader)
-                                {
-                                    if (CurrentFrameOnGround)
-                                        AddJumpToBHOPScan(true);
-                                    else
-                                        AddJumpToBHOPScan(false);
-                                }
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text +=
                                         @"RParms.Waterlevel  = " + nf.RParms.Waterlevel + "\n";
@@ -3573,7 +3543,7 @@ namespace VolvoWrench.DG
 
                                 addresolution(nf.RParms.Viewport.Z, nf.RParms.Viewport.W);
 
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text +=
                                         @"RParms.MaxEntities  = " + nf.RParms.MaxEntities +
@@ -3897,7 +3867,7 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text +=
                                         @"UCmd.Impulse  = " + nf.UCmd.Impulse + "\n";
@@ -3998,7 +3968,7 @@ namespace VolvoWrench.DG
                                 //subnode.Text += @"msg = " + nf.Msg + "\n";
 
 
-                                if (needsaveframes)
+                                if (DUMP_ALL_FRAMES)
                                 {
                                     subnode.Text += outstr;
 
@@ -4035,11 +4005,9 @@ namespace VolvoWrench.DG
                 PrintNodesRecursive(entrynode);
             }
 
-            BHOPANALYZERMUTE();
-
             try
             {
-                if (File.Exists("Frames.log"))
+                if (File.Exists("Frames.log") && Program.DUMP_ALL_FRAMES)
                     File.WriteAllLines("Frames.log", outFrames.ToArray());
             }
             catch
@@ -4055,14 +4023,30 @@ namespace VolvoWrench.DG
 
             Console.ForegroundColor = ConsoleColor.DarkRed;
 
-            BHOPANALYZER();
-
             //if (AttackErrors > 0)
             //{
             //    TextComments.WriteLine("Detected [UNKNOWN CONFIG] для атаки. Detect count:" + AttackErrors);
             //    Console.WriteLine("Detected [UNKNOWN CONFIG] для атаки. Detect count:" + AttackErrors);
             //    Console.WriteLine("Last using at " + LastAttackHack + " second game time.");
             //}
+
+            if (BHOPcount > 0)
+            {
+                TextComments.WriteLine("Detected hack with [BHOP]. Detect count:" + (BHOPcount / 2));
+                Console.WriteLine("Detected hack with [BHOP]. Detect count:" + (BHOPcount / 2));
+            }
+
+            if (JumpErrors > 0)
+            {
+                TextComments.WriteLine("Detected \"MOUSE JUMP\". Detect count:" + JumpErrors);
+                Console.WriteLine("Detected \"MOUSE JUMP\". Detect count:" + JumpErrors);
+            }
+
+            if (JumpErrors2 > 0)
+            {
+                TextComments.WriteLine("Detected \"+jump;wait;-jump; like alias\". Detect count:" + JumpErrors2);
+                Console.WriteLine("Detected \"+jump;wait;-jump; like alias\". Detect count:" + JumpErrors2);
+            }
 
             if (BadAttackCount > 0)
             {
@@ -4627,7 +4611,7 @@ namespace VolvoWrench.DG
         public static bool GameEnd = false;
         public static int LostStopAttackButton = 0;
         public static int ModifiedDemoFrames = 0;
-        public static int TimeShiftCount = 0;
+        public static int TimeShiftCount = -5;
         public static float LastAliveTime = 0.0f;
         public static float LastTeleportusTime = 0.0f;
         public static int Aim73FalseSkip = 2;
@@ -4684,9 +4668,16 @@ namespace VolvoWrench.DG
         public static bool InStrafe = false;
         public static float LastStrafeDisabled = 0.0f;
         public static float LastStrafeEnabled = 0.0f;
+        public static int BHOPcount = 0;
+        public static int BHOP_GroundWarn = 0;
+        public static int BHOP_JumpWarn = 0;
+        public static int BHOP_GroundSearchDirection = 0;
+        public static float LastBhopTime = 0.0f;
 
         public static bool IsTeleportus()
         {
+            if (NO_TELEPORT)
+                return false;
             return CurrentTime - LastTeleportusTime < 2.5f;
         }
 
@@ -5540,7 +5531,7 @@ namespace VolvoWrench.DG
             {
             }
 
-            if (Program.needsaveframes) outDataStr += "{\n";
+            if (Program.DUMP_ALL_FRAMES) outDataStr += "{\n";
             try
             {
                 ParseGameDataMessages(frameData, null);
@@ -5554,7 +5545,7 @@ namespace VolvoWrench.DG
                 Console.ForegroundColor = tmpcolor;
                 if (ErrorCount > 5)
                 {
-                    if (Program.needsaveframes)
+                    if (Program.DUMP_ALL_FRAMES)
                         outDataStr += "FATAL ERROR. STOP MESSAGE PARSING.\n}\n";
                     if (!SkipNextErrors && MessageBox.Show(
                             "Error while demo parsing.\nPossible demo is HLTV or too old\nPlease convert demo using coldemoplayer and try again!\nContinue?? (Skip all errors but got bad result)",
@@ -5564,7 +5555,7 @@ namespace VolvoWrench.DG
                     return;
                 }
 
-                if (Program.needsaveframes) outDataStr += "ERROR IN PARSE MESSAGE.";
+                if (Program.DUMP_ALL_FRAMES) outDataStr += "ERROR IN PARSE MESSAGE.";
             }
             //catch
             //{
@@ -5575,7 +5566,7 @@ namespace VolvoWrench.DG
             //    Console.ForegroundColor = tmpcolor;
             //    if (ErrorCount > 5)
             //    {
-            //        if (Program.needsaveframes)
+            //        if (Program.DUMP_ALL_FRAMES)
             //            outDataStr += "FATAL ERROR. STOP MESSAGE PARSING.\n}\n";
             //        if (!SkipNextErrors && MessageBox.Show(
             //                "Error while demo parsing.\nPossible demo is HLTV or too old\nPlease convert demo using coldemoplayer and try again!\nContinue?? (Skip all errors but got bad result)",
@@ -5585,10 +5576,10 @@ namespace VolvoWrench.DG
             //        return;
             //    }
 
-            //    if (Program.needsaveframes) outDataStr += "ERROR IN PARSE MESSAGE.";
+            //    if (Program.DUMP_ALL_FRAMES) outDataStr += "ERROR IN PARSE MESSAGE.";
             //}
 
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
             {
                 outDataStr += "}\n";
                 s = outDataStr;
@@ -5610,7 +5601,7 @@ namespace VolvoWrench.DG
             while (true)
             {
                 Program.MessageCount += 1;
-                if (Program.needsaveframes)
+                if (Program.DUMP_ALL_FRAMES)
                 {
                     outDataStr +=
                         "{MSGLEN-" + frameData.Length + ".MSGBYTE:" + BitBuffer.CurrentByte;
@@ -5620,7 +5611,7 @@ namespace VolvoWrench.DG
 
                 //Console.WriteLine("MSGID:" + messageId + ". OFFSET:" + BitBuffer.CurrentByte + ".MSGLEN - " + frameData.Length);
 
-                if (Program.needsaveframes)
+                if (Program.DUMP_ALL_FRAMES)
                 {
                     outDataStr += "MSGID:" + messageId + ".MSGBYTE:" + BitBuffer.CurrentByte;
                 }
@@ -5634,7 +5625,7 @@ namespace VolvoWrench.DG
                 }
                 if (messageName == null)
                     messageName = "UNKNOWN MESSAGE";
-                if (Program.needsaveframes) outDataStr += ".MSGNAME:" + messageName + "}\n";
+                if (Program.DUMP_ALL_FRAMES) outDataStr += ".MSGNAME:" + messageName + "}\n";
 
                 MessageHandler messageHandler = FindMessageHandler(messageId);
 
@@ -5788,7 +5779,7 @@ namespace VolvoWrench.DG
 
         private void MessageDisconnect()
         {
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr += "MessageDisconnect:" + BitBuffer.ReadString();
             else
                 BitBuffer.ReadString();
@@ -5800,11 +5791,11 @@ namespace VolvoWrench.DG
                 BitBuffer.Endian = BitBuffer.EndianType.Big;
 
             var nEvents = BitBuffer.ReadUnsignedBits(5);
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr += "MessageEvents:(" + nEvents + "){\n";
             for (var i = 0; i < nEvents; i++)
             {
-                if (Program.needsaveframes)
+                if (Program.DUMP_ALL_FRAMES)
                 {
                     outDataStr +=
                         "index:" + BitBuffer.ReadUnsignedBits(10); // event index
@@ -5831,17 +5822,17 @@ namespace VolvoWrench.DG
 
                 if (fireTimeBit)
                 {
-                    if (Program.needsaveframes)
+                    if (Program.DUMP_ALL_FRAMES)
                         outDataStr += "TIME:" + BitBuffer.ReadUnsignedBits(16);
                     else
                         BitBuffer.ReadUnsignedBits(16);
                     //BitBuffer.SeekBits(16); // fire time
                 }
 
-                if (Program.needsaveframes) outDataStr += "}\n";
+                if (Program.DUMP_ALL_FRAMES) outDataStr += "}\n";
             }
 
-            if (Program.needsaveframes) outDataStr += "}\n";
+            if (Program.DUMP_ALL_FRAMES) outDataStr += "}\n";
 
             BitBuffer.SkipRemainingBits();
             BitBuffer.Endian = BitBuffer.EndianType.Little;
@@ -5870,7 +5861,7 @@ namespace VolvoWrench.DG
                 //}
             }
 
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
             {
                 outDataStr += "switch view to " + entityview + " player\n";
             }
@@ -5908,7 +5899,7 @@ namespace VolvoWrench.DG
 
         private void MessagePrint()
         {
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr += "MessagePrint:" + BitBuffer.ReadString();
             else
                 BitBuffer.ReadString();
@@ -5918,7 +5909,7 @@ namespace VolvoWrench.DG
         {
             string stuffstr =
                 BitBuffer.ReadString();
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr += "MessageStuffText:" + stuffstr;
             Program.CheckConsoleCommand(stuffstr, true);
 
@@ -6224,7 +6215,7 @@ namespace VolvoWrench.DG
                 {
                     if (entityIndex > 0 && entityIndex <= demo.MaxClients)
                     {
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             outDataStr += "PID:" + entityIndex + "\n";
 
                         Program.LastPlayerEntity = entityIndex;
@@ -6513,11 +6504,11 @@ namespace VolvoWrench.DG
         private void MessageCenterPrint()
         {
             var msgprint = BitBuffer.ReadString();
-            if (Program.needsaveframes) outDataStr += "MessageCenterPrint:" + msgprint;
+            if (Program.DUMP_ALL_FRAMES) outDataStr += "MessageCenterPrint:" + msgprint;
             if (msgprint == "%s")
             {
                 var msgprint2 = BitBuffer.ReadString();
-                if (Program.needsaveframes) outDataStr += "->" + msgprint2;
+                if (Program.DUMP_ALL_FRAMES) outDataStr += "->" + msgprint2;
                 // Console.Write("..bad msgcenterprint?..");
             }
         }
@@ -6527,7 +6518,7 @@ namespace VolvoWrench.DG
             var id = BitBuffer.ReadByte();
             var length = BitBuffer.ReadSByte();
             var name = BitBuffer.ReadString(16);
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr +=
                     "user msg:" + name + " len:" + length + " id " + id + "\n";
             AddUserMessage(id, length, name);
@@ -6582,7 +6573,7 @@ namespace VolvoWrench.DG
 
                 if (entityNumber > 0 && entityNumber <= demo.MaxClients)
                 {
-                    if (Program.needsaveframes)
+                    if (Program.DUMP_ALL_FRAMES)
                         outDataStr += "PID:" + entityNumber + "\n";
                     Program.LastPlayerEntity = entityNumber;
                     entityType = "entity_state_player_t";
@@ -6640,7 +6631,7 @@ namespace VolvoWrench.DG
 
                     if (entityNumber > 0 && entityNumber <= demo.MaxClients)
                     {
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             outDataStr += "PID:" + entityNumber + "\n";
                         Program.LastPlayerEntity = entityNumber;
                         entityType = "entity_state_player_t";
@@ -6821,7 +6812,7 @@ namespace VolvoWrench.DG
             //Console.Write(bytes);
             //Console.ReadLine();
             //bitBuffer.ReadByte();
-            //if (Program.needsaveframes)
+            //if (Program.DUMP_ALL_FRAMES)
             //{
             //    outDataStr += "MessageDirector:" + bitBuffer.ReadString();
             //}
@@ -6842,7 +6833,7 @@ namespace VolvoWrench.DG
             if (tmpcodecname.Length > 0) codecname = tmpcodecname;
 
             //MessageBox.Show(codecname);
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr += "MessageVoiceInit:" + tmpcodecname + "\n";
             if (demo.GsDemoInfo.Header.NetProtocol >= 47) Seek(1);
         }
@@ -6858,7 +6849,7 @@ namespace VolvoWrench.DG
             var length = BitBuffer.ReadUInt16();
             var data = BitBuffer.ReadBytes(length);
 
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr += "MessageVoiceData:" + length + "\n";
             //MessageBox.Show(playerid + "(2):" + length);
 
@@ -6940,7 +6931,7 @@ namespace VolvoWrench.DG
                 weaponid != Program.WeaponIdType.WEAPON_BAD2)
             {
                 //Program.UserAlive = true;
-                if (Program.needsaveframes)
+                if (Program.DUMP_ALL_FRAMES)
                 {
                     outDataStr +=
                         "\nCHANGE WEAPON 22 (" + Program.CurrentTime + ") " + Program.CurrentTimeString;
@@ -6989,7 +6980,7 @@ namespace VolvoWrench.DG
                 Program.UserAlive = false;
                 Program.RealAlive = false;
                 Program.DeathsCoount++;
-                if (Program.needsaveframes)
+                if (Program.DUMP_ALL_FRAMES)
                     outDataStr += "LocalPlayer " + iVictim + " killed!\n";
                 // Console.WriteLine("Dead time: " + Program.CurrentTimeString);
             }
@@ -7026,7 +7017,7 @@ namespace VolvoWrench.DG
                 Program.KillsCount++;
             }
 
-            if (Program.needsaveframes) outDataStr += "User " + iVictim + " killed!\n";
+            if (Program.DUMP_ALL_FRAMES) outDataStr += "User " + iVictim + " killed!\n";
         }
 
         private void MessageResetHud()
@@ -7037,7 +7028,7 @@ namespace VolvoWrench.DG
             //    Program.LastAliveTime = Program.CurrentTime;
             //    Program.UserAlive = true;
             //}
-            //if (Program.needsaveframes) outDataStr += "ResetHud!\n";
+            //if (Program.DUMP_ALL_FRAMES) outDataStr += "ResetHud!\n";
             //   Program.UserAlive = true;
         }
         private void MessageHealth()
@@ -7094,7 +7085,7 @@ namespace VolvoWrench.DG
             var g = BitBuffer.ReadByte();
             var b = BitBuffer.ReadByte();
             var a = BitBuffer.ReadByte();
-            if (Program.needsaveframes)
+            if (Program.DUMP_ALL_FRAMES)
                 outDataStr +=
                     "MessageScreenFade. DUR:" + duration + ". HOLD:" + holdTime +
                     ". RGBA:" + r + " " + g + " " + b + " " + a + "\n";
@@ -7865,7 +7856,7 @@ namespace VolvoWrench.DG
 
                         if ((bitmaskBytes[i] & (1 << j)) != 0)
                         {
-                            if (Program.needsaveframes)
+                            if (Program.DUMP_ALL_FRAMES)
                                 HalfLifeDemoParser.outDataStr +=
                                     "ENTRY(" + Name + ")" + entryList[index].Name + " = ";
                             var value = ParseEntry(bitBuffer, entryList[index]);
@@ -7988,7 +7979,7 @@ namespace VolvoWrench.DG
                                             Program.UsingAnotherMethodWeaponDetection =
                                                 true;
 
-                                            if (Program.needsaveframes)
+                                            if (Program.DUMP_ALL_FRAMES)
                                             {
                                                 HalfLifeDemoParser.outDataStr +=
                                                     "\nCHANGE WEAPON 2 (" +
@@ -8061,7 +8052,7 @@ namespace VolvoWrench.DG
                             }
 
                             if (delta != null) delta.SetEntryValue(index, value);
-                            if (Program.needsaveframes)
+                            if (Program.DUMP_ALL_FRAMES)
                                 HalfLifeDemoParser.outDataStr += "\n";
                         }
                     }
@@ -8122,14 +8113,14 @@ namespace VolvoWrench.DG
                     if (signed)
                     {
                         var retval = (sbyte)ParseInt(bitBuffer, e);
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(SByte)";
                         return retval;
                     }
                     else
                     {
                         var retval = (byte)ParseUnsignedInt(bitBuffer, e);
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(Byte)";
                         return retval;
                     }
@@ -8140,14 +8131,14 @@ namespace VolvoWrench.DG
                     if (signed)
                     {
                         var retval = (short)ParseInt(bitBuffer, e);
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(Int16)";
                         return retval;
                     }
                     else
                     {
                         var retval = (ushort)ParseUnsignedInt(bitBuffer, e);
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(UInt16)";
                         return retval;
                     }
@@ -8159,7 +8150,7 @@ namespace VolvoWrench.DG
                         try
                         {
                             var retval = ParseInt(bitBuffer, e);
-                            if (Program.needsaveframes)
+                            if (Program.DUMP_ALL_FRAMES)
                                 HalfLifeDemoParser.outDataStr += retval + "(Int32)";
                             return retval;
                         }
@@ -8171,7 +8162,7 @@ namespace VolvoWrench.DG
                     try
                     {
                         var retval = ParseUnsignedInt(bitBuffer, e);
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(UInt32)";
                         return retval;
                     }
@@ -8199,7 +8190,7 @@ namespace VolvoWrench.DG
                         var retval =
                             bitBuffer.ReadUnsignedBits(bitsToRead) / e.Divisor *
                             (negative ? -1.0f : 1.0f);
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(FloatBit)";
                         return retval;
                     }
@@ -8210,7 +8201,7 @@ namespace VolvoWrench.DG
                         var retval =
                             bitBuffer.ReadUnsignedBits((int)e.nBits) *
                             (360.0f / (1 << (int)e.nBits));
-                        if (Program.needsaveframes)
+                        if (Program.DUMP_ALL_FRAMES)
                             HalfLifeDemoParser.outDataStr += retval + "(Float)";
                         return retval;
                     }
@@ -8223,7 +8214,7 @@ namespace VolvoWrench.DG
                 if ((e.Flags & EntryFlags.String) != 0)
                 {
                     var retval = bitBuffer.ReadString();
-                    if (Program.needsaveframes)
+                    if (Program.DUMP_ALL_FRAMES)
                         HalfLifeDemoParser.outDataStr += retval + "(String)";
                     return retval;
                 }
