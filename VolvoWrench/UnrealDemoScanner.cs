@@ -3119,7 +3119,7 @@ namespace VolvoWrench.DG
                                                             Program.CurrentTimeString);
                                                         LastTimeOut = 2;
 
-                                                        Console.ForegroundColor = tmpcol
+                                                        Console.ForegroundColor = tmpcol;
                                                     }
                                                 }
                                                 //Console.WriteLine("Second.");
