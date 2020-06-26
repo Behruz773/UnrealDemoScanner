@@ -12,7 +12,11 @@ https://github.com/2020karaulov2020/UnrealDemoScanner/blob/DemoScanner/VolvoWren
 Command line:
 
 '-debug' - enable debug messages
+
 '-alive' - force user alive at demo start
+
 '-noteleport' - ignore user teleports
+
 '-dump' - dump all demo to readable text format
+
 
