@@ -920,7 +920,12 @@ namespace VolvoWrench.DG
                     {
                         BHOPcount += BHOP_GroundWarn - 1;
                         if (CurrentTime - LastBhopTime > 1.0)
+                        {
+                            var tmpcol = Console.ForegroundColor;
+                            Console.ForegroundColor = ConsoleColor.Gray;
                             Console.WriteLine("Detected [BHOP TYPE 2] at (" + CurrentTime + ") " + Program.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.");
+                            Console.ForegroundColor = tmpcol;
+                        }
                         LastBhopTime = CurrentTime;
                     }
 
