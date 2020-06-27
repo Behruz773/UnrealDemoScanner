@@ -26,22 +26,24 @@ using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace VolvoWrench.DG
 {
-    /*#define IN_ATTACK 1
-#define IN_JUMP	2
-#define IN_DUCK	3
-#define IN_FORWARD 4
-#define IN_BACK	5
-#define IN_USE	6
-#define IN_CANCEL 7
-#define IN_LEFT	 8
-#define IN_RIGHT	9
-#define IN_MOVELEFT	10
-#define IN_MOVERIGHT 11
-#define IN_ATTACK2	12
-#define IN_RUN      13
-#define IN_RELOAD	14
-#define IN_ALT1		15
-#define IN_SCORE	16 */
+    /*
+    #define IN_ATTACK 1
+    #define IN_JUMP	2
+    #define IN_DUCK	3
+    #define IN_FORWARD 4
+    #define IN_BACK	5
+    #define IN_USE	6
+    #define IN_CANCEL 7
+    #define IN_LEFT	 8
+    #define IN_RIGHT	9
+    #define IN_MOVELEFT	10
+    #define IN_MOVERIGHT 11
+    #define IN_ATTACK2	12
+    #define IN_RUN      13
+    #define IN_RELOAD	14
+    #define IN_ALT1		15
+    #define IN_SCORE	16  
+    */
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
@@ -395,6 +397,27 @@ namespace VolvoWrench.DG
         public static List<string> CommandsDump = new List<string>();
         public static string framecrashcmd = "";
 
+        public static void DemoScanner_AddWarn(string warn, bool detected = true, bool log = true)
+        {
+            if (!detected)
+            {
+                var tmpcol = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.WriteLine(warn);
+                Console.ForegroundColor = tmpcol;
+            }
+            else
+            {
+                Console.WriteLine(warn);
+            }
+
+            if (log)
+            {
+                TextComments.WriteLine(warn);
+                AddViewDemoHelperComment(warn);
+            }
+        }
+
         public static void CheckConsoleCommand(string s2, bool isstuff = false)
         {
             var s = s2.Trim();
@@ -459,9 +482,7 @@ namespace VolvoWrench.DG
                     {
                         if (JumpHackCount < 10)
                         {
-                            AddViewDemoHelperComment("Detected [XTREMEHACK] jump.", 1.00f);
-                            TextComments.WriteLine("Detected [XTREMEHACK] jump on (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
-                            Console.WriteLine("Detected [XTREMEHACK] jump on (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                            DemoScanner_AddWarn("Detected [XTREMEHACK] jump on (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         }
 
                         JumpHackCount++;
@@ -498,11 +519,7 @@ namespace VolvoWrench.DG
                         {
                             if (!IsTeleportus())
                             {
-                                //var tmpcol = Console.ForegroundColor;
-                                //Console.ForegroundColor = ConsoleColor.Gray;
-                                TextComments.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                AddViewDemoHelperComment("Detected [AIM TYPE 6]. Weapon:" + CurrentWeapon);
-                                Console.WriteLine("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + DemoScanner.CurrentTimeString);
+                                DemoScanner_AddWarn("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + DemoScanner.CurrentTimeString);
                             }
 
                             //SilentAimDetected++;
@@ -692,7 +709,7 @@ namespace VolvoWrench.DG
             if (DemoScanner.DetectStrafeOptimizerStrikes > 5)
             {
                 DemoScanner.DetectStrafeOptimizerStrikes = 0;
-                Console.WriteLine("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
+                DemoScanner_AddWarn("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
             }
 
             //here future forward hack detection
@@ -912,7 +929,7 @@ namespace VolvoWrench.DG
                     {
                         BHOPcount += BHOP_JumpWarn - 1;
                         if (CurrentTime - LastBhopTime > 1.0)
-                            Console.WriteLine("Detected [BHOP TYPE 1] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_JumpWarn - 1) + "]" + " times.");
+                            DemoScanner_AddWarn("Detected [BHOP TYPE 1] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_JumpWarn - 1) + "]" + " times.");
                         LastBhopTime = CurrentTime;
                     }
 
@@ -921,10 +938,9 @@ namespace VolvoWrench.DG
                         BHOPcount += BHOP_GroundWarn - 1;
                         if (CurrentTime - LastBhopTime > 1.0)
                         {
-                            var tmpcol = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                            Console.WriteLine("Detected [BHOP TYPE 2] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.");
-                            Console.ForegroundColor = tmpcol;
+                            DemoScanner_AddWarn("Detected [BHOP TYPE 2] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.",
+                                BHOP_GroundWarn > 3, BHOP_GroundWarn > 3);
+
                         }
                         LastBhopTime = CurrentTime;
                     }
@@ -1644,18 +1660,9 @@ namespace VolvoWrench.DG
                                             {
                                                 if (!IsTeleportus())
                                                 {
-                                                    var tmpcol = Console.ForegroundColor;
-                                                    Console.ForegroundColor = ConsoleColor.Gray;
-                                                    TextComments.WriteLine(
+                                                    DemoScanner_AddWarn(
                                                         "WARN [AIM TYPE 5] on (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString);
-                                                    AddViewDemoHelperComment(
-                                                        "WARN [AIM TYPE 5]. Weapon:" +
-                                                        CurrentWeapon);
-                                                    Console.WriteLine(
-                                                        "WARN [AIM TYPE 5] on (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    Console.ForegroundColor = tmpcol;
+                                                        "):" + DemoScanner.CurrentTimeString + " (???)",false);
                                                     DemoScanner.LastAim5DetectedReal = 0.0f;
                                                     DemoScanner.LastAim5Detected = 0.0f;
                                                 }
@@ -1667,13 +1674,7 @@ namespace VolvoWrench.DG
                                         {
                                             if (!IsTeleportus())
                                             {
-                                                TextComments.WriteLine(
-                                                    "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
-                                                    "):" + DemoScanner.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 5]. Weapon:" +
-                                                    CurrentWeapon);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
@@ -1686,31 +1687,16 @@ namespace VolvoWrench.DG
                                         {
                                             if ((SilentAimDetected > 1 || JumpHackCount > 1) && !IsTeleportus())
                                             {
-                                                TextComments.WriteLine(
-                                                    "Detected [AIM TYPE 5] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 5]. Weapon:" +
-                                                    CurrentWeapon);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [AIM TYPE 5] on (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
                                             }
                                             else
                                             {
-                                                var tmpcol = Console.ForegroundColor;
-                                                Console.ForegroundColor = ConsoleColor.Gray;
-                                                TextComments.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [AIM TYPE 5] on (" + LastAim5Detected +
-                                                    "):" + DemoScanner.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 5]. Weapon:" +
-                                                    CurrentWeapon);
-                                                Console.WriteLine(
-                                                    "Detected [AIM TYPE 5] on (" + LastAim5Detected +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                Console.ForegroundColor = tmpcol;
+                                                    "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                             }
                                             DemoScanner.LastAim5DetectedReal = 0.0f;
                                             DemoScanner.LastAim5Detected = 0.0f;
@@ -1860,22 +1846,11 @@ namespace VolvoWrench.DG
                                                                     Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
 
-                                                        TextComments.WriteLine(
+                                                        DemoScanner_AddWarn(
                                                             GetAim7String(OldAimType7Frames,
                                                                 AimType7Frames, AimType7Event,
                                                                 tmpangle2) + " on (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                        AddViewDemoHelperComment(
-                                                            GetAim7String(OldAimType7Frames,
-                                                                AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " Weapon:" +
-                                                            CurrentWeapon + " (???)");
-                                                        Console.WriteLine(
-                                                            GetAim7String(OldAimType7Frames,
-                                                                AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " on (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                        Console.ForegroundColor = tmpcol;
+                                                            "):" + DemoScanner.CurrentTimeString + " (???)", false) ;
                                                     }
                                                     else if (AimType7Event != 4)
                                                     {
@@ -1889,23 +1864,11 @@ namespace VolvoWrench.DG
                                                             AngleBetween(
                                                                     Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
-
-                                                        TextComments.WriteLine(
+                                                       DemoScanner_AddWarn(
                                                             GetAim7String(OldAimType7Frames,
                                                                 AimType7Frames, AimType7Event,
                                                                 tmpangle2) + " on (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                        AddViewDemoHelperComment(
-                                                            GetAim7String(OldAimType7Frames,
-                                                                AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " Weapon:" +
-                                                            CurrentWeapon + " (???)");
-                                                        Console.WriteLine(
-                                                            GetAim7String(OldAimType7Frames,
-                                                                AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " on (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                        Console.ForegroundColor = tmpcol;
+                                                            "):" + DemoScanner.CurrentTimeString + " (???)",false);
                                                     }
                                                 }
                                             }
@@ -1927,22 +1890,11 @@ namespace VolvoWrench.DG
                                                             Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
 
-                                                TextComments.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     GetAim7String(OldAimType7Frames,
                                                         AimType7Frames, AimType7Event,
                                                         tmpangle2) + " on (" + OldAimType7Time +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                AddViewDemoHelperComment(
-                                                    GetAim7String(OldAimType7Frames,
-                                                        AimType7Frames, AimType7Event,
-                                                        tmpangle2) + " Weapon:" +
-                                                    CurrentWeapon + " (???)");
-                                                Console.WriteLine(
-                                                    GetAim7String(OldAimType7Frames,
-                                                        AimType7Frames, AimType7Event,
-                                                        tmpangle2) + " on (" + OldAimType7Time +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                Console.ForegroundColor = tmpcol;
+                                                    "):" + DemoScanner.CurrentTimeString + " (???)",false);
                                             }
 
                                             AimType7Frames = 0;
@@ -2286,12 +2238,7 @@ namespace VolvoWrench.DG
                                         {
                                             if (CurrentTime - LastMovementHackTime > 2.5)
                                             {
-                                                AddViewDemoHelperComment(
-                                                      "Detected [MOVEMENT TYPE 2] hack.", 1.00f);
-                                                TextComments.WriteLine(
-                                                    "Detected [MOVEMENT TYPE 2] hack on (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [MOVEMENT TYPE 2] hack on (" +
                                                     CurrentTime + ") " + CurrentTimeString);
                                                 LastMovementHackTime = CurrentTime;
@@ -2324,12 +2271,7 @@ namespace VolvoWrench.DG
                                         {
                                             if (CurrentTime - LastMovementHackTime > 2.5)
                                             {
-                                                AddViewDemoHelperComment(
-                                                      "Detected [MOVEMENT] hack.", 1.00f);
-                                                TextComments.WriteLine(
-                                                    "Detected [MOVEMENT] hack on (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [MOVEMENT] hack on (" +
                                                     CurrentTime + ") " + CurrentTimeString);
                                                 LastMovementHackTime = CurrentTime;
@@ -2470,14 +2412,9 @@ namespace VolvoWrench.DG
                                             {
                                                 //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
                                                 //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
-                                                AddViewDemoHelperComment(
-                                                    "Detected [DUCKHACK2] duck.", 1.00f);
-                                                TextComments.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [DUCKHACK2] duck on (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
-                                                Console.WriteLine(
-                                                    "Detected [DUCKHACK2] duck on (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
+                                                    CurrentTime + ") " + CurrentTimeString, false);
                                                 LastJumpHackTime = CurrentTime;
                                                 JumpHackCount++;
                                             }
@@ -2503,12 +2440,7 @@ namespace VolvoWrench.DG
                                             {
                                                 //    Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
                                                 //    Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
-                                                AddViewDemoHelperComment(
-                                                    "Detected [DUCKHACK] duck.", 1.00f);
-                                                TextComments.WriteLine(
-                                                    "Detected [DUCKHACK] duck on (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [DUCKHACK] duck on (" +
                                                     CurrentTime + ") " + CurrentTimeString);
                                                 LastJumpHackTime = CurrentTime;
@@ -2681,7 +2613,7 @@ namespace VolvoWrench.DG
                                             if (CurrentIdealJumpsStrike > MaxIdealJumps)
                                             {
                                                 CurrentIdealJumpsStrike = 0;
-                                                Console.WriteLine("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
+                                                DemoScanner_AddWarn("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
                                             }
                                             if (DemoScanner.DEBUG_ENABLED)
                                                 Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
@@ -2767,17 +2699,10 @@ namespace VolvoWrench.DG
                                     if (cdframeFov > 90)
                                         if (FovHackDetected < 5)
                                         {
-                                            TextComments.WriteLine(
+                                            DemoScanner_AddWarn(
                                                 "Detected [FOV HACK] on (" + CurrentTime +
-                                                "):" + DemoScanner.CurrentTimeString);
-                                            AddViewDemoHelperComment(
-                                                "Detected [FOV HACK]. Weapon:" + CurrentWeapon);
-                                            Console.Write(
-                                                "Detected [FOV HACK] on (" + CurrentTime +
-                                                "):" + DemoScanner.CurrentTimeString);
-                                            if (cdframeFov == ClientFov)
-                                                Console.Write("[BY SERVER ???]");
-                                            Console.WriteLine();
+                                                "):" + DemoScanner.CurrentTimeString + ((cdframeFov == ClientFov) ? "[BY SERVER ???]" : ""));
+
                                             FovHackDetected += 1;
                                         }
 
@@ -2788,13 +2713,7 @@ namespace VolvoWrench.DG
                                     if (DemoScanner.NeedDetectThirdPersonHack)
                                     {
                                         DemoScanner.NeedDetectThirdPersonHack = false;
-                                        TextComments.WriteLine(
-                                            "Detected [THIRD PERSON HACK] on (" +
-                                            CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                        AddViewDemoHelperComment(
-                                            "Detected [THIRD PERSON HACK]. Weapon:" +
-                                            CurrentWeapon);
-                                        Console.WriteLine(
+                                        DemoScanner_AddWarn(
                                             "Detected [THIRD PERSON HACK] on (" +
                                             CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                         ThirdHackDetected += 1;
@@ -2854,34 +2773,16 @@ namespace VolvoWrench.DG
                                     {
                                         if (CurrentTime - AimType8WarnTime < 0.350f)
                                         {
-                                            var tmpcol = Console.ForegroundColor;
-                                            Console.ForegroundColor = ConsoleColor.Gray;
-                                            TextComments.WriteLine(
+                                            DemoScanner_AddWarn(
                                                 "WARN [AIM TYPE 8.1] on (" + AimType8WarnTime +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)");
-                                            AddViewDemoHelperComment(
-                                                "WARN [AIM TYPE 8.1] ???. Weapon:" +
-                                                CurrentWeapon, 0.75f);
-                                            Console.WriteLine(
-                                                "WARN [AIM TYPE 8.1] on (" + AimType8WarnTime +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)");
-                                            Console.ForegroundColor = tmpcol;
+                                                "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                             AimType8WarnTime = 0.0f;
                                         }
                                         else if (CurrentTime - AimType8WarnTime2 < 0.350f)
                                         {
-                                            var tmpcol = Console.ForegroundColor;
-                                            Console.ForegroundColor = ConsoleColor.Gray;
-                                            TextComments.WriteLine(
+                                            DemoScanner_AddWarn(
                                                 "DETECTED [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)");
-                                            AddViewDemoHelperComment(
-                                                "DETECTED [AIM TYPE 8.2] ???. Weapon:" +
-                                                CurrentWeapon, 0.75f);
-                                            Console.WriteLine(
-                                                "DETECTED [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)");
-                                            Console.ForegroundColor = tmpcol;
+                                                "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                             AimType8WarnTime2 = 0.0f;
                                         }
                                     }
@@ -2903,19 +2804,9 @@ namespace VolvoWrench.DG
                                                 if (DemoScanner.NoSpreadDetectionTime != CurrentTime && spreadtest > MAX_SPREAD_CONST && !DemoScanner.GameEnd)
                                                 {
                                                     DemoScanner.NoSpreadDetectionTime = CurrentTime;
-                                                    //Console.WriteLine(spreadtest.ToString("F8"));
-                                                    var tmpcol = Console.ForegroundColor;
-                                                    Console.ForegroundColor = ConsoleColor.Gray;
-                                                    TextComments.WriteLine(
+                                                    DemoScanner_AddWarn(
                                                         "Detected [NOSPREAD TYPE 1] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [NOSPREAD TYPE 1]. Weapon:" +
-                                                        CurrentWeapon + " (???)");
-                                                    Console.WriteLine(
-                                                        "Detected [NOSPREAD TYPE 1] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    Console.ForegroundColor = tmpcol;
+                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                 }
                                             }
 
@@ -2950,18 +2841,9 @@ namespace VolvoWrench.DG
                                                 if (DemoScanner.NoSpreadDetectionTime != CurrentTime && spreadtest2 > MAX_SPREAD_CONST2 && !DemoScanner.GameEnd)
                                                 {
                                                     DemoScanner.NoSpreadDetectionTime = CurrentTime;
-                                                    var tmpcol = Console.ForegroundColor;
-                                                    Console.ForegroundColor = ConsoleColor.Gray;
-                                                    TextComments.WriteLine(
+                                                    DemoScanner_AddWarn(
                                                         "Detected [NOSPREAD TYPE 2] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [NOSPREAD TYPE 2]. Weapon:" +
-                                                        CurrentWeapon + " (???)");
-                                                    Console.WriteLine(
-                                                        "Detected [NOSPREAD TYPE 2] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    Console.ForegroundColor = tmpcol;
+                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                 }
                                             }
 
@@ -3042,23 +2924,13 @@ namespace VolvoWrench.DG
 
                                             if (LastTimeOut != 1 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
                                             {
-                                                var tmpcol = Console.ForegroundColor;
-                                                Console.ForegroundColor = ConsoleColor.Gray;
-                                                TextComments.WriteLine(
-                                                        "Detected [TIMESHIFT] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "Detected [TIMESHIFT]. Weapon:" +
-                                                    CurrentWeapon);
-                                                Console.WriteLine(
+
+                                                DemoScanner_AddWarn(
                                                     "Detected [TIMESHIFT] on (" + DemoStartTime + "):"
                                                     + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
-
-                                                    DemoScanner.CurrentTimeString);
+                                                    DemoScanner.CurrentTimeString, false);
                                                 LastTimeOut = 1;
 
-
-                                                Console.ForegroundColor = tmpcol;
                                             }
                                         }
                                         if (CurrentTime - PreviewTime > DemoScanner.MaximumTimeBetweenFrames)
@@ -3090,24 +2962,11 @@ namespace VolvoWrench.DG
                                                     DemoScanner.TimeShiftCount += 1;
                                                     if (LastTimeOut != 2 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
-                                                        var tmpcol = Console.ForegroundColor;
-                                                        Console.ForegroundColor = ConsoleColor.Gray;
-                                                        //Console.WriteLine("1 " + DemoScanner.LossPackets);
-                                                        //Console.WriteLine("2 " + DemoScanner.ChokePackets);
-                                                        //Console.WriteLine("3 " + DemoScanner.TimeShiftCount);
-                                                        TextComments.WriteLine(
-                                                       "Detected [TIMESHIFT 2] on (" +
-                                                       CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                                        AddViewDemoHelperComment(
-                                                            "Detected [TIMESHIFT 2]. Weapon:" +
-                                                            CurrentWeapon);
-                                                        Console.WriteLine(
+                                                        DemoScanner_AddWarn(
                                                             "Detected [TIMESHIFT 2] on (" + DemoStartTime + "):"
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
-                                                            DemoScanner.CurrentTimeString);
+                                                            DemoScanner.CurrentTimeString, false);
                                                         LastTimeOut = 2;
-
-                                                        Console.ForegroundColor = tmpcol;
                                                     }
                                                 }
                                                 //Console.WriteLine("Second.");
@@ -3121,21 +2980,11 @@ namespace VolvoWrench.DG
                                                     DemoScanner.TimeShiftCount += 1;
                                                     if (LastTimeOut != 3 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
-                                                        var tmpcol = Console.ForegroundColor;
-                                                        Console.ForegroundColor = ConsoleColor.Gray;
-                                                        TextComments.WriteLine(
-                                                          "Detected [TIMESHIFT 3] on (" +
-                                                          CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                                        AddViewDemoHelperComment(
-                                                            "Detected [TIMESHIFT 3]. Weapon:" +
-                                                            CurrentWeapon);
-                                                        Console.WriteLine(
+                                                        DemoScanner_AddWarn(
                                                             "Detected [TIMESHIFT 3] on (" + DemoStartTime + "):"
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
-                                                            DemoScanner.CurrentTimeString);
+                                                            DemoScanner.CurrentTimeString, false);
                                                         LastTimeOut = 3;
-
-                                                        Console.ForegroundColor = tmpcol;
                                                     }
                                                 }
 
@@ -3167,13 +3016,7 @@ namespace VolvoWrench.DG
                                                 if (CurrentFrameLerp == LerpBeforeAttack &&
                                                     RealAlive && FirstAttack)
                                                 {
-                                                    TextComments.WriteLine(
-                                                        "Detected [AIM TYPE 4] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [AIM TYPE 4]. Weapon:" +
-                                                        CurrentWeapon);
-                                                    Console.WriteLine(
+                                                    DemoScanner_AddWarn(
                                                         "Detected [AIM TYPE 4] on (" +
                                                         CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                                     SilentAimDetected++;
@@ -3232,29 +3075,14 @@ namespace VolvoWrench.DG
                                                     SilentAimDetected <= 1 &&
                                                     JumpHackCount <= 1)
                                                 {
-                                                    var tmpcol = Console.ForegroundColor;
-                                                    Console.ForegroundColor = ConsoleColor.Gray;
-                                                    TextComments.WriteLine(
+                                                    DemoScanner_AddWarn(
                                                         "Detected [AIM TYPE 3] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [AIM TYPE 3]. Weapon:" +
-                                                        CurrentWeapon + " (???)");
-                                                    Console.WriteLine(
-                                                        "Detected [AIM TYPE 3] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                    Console.ForegroundColor = tmpcol;
+                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                     maxfalsepositiveaim3--;
                                                 }
                                                 else if (!IsTeleportus())
                                                 {
-                                                    TextComments.WriteLine(
-                                                        "Detected [AIM TYPE 3] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [AIM TYPE 3]. Weapon:" +
-                                                        CurrentWeapon);
-                                                    Console.WriteLine(
+                                                    DemoScanner_AddWarn(
                                                         "Detected [AIM TYPE 3] on (" +
                                                         CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                                     SilentAimDetected++;
@@ -3309,12 +3137,7 @@ namespace VolvoWrench.DG
                                                     if (CurrentTime - LastJumpHackTime > 2.5
                                                         && !IsTeleportus())
                                                     {
-                                                        AddViewDemoHelperComment(
-                                                            "Detected [JUMPHACK] jump.", 1.00f);
-                                                        TextComments.WriteLine(
-                                                            "Detected [JUMPHACK] jump on (" +
-                                                            CurrentTime + ") " + DemoScanner.CurrentTimeString);
-                                                        Console.WriteLine(
+                                                        DemoScanner_AddWarn(
                                                             "Detected [JUMPHACK] jump on (" +
                                                             CurrentTime + ") " + DemoScanner.CurrentTimeString);
 
@@ -3329,20 +3152,27 @@ namespace VolvoWrench.DG
                                                     if (CurrentTime - LastJumpHackTime > 2.5
                                                         && !IsTeleportus())
                                                     {
-                                                        var tmpcol = Console.ForegroundColor;
-                                                        Console.ForegroundColor = ConsoleColor.Gray;
-                                                        AddViewDemoHelperComment(
-                                                            "Detected [JUMPHACK] jump.", 1.00f);
-                                                        TextComments.WriteLine(
-                                                            "Detected [JUMPHACK] jump on (" +
-                                                            CurrentTime + ") " + DemoScanner.CurrentTimeString);
-                                                        Console.WriteLine(
-                                                            "Detected [JUMPHACK] jump on (" +
-                                                            CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                                                        DemoScanner_AddWarn(
+                                                             "Detected (???) [JUMPHACK] jump at (" +
+                                                             CurrentTime + ") " + DemoScanner.CurrentTimeString, false);
 
                                                         LastJumpHackTime = CurrentTime;
                                                         JumpHackCount++;
-                                                        Console.ForegroundColor = tmpcol;
+                                                    }
+                                                }
+                                                else if (CurrentTime - LastUnJumpTime > 0.3 &&
+                                                   CurrentTime - LastJumpTime > 0.3 &&
+                                                   FirstJump)
+                                                {
+                                                    if (CurrentTime - LastJumpHackTime > 2.5
+                                                        && !IsTeleportus())
+                                                    {
+                                                        DemoScanner_AddWarn(
+                                                            "WARN (???) [JUMPHACK] jump at (" +
+                                                            CurrentTime + ") " + DemoScanner.CurrentTimeString, false, false);
+
+                                                        LastJumpHackTime = CurrentTime;
+                                                        JumpHackCount++;
                                                     }
                                                 }
                                             }
@@ -3519,7 +3349,7 @@ namespace VolvoWrench.DG
                                         CurrentTime - LastUseTime > 60)
                                     {
                                         DemoScannerBypassDetected = true;
-                                        Console.WriteLine("Detected [DEMO SCANER BYPASS] ??? " + CurrentTimeString);
+                                        DemoScanner_AddWarn("Detected [DEMO SCANER BYPASS] ??? " + CurrentTimeString, false, false);
                                     }
                                 }
 
@@ -3666,28 +3496,13 @@ namespace VolvoWrench.DG
                                             if (ReallyAim2 == 2 && SilentAimDetected < 2 &&
                                                 BadAttackCount < 2)
                                             {
-                                                var tmpcol = Console.ForegroundColor;
-                                                Console.ForegroundColor = ConsoleColor.Gray;
-                                                TextComments.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [AIM TYPE 2] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 2] ???. Weapon:" +
-                                                    CurrentWeapon, 0.75f);
-                                                Console.WriteLine(
-                                                    "Detected [AIM TYPE 2] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                Console.ForegroundColor = tmpcol;
+                                                    "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                             }
                                             else if (!IsTeleportus())
                                             {
-                                                TextComments.WriteLine(
-                                                    "Detected [AIM TYPE 2] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 2]. Weapon:" +
-                                                    CurrentWeapon);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [AIM TYPE 2] on (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
@@ -3739,13 +3554,7 @@ namespace VolvoWrench.DG
                                         }
                                         else
                                         {
-                                            TextComments.WriteLine(
-                                                "Detected [TRIGGER BOT] on (" + CurrentTime +
-                                                ") " + DemoScanner.CurrentTimeString);
-                                            AddViewDemoHelperComment(
-                                                "Detected [TRIGGER BOT]. Weapon:" +
-                                                CurrentWeapon);
-                                            Console.WriteLine(
+                                            DemoScanner_AddWarn(
                                                 "Detected [TRIGGER BOT] on (" + CurrentTime +
                                                 ") " + DemoScanner.CurrentTimeString);
 
@@ -3799,57 +3608,32 @@ namespace VolvoWrench.DG
                                         {
                                             if ((SilentAimDetected > 0 || JumpHackCount > 0) && !IsTeleportus())
                                             {
-                                                TextComments.WriteLine(
-                                                    "Detected [AIM TYPE 1] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString);
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 1]. Weapon:" +
-                                                    CurrentWeapon, 0.75f);
-                                                Console.WriteLine(
+                                                DemoScanner_AddWarn(
                                                     "Detected [AIM TYPE 1] on (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
                                             }
                                             else
                                             {
-                                                var tmpcol = Console.ForegroundColor;
-                                                Console.ForegroundColor = ConsoleColor.Gray;
-                                                TextComments.WriteLine(
-                                                    "Detected [AIM TYPE 1] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                AddViewDemoHelperComment(
-                                                    "Detected [AIM TYPE 1] ???. Weapon:" +
-                                                    CurrentWeapon, 0.75f);
-                                                Console.WriteLine(
-                                                    "Detected [AIM TYPE 1] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)");
-                                                Console.ForegroundColor = tmpcol;
+                                                DemoScanner_AddWarn(
+                                                     "Detected [AIM TYPE 1] on (" + CurrentTime +
+                                                     "):" + DemoScanner.CurrentTimeString + " (???)", false, false);
                                             }
-
-                                            // FirstAttack = false;
                                         }
                                     }
                                     else
                                     {
                                         if (FirstAttack && !IsTeleportus())
                                         {
-                                            TextComments.WriteLine(
-                                                "Detected [AIM TYPE 1] on (" + CurrentTime +
-                                                "):" + DemoScanner.CurrentTimeString);
-                                            AddViewDemoHelperComment(
-                                                "Detected [AIM TYPE 1]. Weapon:" +
-                                                CurrentWeapon);
-                                            Console.WriteLine(
+                                            DemoScanner_AddWarn(
                                                 "Detected [AIM TYPE 1] on (" + CurrentTime +
                                                 "):" + DemoScanner.CurrentTimeString);
                                             SilentAimDetected++;
-                                            //FirstAttack = false;
                                         }
                                     }
 
                                     LastSilentAim = CurrentTime;
                                 }
-                                //File.AppendAllText("bug.log",CurrentFrameAttacked.ToString() + "\n");
 
                                 if (AttackCheck > -1)
                                 {
