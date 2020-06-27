@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.41.fix1";
+        public const string PROGRAMVERSION = "1.42";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -665,10 +665,7 @@ namespace VolvoWrench.DG
                     if (IsUserAlive() && CurrentTime != 0.0 &&
                         (CurrentTime - IsAttackLastTime < 0.05) & (IsAttackLastTime != CurrentTime))
                     {
-                        var tmpcolor = Console.ForegroundColor;
-                        Console.ForegroundColor = ConsoleColor.Gray;
                         AttackErrors++;
-                        Console.ForegroundColor = tmpcolor;
                     }
 
                     NeedSearchAim2 = false;
@@ -1835,9 +1832,6 @@ namespace VolvoWrench.DG
                                                 {
                                                     if (AimType7Event == 4 && DemoScanner.Aim73FalseSkip < 0)
                                                     {
-                                                        var tmpcol = Console.ForegroundColor;
-                                                        Console.ForegroundColor = ConsoleColor.Gray;
-
                                                         var tmpangle2 =
                                                             AngleBetween(
                                                                     Aim8CurrentFrameViewanglesX, CurrentFrameViewanglesX);
@@ -1854,9 +1848,6 @@ namespace VolvoWrench.DG
                                                     }
                                                     else if (AimType7Event != 4)
                                                     {
-                                                        var tmpcol = Console.ForegroundColor;
-                                                        Console.ForegroundColor = ConsoleColor.Gray;
-
                                                         var tmpangle2 =
                                                             AngleBetween(
                                                                     Aim8CurrentFrameViewanglesX, CurrentFrameViewanglesX);
@@ -1879,9 +1870,6 @@ namespace VolvoWrench.DG
                                                     CurrentFrameViewanglesX*/)
                                             {
                                                 AimType7Event += 10;
-                                                var tmpcol = Console.ForegroundColor;
-                                                Console.ForegroundColor = ConsoleColor.Gray;
-
                                                 var tmpangle2 =
                                                     AngleBetween(
                                                             Aim8CurrentFrameViewanglesX, CurrentFrameViewanglesX);
