@@ -45,11 +45,13 @@ namespace VolvoWrench.DG
     public static class Program
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.41";
+        public const string PROGRAMVERSION = "1.41.1";
 
         public static bool DEBUG_ENABLED = false;
 
         public static bool NO_TELEPORT = false;
+
+        public static bool DUMP_ALL_FRAMES = false;
 
         public enum WeaponIdType
         {
@@ -95,7 +97,6 @@ namespace VolvoWrench.DG
 
 
         public static List<string> outFrames = null;
-        public static bool DUMP_ALL_FRAMES = false;
 
         public static float CurrentTime = 0.0f;
         public static float CurrentTime2 = 0.0f;
@@ -1114,48 +1115,6 @@ namespace VolvoWrench.DG
             }
 
 
-
-
-            foreach (var arg in args)
-            {
-                if (arg.IndexOf("-debug") > -1)
-                {
-                    Program.DEBUG_ENABLED = true;
-                }
-            }
-
-            foreach (var arg in args)
-            {
-                if (arg.IndexOf("-noteleport") > -1)
-                {
-                    Program.NO_TELEPORT = true;
-                }
-            }
-
-            foreach (var arg in args)
-            {
-                if (arg.IndexOf("-dump") > -1)
-                {
-                    Program.DUMP_ALL_FRAMES = true;
-                }
-            }
-
-            foreach (var arg in args)
-            {
-                if (arg.IndexOf("-alive") > -1)
-                {
-                    Program.CurrentWeapon = WeaponIdType.WEAPON_AK47;
-                    Program.CurrentFrameAlive = true;
-                    Program.PreviewFrameAlive = true;
-                    Program.LastAliveTime = 1.0f;
-                    Program.RealAlive = true;
-                    Program.UserAlive = true;
-                    Program.FirstUserAlive = false;
-                    Console.WriteLine("SCAN WITH FORCE USER ALIVE AT START DEMO!");
-                }
-            }
-
-
             var CurrentDemoFilePath = "";
             var filefound = false;
 
@@ -1166,6 +1125,33 @@ namespace VolvoWrench.DG
                 {
                     filefound = true;
                     break;
+                }
+                else
+                if (arg.IndexOf("-debug") > -1)
+                {
+                    Program.DEBUG_ENABLED = true;
+                }
+                else
+                if (arg.IndexOf("-noteleport") > -1)
+                {
+                    Program.NO_TELEPORT = true;
+                }
+                else
+                if (arg.IndexOf("-dump") > -1)
+                {
+                    Program.DUMP_ALL_FRAMES = true;
+                }
+                else
+                if (arg.IndexOf("-alive") > -1)
+                {
+                    Program.CurrentWeapon = WeaponIdType.WEAPON_AK47;
+                    Program.CurrentFrameAlive = true;
+                    Program.PreviewFrameAlive = true;
+                    Program.LastAliveTime = 1.0f;
+                    Program.RealAlive = true;
+                    Program.UserAlive = true;
+                    Program.FirstUserAlive = false;
+                    Console.WriteLine("SCAN WITH FORCE USER ALIVE AT START DEMO!");
                 }
             }
 
@@ -2679,94 +2665,91 @@ namespace VolvoWrench.DG
                                 // * */
 
                                 // 01 
-                                if (RealAlive)
+                                if (RealAlive && !FoundDublicader)
                                 {
-                                    if (!FoundDublicader)
+                                    if (SearchNextJumpStrike)
                                     {
-                                        if (SearchNextJumpStrike)
+                                        SearchNextJumpStrike = false;
+                                        if (PreviewFrameOnGround && !CurrentFrameOnGround)
                                         {
-                                            SearchNextJumpStrike = false;
-                                            if (PreviewFrameOnGround && !CurrentFrameOnGround)
-                                            {
-                                                CurrentIdealJumpsStrike++;
-                                                if (CurrentIdealJumpsStrike > MaxIdealJumps)
-                                                {
-                                                    CurrentIdealJumpsStrike = 0;
-                                                    Console.WriteLine("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
-                                                }
-                                                if (Program.DEBUG_ENABLED)
-                                                    Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
-                                            }
-                                            else
+                                            CurrentIdealJumpsStrike++;
+                                            if (CurrentIdealJumpsStrike > MaxIdealJumps)
                                             {
                                                 CurrentIdealJumpsStrike = 0;
+                                                Console.WriteLine("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
                                             }
+                                            if (Program.DEBUG_ENABLED)
+                                                Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
                                         }
                                         else
                                         {
-                                            if (!PreviewFrameOnGround && CurrentFrameOnGround && FramesOnFly > 10)
-                                            {
-                                                SearchNextJumpStrike = true;
-                                            }
+                                            CurrentIdealJumpsStrike = 0;
                                         }
-                                        //    if (CurrentIdealJumpsStrike > 10)
-                                        //    {
-                                        //        CurrentIdealJumpsStrike = 0;
-                                        //        Console.WriteLine("Found ideal jump:" + CurrentTime + ":" + CurrentTimeString);
-                                        //    }
-                                        //    if (!PreviewFrameOnGround && CurrentFrameOnGround)
-                                        //    {
-                                        //        var dublicheck = nf;
-                                        //        bool foundneededframe = false;
-                                        //        for (int n = frameindex + 1;
-                                        //            n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
-                                        //            n++)
-                                        //        {
-                                        //            if (foundneededframe)
-                                        //            {
-                                        //                break;
-                                        //            }
-                                        //            var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
-                                        //            switch (tmpframe.Key.Type)
-                                        //            {
-                                        //                case GoldSource.DemoFrameType.DemoStart:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.ConsoleCommand:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.ClientData:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.NextSection:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.Event:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.WeaponAnim:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.Sound:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.DemoBuffer:
-                                        //                    break;
-                                        //                case GoldSource.DemoFrameType.NetMsg:
-                                        //                default:
-                                        //                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                        //                    if (tmpnetmsgframe1 != nf)
-                                        //                    {
-                                        //                        dublicheck = tmpnetmsgframe1;
-                                        //                        foundneededframe = true;
-                                        //                        if (tmpnetmsgframe1.RParms.Onground == 0)
-                                        //                        {
-                                        //                            CurrentIdealJumpsStrike++;
-                                        //                        }
-                                        //                        else
-                                        //                        {
-                                        //                            CurrentIdealJumpsStrike = 0;
-                                        //                        }
-                                        //                    }
-                                        //                    break;
-                                        //            }
-                                        //        }
-                                        //    }
-                                        //}
                                     }
+                                    else
+                                    {
+                                        if (!PreviewFrameOnGround && CurrentFrameOnGround && FramesOnFly > 10)
+                                        {
+                                            SearchNextJumpStrike = true;
+                                        }
+                                    }
+                                    //    if (CurrentIdealJumpsStrike > 10)
+                                    //    {
+                                    //        CurrentIdealJumpsStrike = 0;
+                                    //        Console.WriteLine("Found ideal jump:" + CurrentTime + ":" + CurrentTimeString);
+                                    //    }
+                                    //    if (!PreviewFrameOnGround && CurrentFrameOnGround)
+                                    //    {
+                                    //        var dublicheck = nf;
+                                    //        bool foundneededframe = false;
+                                    //        for (int n = frameindex + 1;
+                                    //            n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
+                                    //            n++)
+                                    //        {
+                                    //            if (foundneededframe)
+                                    //            {
+                                    //                break;
+                                    //            }
+                                    //            var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
+                                    //            switch (tmpframe.Key.Type)
+                                    //            {
+                                    //                case GoldSource.DemoFrameType.DemoStart:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.ConsoleCommand:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.ClientData:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.NextSection:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.Event:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.WeaponAnim:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.Sound:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.DemoBuffer:
+                                    //                    break;
+                                    //                case GoldSource.DemoFrameType.NetMsg:
+                                    //                default:
+                                    //                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
+                                    //                    if (tmpnetmsgframe1 != nf)
+                                    //                    {
+                                    //                        dublicheck = tmpnetmsgframe1;
+                                    //                        foundneededframe = true;
+                                    //                        if (tmpnetmsgframe1.RParms.Onground == 0)
+                                    //                        {
+                                    //                            CurrentIdealJumpsStrike++;
+                                    //                        }
+                                    //                        else
+                                    //                        {
+                                    //                            CurrentIdealJumpsStrike = 0;
+                                    //                        }
+                                    //                    }
+                                    //                    break;
+                                    //            }
+                                    //        }
+                                    //    }
+                                    //}
                                 }
                                 else
                                 {
@@ -3069,7 +3052,7 @@ namespace VolvoWrench.DG
                                                     Program.CurrentTimeString);
                                                 LastTimeOut = 1;
 
-                                                
+
                                                 Console.ForegroundColor = tmpcol;
                                             }
                                         }
@@ -3299,7 +3282,7 @@ namespace VolvoWrench.DG
 
                                 if (CurrentTime != 0.0f && RealAlive)
                                 {
-                                    if (IsJump && FirstJump ||
+                                    if ((IsJump && FirstJump) ||
                                         CurrentTime - LastUnJumpTime < 0.5) JumpHackCount2 = 0;
 
                                     if (!CurrentFrameJumped && !FirstJump)
@@ -3309,33 +3292,43 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                     {
-                                        if (FirstJump && !IsJump && JumpHackCount2 > 0)
+                                        if (FirstJump && !IsJump)
                                         {
-                                            JumpHackCount2 = 0;
-                                            if (CurrentTime - LastUnJumpTime > 0.5 &&
-                                                FirstJump)
+                                            if (JumpHackCount2 > 0)
                                             {
-                                                if (CurrentTime - LastJumpHackTime > 2.5
-                                                    && !IsTeleportus())
+                                                JumpHackCount2 = 0;
+                                                if (CurrentTime - LastUnJumpTime > 0.5 &&
+                                                    CurrentTime - LastJumpTime > 0.5 &&
+                                                    FirstJump)
                                                 {
-                                                    AddViewDemoHelperComment(
-                                                        "Detected [JUMPHACK] jump.", 1.00f);
-                                                    TextComments.WriteLine(
-                                                        "Detected [JUMPHACK] jump on (" +
-                                                        CurrentTime + ") " + Program.CurrentTimeString);
-                                                    Console.WriteLine(
-                                                        "Detected [JUMPHACK] jump on (" +
-                                                        CurrentTime + ") " + Program.CurrentTimeString);
+                                                    if (CurrentTime - LastJumpHackTime > 2.5
+                                                        && !IsTeleportus())
+                                                    {
+                                                        AddViewDemoHelperComment(
+                                                            "Detected [JUMPHACK] jump.", 1.00f);
+                                                        TextComments.WriteLine(
+                                                            "Detected [JUMPHACK] jump on (" +
+                                                            CurrentTime + ") " + Program.CurrentTimeString);
+                                                        Console.WriteLine(
+                                                            "Detected [JUMPHACK] jump on (" +
+                                                            CurrentTime + ") " + Program.CurrentTimeString);
 
-                                                    LastJumpHackTime = CurrentTime;
-                                                    JumpHackCount++;
+                                                        LastJumpHackTime = CurrentTime;
+                                                        JumpHackCount++;
+                                                    }
                                                 }
                                             }
                                         }
 
                                         if (FirstJump && !IsJump && CurrentFrameJumped)
-                                            if (CurrentTime - LastUnJumpTime > 0.5)
+                                        {
+                                            if (CurrentTime - LastUnJumpTime > 0.5 &&
+                                                    CurrentTime - LastJumpTime > 0.5)
+                                            {
                                                 JumpHackCount2++;
+                                            }
+                                        }
+
                                     }
                                 }
                                 else
