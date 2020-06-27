@@ -3302,8 +3302,8 @@ namespace VolvoWrench.DG
                                             if (JumpHackCount2 > 0)
                                             {
                                                 JumpHackCount2 = 0;
-                                                if (CurrentTime - LastUnJumpTime > 0.5 &&
-                                                    CurrentTime - LastJumpTime > 0.5 &&
+                                                if (CurrentTime - LastUnJumpTime > 1.5 &&
+                                                    CurrentTime - LastJumpTime > 1.5 &&
                                                     FirstJump)
                                                 {
                                                     if (CurrentTime - LastJumpHackTime > 2.5
@@ -3320,6 +3320,29 @@ namespace VolvoWrench.DG
 
                                                         LastJumpHackTime = CurrentTime;
                                                         JumpHackCount++;
+                                                    }
+                                                }
+                                                else if (CurrentTime - LastUnJumpTime > 0.5 &&
+                                                   CurrentTime - LastJumpTime > 0.5 &&
+                                                   FirstJump)
+                                                {
+                                                    if (CurrentTime - LastJumpHackTime > 2.5
+                                                        && !IsTeleportus())
+                                                    {
+                                                        var tmpcol = Console.ForegroundColor;
+                                                        Console.ForegroundColor = ConsoleColor.Gray;
+                                                        AddViewDemoHelperComment(
+                                                            "Detected [JUMPHACK] jump.", 1.00f);
+                                                        TextComments.WriteLine(
+                                                            "Detected [JUMPHACK] jump on (" +
+                                                            CurrentTime + ") " + Program.CurrentTimeString);
+                                                        Console.WriteLine(
+                                                            "Detected [JUMPHACK] jump on (" +
+                                                            CurrentTime + ") " + Program.CurrentTimeString);
+
+                                                        LastJumpHackTime = CurrentTime;
+                                                        JumpHackCount++;
+                                                        Console.ForegroundColor = tmpcol;
                                                     }
                                                 }
                                             }
