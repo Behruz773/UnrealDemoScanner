@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.42";
+        public const string PROGRAMVERSION = "1.43";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -513,6 +513,12 @@ namespace VolvoWrench.DG
                     FirstAttack = true;
                     FrameCrash = 0;
                     attackscounter++;
+
+                    if (DemoScanner.DEBUG_ENABLED)
+                    {
+                        Console.WriteLine("User alive func:" + IsUserAlive() + ". User real alive ? : " + RealAlive + ". Weapon:" + CurrentWeapon);
+                    }
+
                     if (IsUserAlive())
                     {
                         if (AutoAttackStrikes >= 4)
@@ -603,7 +609,8 @@ namespace VolvoWrench.DG
 
                         if (AttackCheck < 0)
                         {
-                            //Console.WriteLine("Check attack start!");
+                            if (DemoScanner.DEBUG_ENABLED)
+                                Console.WriteLine("Attack. Start search aim type 1!");
                             AttackCheck = 1;
                         }
                         Aim2AttackDetected = false;
@@ -1088,6 +1095,13 @@ namespace VolvoWrench.DG
                 val2 = 5;
             }
 
+            if (val1 <= 10)
+            {
+                detect = "WARN";
+                detect2 = "(????)";
+                val1 = 5;
+            }
+
             return detect + " [AIM TYPE 7." + (type - 1) + " MATCH1:" + val1 + "% MATCH2:" +
                    val2 + "% MATCH3:" + val3 + "%]" + detect2;
         }
@@ -1104,10 +1118,9 @@ namespace VolvoWrench.DG
 
         public static string TotalFreewareTool = "[ПОЛНОСТЬЮ БЕСПЛАТНЫЙ] [TOTALLY FREE]";
 
-
-
         public static string SourceCode = "https://github.com/2020karaulov2020/UnrealDemoScanner";
         public static int usagesrccode = 0;
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -1221,14 +1234,38 @@ namespace VolvoWrench.DG
 
             if (!filefound)
             {
-                CurrentDemoFilePath = Console.ReadLine().Replace("\"", "");
+                CurrentDemoFilePath = "Demo.dem";
                 while (!File.Exists(CurrentDemoFilePath))
                 {
-                    Console.WriteLine("File not found! Try again!");
                     CurrentDemoFilePath = Console.ReadLine().Replace("\"", "");
+                    if (CurrentDemoFilePath.IndexOf("-debug") == 0)
+                    {
+                        DemoScanner.DEBUG_ENABLED = true;
+                        Console.WriteLine("Debug mode activated.");
+                    }
+                    else if (CurrentDemoFilePath.IndexOf("-noteleport") == 0)
+                    {
+                        DemoScanner.NO_TELEPORT = true;
+                        Console.WriteLine("Ignore teleport mode activated.");
+                    }
+                    else if (CurrentDemoFilePath.IndexOf("-dump") == 0)
+                    {
+                        DemoScanner.DUMP_ALL_FRAMES = true;
+                        Console.WriteLine("Dump mode activated.");
+                    }
+                    else if (CurrentDemoFilePath.IndexOf("-alive") == 0)
+                    {
+                        DemoScanner.CurrentWeapon = WeaponIdType.WEAPON_AK47;
+                        DemoScanner.CurrentFrameAlive = true;
+                        DemoScanner.PreviewFrameAlive = true;
+                        DemoScanner.LastAliveTime = 1.0f;
+                        DemoScanner.RealAlive = true;
+                        DemoScanner.UserAlive = true;
+                        DemoScanner.FirstUserAlive = false;
+                        Console.WriteLine("SCAN WITH FORCE USER ALIVE AT START DEMO!");
+                    }
                 }
             }
-
 
             if (TotalFreewareTool.Length != 37)
                 return;
@@ -1659,7 +1696,7 @@ namespace VolvoWrench.DG
                                                 {
                                                     DemoScanner_AddWarn(
                                                         "WARN [AIM TYPE 5] on (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString + " (???)",false);
+                                                        "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                     DemoScanner.LastAim5DetectedReal = 0.0f;
                                                     DemoScanner.LastAim5Detected = 0.0f;
                                                 }
@@ -1814,7 +1851,8 @@ namespace VolvoWrench.DG
                                         if (tmpXangle == 0.0 && tmpYangle == 0.0 && AimType7Frames < 20)
                                         {
                                             //Console.WriteLine("5");
-                                            AimType7Frames++;
+                                            if (!FoundDublicader)
+                                                AimType7Frames++;
                                         }
                                         else
                                         {
@@ -1844,7 +1882,7 @@ namespace VolvoWrench.DG
                                                             GetAim7String(OldAimType7Frames,
                                                                 AimType7Frames, AimType7Event,
                                                                 tmpangle2) + " on (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)", false) ;
+                                                            "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                     }
                                                     else if (AimType7Event != 4)
                                                     {
@@ -1855,11 +1893,11 @@ namespace VolvoWrench.DG
                                                             AngleBetween(
                                                                     Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
-                                                       DemoScanner_AddWarn(
-                                                            GetAim7String(OldAimType7Frames,
-                                                                AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " on (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)",false);
+                                                        DemoScanner_AddWarn(
+                                                             GetAim7String(OldAimType7Frames,
+                                                                 AimType7Frames, AimType7Event,
+                                                                 tmpangle2) + " on (" + OldAimType7Time +
+                                                             "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                     }
                                                 }
                                             }
@@ -1882,7 +1920,7 @@ namespace VolvoWrench.DG
                                                     GetAim7String(OldAimType7Frames,
                                                         AimType7Frames, AimType7Event,
                                                         tmpangle2) + " on (" + OldAimType7Time +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)",false);
+                                                    "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                             }
 
                                             AimType7Frames = 0;
@@ -1934,7 +1972,8 @@ namespace VolvoWrench.DG
                                                 CurrentFrameViewanglesY;
                                             Aim8CurrentFrameViewanglesX =
                                                 CurrentFrameViewanglesX;
-                                            AimType7Frames++;
+                                            if (!FoundDublicader)
+                                                AimType7Frames++;
                                         }
                                         // Иначе Если угол изменился и набралось больше 1 таких кадров то вкл поиск аим
                                         else
@@ -2129,9 +2168,9 @@ namespace VolvoWrench.DG
                                 //}
 
 
-                                bool FoundDublicader = false;
-                                // if (nf.RParms.Time != 0.0f && CurrentTime == nf.RParms.Time)
 
+                                // if (nf.RParms.Time != 0.0f && CurrentTime == nf.RParms.Time)
+                                FoundDublicader = false;
                                 if (CurrentTime != 0.0f && nf == PreviewNetMsgFrame)
                                 {
                                     if (DUMP_ALL_FRAMES)
@@ -3633,42 +3672,55 @@ namespace VolvoWrench.DG
                                         CurrentWeapon != WeaponIdType.WEAPON_SMOKEGRENADE
                                         && CurrentWeapon != WeaponIdType.WEAPON_FLASHBANG)
                                     {
-                                        //Console.WriteLine("Check attack:" + AttackCheck + " " + SkipNextAttack + " " + nf.UCmd.Buttons + " " + CurrentTime);
-                                        if (AttackCheck > 0)
+                                        if (!FoundDublicader)
                                         {
-                                            AttackCheck--;
-                                        }
-                                        else
-                                        {
-                                            if (SkipNextAttack <= 0)
+                                            if (DemoScanner.DEBUG_ENABLED)
+                                                Console.WriteLine("Check attack:" + AttackCheck + " " + SkipNextAttack + " " + nf.UCmd.Buttons + " " + CurrentTime);
+
+                                            if (AttackCheck > 0)
                                             {
-                                                //File.AppendAllText("bug.log", "NeedWriteAim" + CurrentTime + " " + IsAttackLastTime + "\n");
-                                                // Console.WriteLine("Aim detected.......");
-                                                NeedWriteAim = true;
+                                                AttackCheck--;
                                             }
-                                            SkipNextAttack = 0;
-                                            AttackCheck--;
+                                            else
+                                            {
+                                                if (SkipNextAttack <= 0)
+                                                {
+                                                    //File.AppendAllText("bug.log", "NeedWriteAim" + CurrentTime + " " + IsAttackLastTime + "\n");
+                                                    if (DemoScanner.DEBUG_ENABLED)
+                                                    {
+                                                        Console.WriteLine("Aim detected?... Teleport:" + IsTeleportus() + ". Alive:" + IsUserAlive());
+                                                    }
+
+                                                    NeedWriteAim = true;
+                                                    AttackCheck--;
+                                                }
+                                                SkipNextAttack = 0;
+                                            }
                                         }
                                     }
                                     else
                                     {
                                         AttackCheck = -1;
-                                        //    if (AttackCheck != -2)
-                                        //    {
-                                        //        //if (DemoScanner.SelectSlot > 0)
-                                        //        //    Console.WriteLine("select slot...");
-                                        //        //if (!DemoScanner.IsAttack)
-                                        //        //    Console.WriteLine("not in attack...");
-                                        //        //if (!DemoScanner.UserAlive)
-                                        //        //    Console.WriteLine("user invalid blya...");
-                                        //        //if (IsReload)
-                                        //        //    Console.WriteLine("in reload...");
-                                        //        //if ((nf.UCmd.Buttons & 1) > 0)
-                                        //        //    Console.WriteLine("not attack...");
-                                        //        //Console.WriteLine("Weapon:" + CurrentWeapon.ToString());
-                                        //        //Console.WriteLine("Don't check attack!");
-                                        //        AttackCheck = -2;
-                                        //    }
+                                        if (DemoScanner.DEBUG_ENABLED)
+                                        {
+                                            Console.WriteLine("Stop search aim type 1.");
+                                        }
+                                        //if (AttackCheck != -2)
+                                        //{
+                                        //    //if (DemoScanner.SelectSlot > 0)
+                                        //    //    Console.WriteLine("select slot...");
+                                        //    //if (!DemoScanner.IsAttack)
+                                        //    //    Console.WriteLine("not in attack...");
+                                        //    //if (!DemoScanner.UserAlive)
+                                        //    //    Console.WriteLine("user invalid blya...");
+                                        //    //if (IsReload)
+                                        //    //    Console.WriteLine("in reload...");
+                                        //    //if ((nf.UCmd.Buttons & 1) > 0)
+                                        //    //    Console.WriteLine("not attack...");
+                                        //    //Console.WriteLine("Weapon:" + CurrentWeapon.ToString());
+                                        //    //Console.WriteLine("Don't check attack!");
+                                        //    AttackCheck = -2;
+                                        //}
                                     }
                                 }
 
@@ -3812,7 +3864,7 @@ namespace VolvoWrench.DG
 
             try
             {
-                if (File.Exists("Frames.log") && DemoScanner.DUMP_ALL_FRAMES)
+                if (File.Exists("Frames.log") || DemoScanner.DUMP_ALL_FRAMES)
                     File.WriteAllLines("Frames.log", outFrames.ToArray());
             }
             catch
@@ -4478,6 +4530,7 @@ namespace VolvoWrench.DG
         public static int BHOP_JumpWarn = 0;
         public static int BHOP_GroundSearchDirection = 0;
         public static float LastBhopTime = 0.0f;
+        public static bool FoundDublicader = false;
 
         public static bool IsTeleportus()
         {
@@ -7725,6 +7778,8 @@ namespace VolvoWrench.DG
                                         var reloadstatus = value != null ? (uint)value : 0;
                                         if (reloadstatus > 0)
                                         {
+                                            if (DemoScanner.DEBUG_ENABLED)
+                                                Console.WriteLine("User reload weapon");
                                             //Console.WriteLine("-attack4");
                                             //if (!DemoScanner.CurrentFrameAttacked)
                                             //    DemoScanner.IsAttack = false;
