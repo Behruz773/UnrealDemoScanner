@@ -20,14 +20,23 @@ Command line:
 '-dump' - dump all demo to readable text format
 
 
-Detections description:
+**Detections description:**
+
 
 AIM TYPE 1 - Attack delay
+
 AIM TYPE 2 - Autoattack
+
 AIM TYPE 3 - (Disabled for rewrite)
+
 AIM TYPE 4 - Fake lag
+
 AIM TYPE 5 - Smooth angles/etc
+
 AIM TYPE 6 - HPP Autoattack
+
 AIM TYPE 7 - HPP Trigger bot
+
 AIM TYPE 8 - Universal AIMBOT detection
+
 TRIGGER BOT - OLD AIM / TRIGGER HACK
