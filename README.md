@@ -3,7 +3,7 @@ Unreal Demo Scanner for CS 1.6
 
 ClearDemos/ClearDemos2 - for test false detections before adding it to code. This directory contain only clear demos ( without using hacks )
 
-CheatDemos - only cheat demos.
+CheatDemos/CheatDemos2 - Demos with AIM/BHOP/etc
 
 Main code:
 https://github.com/2020karaulov2020/UnrealDemoScanner/blob/DemoScanner/VolvoWrench/UnrealDemoScanner.cs 
@@ -19,4 +19,15 @@ Command line:
 
 '-dump' - dump all demo to readable text format
 
+
+Detections description:
+
+AIM TYPE 1 - Attack delay
+AIM TYPE 2 - Autoattack
+AIM TYPE 3 - (Disabled for rewrite)
+AIM TYPE 4 - Fake lag
+AIM TYPE 5 - Smooth angles/etc
+AIM TYPE 6 - HPP Autoattack
+AIM TYPE 7 - HPP Trigger bot
+AIM TYPE 8 - Universal AIMBOT detection
 

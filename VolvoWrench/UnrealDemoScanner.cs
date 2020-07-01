@@ -164,7 +164,7 @@ namespace VolvoWrench.DG
         public static string CurrentTimeString = "";
         public static double PreviewFramePunchangleZ = 0.0;
 
-        public static bool NeedSearchViewAnglesAfterAttack = false;
+        public static int NeedSearchViewAnglesAfterAttack = 0;
 
         public static double ViewanglesXAfterAttack = 0.0;
         public static double ViewanglesYAfterAttack = 0.0;
@@ -594,11 +594,9 @@ namespace VolvoWrench.DG
 
                         ViewanglesXBeforeBeforeAttack = PreviewFrameViewanglesX;
                         ViewanglesYBeforeBeforeAttack = PreviewFrameViewanglesY;
-                        ViewanglesXBeforeAttack = CurrentFrameViewanglesX;
-                        ViewanglesYBeforeAttack = CurrentFrameViewanglesY;
                         //Console.WriteLine("ViewanglesXBeforeAttack:" + ViewanglesXBeforeAttack);
                         //Console.WriteLine("ViewanglesYBeforeAttack:" + ViewanglesYBeforeAttack);
-                        NeedSearchViewAnglesAfterAttack = true;
+                        NeedSearchViewAnglesAfterAttack++;
                         LerpBeforeAttack = CurrentFrameLerp;
                         NeedDetectLerpAfterAttack = true;
                         if (IsAttack)
@@ -621,7 +619,7 @@ namespace VolvoWrench.DG
                     else
                     {
                         AutoAttackStrikes = 0;
-                        NeedSearchViewAnglesAfterAttack = false;
+                        NeedSearchViewAnglesAfterAttack = 0;
                         Aim2AttackDetected = false;
                         NeedSearchAim2 = false;
                         IsAttack = true;
@@ -664,10 +662,8 @@ namespace VolvoWrench.DG
                         LerpBeforeStopAttack = CurrentFrameLerp;
                         LerpSearchFramesCount = 9;
                     }
-                    else
-                    {
-                        NeedSearchViewAnglesAfterAttack = false;
-                    }
+
+                    NeedSearchViewAnglesAfterAttack = 0;
 
                     if (IsUserAlive() && CurrentTime != 0.0 &&
                         (CurrentTime - IsAttackLastTime < 0.05) & (IsAttackLastTime != CurrentTime))
@@ -3044,15 +3040,21 @@ namespace VolvoWrench.DG
                                                     RealAlive && FirstAttack)
                                                 {
                                                     DemoScanner_AddWarn(
-                                                        "Detected [AIM TYPE 4] on (" +
+                                                        "Detected [AIM TYPE 4] AIM TYPE 3on (" +
                                                         CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                                     SilentAimDetected++;
                                                 }
                                 }
 
-
-
-                                if (NeedSearchViewAnglesAfterAttack && IsAttack &&
+                                if (NeedSearchViewAnglesAfterAttack == 1)
+                                {
+                                    ViewanglesXBeforeAttack = CurrentFrameViewanglesX;
+                                    //ViewanglesYBeforeAttack = CurrentFrameViewanglesY;
+                                    //Console.WriteLine("Aim3 0:" + ViewanglesXBeforeBeforeAttack + ":" + ViewanglesYBeforeBeforeAttack);
+                                    //Console.WriteLine("Aim3 1:" + ViewanglesXBeforeAttack + ":" + ViewanglesYBeforeAttack);
+                                    NeedSearchViewAnglesAfterAttack++;
+                                }
+                                else if (NeedSearchViewAnglesAfterAttack == 2 && IsAttack &&
                                     RealAlive)
                                 {
                                     if (CurrentWeapon == WeaponIdType.WEAPON_KNIFE
@@ -3064,11 +3066,11 @@ namespace VolvoWrench.DG
                                         || CurrentWeapon == WeaponIdType.WEAPON_BAD
                                         || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
                                     {
-                                        //fixyou
+                                       
                                     }
-                                    else if (CurrentFrameAttacked)
+                                    else if (CurrentFrameAttacked && !FoundDublicader)
                                     {
-                                        NeedSearchViewAnglesAfterAttack = false;
+                                        NeedSearchViewAnglesAfterAttack = 0;
                                         ViewanglesXAfterAttack = CurrentFrameViewanglesX;
                                         ViewanglesYAfterAttack = CurrentFrameViewanglesY;
                                         //Console.WriteLine("ViewanglesXAfterAttack:" + ViewanglesXAfterAttack);
@@ -3078,42 +3080,55 @@ namespace VolvoWrench.DG
                                 }
                                 else
                                 {
-                                    NeedSearchViewAnglesAfterAttack = false;
-                                    if (NeedSearchViewAnglesAfterAttackNext && RealAlive &&
-                                        IsAttack)
+                                    if (!FoundDublicader)
                                     {
+                                        NeedSearchViewAnglesAfterAttack = 0;
+                                        if (NeedSearchViewAnglesAfterAttackNext && RealAlive &&
+                                            IsAttack)
                                         {
                                             NeedSearchViewAnglesAfterAttackNext = false;
                                             ViewanglesXAfterAttackNext =
                                                 CurrentFrameViewanglesX;
                                             ViewanglesYAfterAttackNext =
                                                 CurrentFrameViewanglesY;
-                                            if (ViewanglesXBeforeAttack !=
-                                                ViewanglesXAfterAttack &&
-                                                ViewanglesYBeforeAttack !=
-                                                ViewanglesYAfterAttack &&
-                                                ViewanglesXBeforeAttack ==
-                                                ViewanglesXAfterAttackNext &&
-                                                ViewanglesYBeforeAttack ==
-                                                ViewanglesYAfterAttackNext
+
+                                            if (ViewanglesXBeforeBeforeAttack == ViewanglesXAfterAttack &&
+                                                ViewanglesYBeforeBeforeAttack == ViewanglesYAfterAttack &&
+
+                                                ViewanglesXBeforeBeforeAttack == ViewanglesXAfterAttackNext &&
+                                                ViewanglesYBeforeBeforeAttack == ViewanglesYAfterAttackNext &&
+
+
+                                                (ViewanglesXBeforeBeforeAttack != ViewanglesXBeforeAttack &&
+                                                ViewanglesYBeforeBeforeAttack != ViewanglesYBeforeAttack)
+
                                             )
                                             {
-                                                if (maxfalsepositiveaim3 > 0 &&
-                                                    SilentAimDetected <= 1 &&
-                                                    JumpHackCount <= 1)
-                                                {
-                                                    DemoScanner_AddWarn(
-                                                        "Detected [AIM TYPE 3] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
-                                                    maxfalsepositiveaim3--;
-                                                }
-                                                else if (!IsTeleportus())
-                                                {
-                                                    DemoScanner_AddWarn(
-                                                        "Detected [AIM TYPE 3] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString);
-                                                    SilentAimDetected++;
-                                                }
+                                                //DemoScanner_AddWarn(
+                                                //      "Warn [AIM TYPE 3] on (" +
+                                                //      CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                //if (maxfalsepositiveaim3 > 0 &&
+                                                //    SilentAimDetected <= 1 &&
+                                                //    JumpHackCount <= 1)
+                                                //{
+                                                //    DemoScanner_AddWarn(
+                                                //        "Detected [AIM TYPE 3] on (" +
+                                                //        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                //    maxfalsepositiveaim3--;
+                                                //}
+                                                //else if (!IsTeleportus())
+                                                //{
+                                                //    DemoScanner_AddWarn(
+                                                //        "Detected [AIM TYPE 3] on (" +
+                                                //        CurrentTime + "):" + DemoScanner.CurrentTimeString);
+                                                //    SilentAimDetected++;
+                                                //}
+                                                //else
+                                                //{
+                                                //    DemoScanner_AddWarn(
+                                                //        "Detected [AIM TYPE 3] on (" +
+                                                //        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                //}
                                             }
                                             else if (ViewanglesXBeforeAttack !=
                                                      ViewanglesXAfterAttack &&
@@ -3132,10 +3147,10 @@ namespace VolvoWrench.DG
                                                 //Console.ForegroundColor = tmpcol;
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        NeedSearchViewAnglesAfterAttackNext = false;
+                                        else
+                                        {
+                                            NeedSearchViewAnglesAfterAttackNext = false;
+                                        }
                                     }
                                 }
 
@@ -3936,6 +3951,11 @@ namespace VolvoWrench.DG
                     JumpHackCount /*+ ". Found " + JumpCount + " +jump commands*/);
             }
 
+            if (UnknownMessages > 0)
+            {
+                TextComments.WriteLine("Warning. Unknown messages detected. Detect count:" + UnknownMessages);
+                Console.WriteLine("Warning. Unknown messages detected. Detect count:" + UnknownMessages);
+            }
 
             //if (FrameDuplicates > 0)
             //{
@@ -4531,6 +4551,7 @@ namespace VolvoWrench.DG
         public static int BHOP_GroundSearchDirection = 0;
         public static float LastBhopTime = 0.0f;
         public static bool FoundDublicader = false;
+        public static int UnknownMessages = 0;
 
         public static bool IsTeleportus()
         {
@@ -5498,7 +5519,7 @@ namespace VolvoWrench.DG
                     }
                     else
                     {
-                        Console.WriteLine("Detect two or more \"Game end\" messages. HPP HACK DETECTED?");
+                        Console.WriteLine("---------- [Конец игры 2/ Game Over 2] ----------"); //  Console.WriteLine("Detect two or more \"Game end\" messages. HPP HACK DETECTED?");
                     }
                 }
 
@@ -5520,6 +5541,8 @@ namespace VolvoWrench.DG
                 // unknown message
                 if (messageHandler == null)
                 {
+                    if (messageId != 0)
+                        DemoScanner.UnknownMessages++;
                     break;
                 }
 
