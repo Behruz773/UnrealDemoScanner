@@ -30,4 +30,4 @@ AIM TYPE 5 - Smooth angles/etc
 AIM TYPE 6 - HPP Autoattack
 AIM TYPE 7 - HPP Trigger bot
 AIM TYPE 8 - Universal AIMBOT detection
-
+TRIGGER BOT - OLD AIM / TRIGGER HACK
