@@ -281,8 +281,9 @@ namespace VolvoWrench.DG
         public static int RealFpsMax2 = int.MinValue;
         public static float LastFpsCheckTime2 = 0.0f;
         public static float LastCmdTime = 0.0f;
-        private static string LastCmdTimeString;
+        public static string LastCmdTimeString;
         public static int LastCmdFrameId = 0;
+        public static string LastCmd = "";
         public static int CurrentFrameId = 0;
         public static int CurrentFrameIdWeapon = 0;
 
@@ -462,7 +463,7 @@ namespace VolvoWrench.DG
 
             if (s.ToLower().IndexOf("-showscores") > -1)
             {
-                if (LastCmdTimeString.Length > 0)
+                if (LastCmdTimeString != String.Empty)
                     DemoScanner.LastAltTabStart = LastCmdTimeString;
                 DemoScanner.AltTabEndSearch = true;
             }
@@ -475,7 +476,7 @@ namespace VolvoWrench.DG
                 {
                     DemoScanner.AltTabCount2++;
                     DemoScanner.AltTabEndSearch = false;
-                    DemoScanner.DemoScanner_AddInfo("[INFO] The player minimized the game from " + LastAltTabStart + " to " + CurrentTimeString);
+                    DemoScanner.DemoScanner_AddInfo("[INFO] Player minimized game from " + LastAltTabStart + " to " + CurrentTimeString);
                 }
             }
 
@@ -980,9 +981,13 @@ namespace VolvoWrench.DG
                 BHOP_GroundSearchDirection = 0;
                 NeedDetectBHOPHack = false;
             }
-            LastCmdTime = CurrentTime;
-            LastCmdTimeString = CurrentTimeString;
-            LastCmdFrameId = CurrentFrameId;
+            if (!isstuff)
+            {
+                LastCmd = s;
+                LastCmdTime = CurrentTime;
+                LastCmdTimeString = CurrentTimeString;
+                LastCmdFrameId = CurrentFrameId;
+            }
         }
 
         public static double GetDistance(Point p1, Point p2)
@@ -3911,6 +3916,15 @@ namespace VolvoWrench.DG
             {
             }
 
+            if (LastCmd == "-strafe")
+            {
+                DemoScanner.DemoScanner_AddInfo("[INFO] Player minimized game from " + LastAltTabStart + " to \"FINAL\"");
+            }
+            //else
+            //{
+            //    Console.WriteLine(CurrentTime - LastCmdTime > 5.0);
+            //}
+
             Console.ForegroundColor = ConsoleColor.DarkGreen;
 
             Console.WriteLine("Unreal Demo Scanner " + PROGRAMVERSION + " scan result:");
@@ -5829,10 +5843,10 @@ namespace VolvoWrench.DG
             if (DemoScanner.LastStuffCmdCommand.IndexOf("snapshot") > -1 ||
                 DemoScanner.LastStuffCmdCommand.IndexOf("screenshot") > -1)
             {
-                if (DemoScanner.CurrentTime - DemoScanner.LastStrafeDisabled < 3.5f)
-                {
-                    DemoScanner.DemoScanner_AddWarn("Player tried to got black screenshot at " + DemoScanner.CurrentTimeString, false, false);
-                }
+                //if (DemoScanner.CurrentTime - DemoScanner.LastStrafeDisabled < 3.5f)
+                //{
+                //    DemoScanner.DemoScanner_AddWarn("Player tried to got black screenshot at " + DemoScanner.CurrentTimeString, false, false);
+                //}
                 DemoScanner.DemoScanner_AddInfo("[INFO] Server request player screenshot at " + DemoScanner.CurrentTimeString);
             }
 
