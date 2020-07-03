@@ -280,8 +280,8 @@ namespace VolvoWrench.DG
         public static int RealFpsMin2 = int.MaxValue;
         public static int RealFpsMax2 = int.MinValue;
         public static float LastFpsCheckTime2 = 0.0f;
-
-
+        public static float LastCmdTime = 0.0f;
+        private static string LastCmdTimeString;
         public static int LastCmdFrameId = 0;
         public static int CurrentFrameId = 0;
         public static int CurrentFrameIdWeapon = 0;
@@ -396,19 +396,25 @@ namespace VolvoWrench.DG
 
         public static List<string> CommandsDump = new List<string>();
         public static string framecrashcmd = "";
-
+        public static void DemoScanner_AddInfo(string info)
+        {
+            var tmpcol = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine(info);
+            Console.ForegroundColor = tmpcol;
+        }
         public static void DemoScanner_AddWarn(string warn, bool detected = true, bool log = true)
         {
             if (!detected)
             {
                 var tmpcol = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Gray;
-                Console.WriteLine(warn);
+                Console.WriteLine( "[WARN] " + warn + "(???)");
                 Console.ForegroundColor = tmpcol;
             }
             else
             {
-                Console.WriteLine(warn);
+                Console.WriteLine( "[DETECTED] " + warn);
             }
 
             if (log)
@@ -454,12 +460,30 @@ namespace VolvoWrench.DG
                 CommandsDump.Add(DemoScanner.CurrentTimeString + " : " + s + "(" + DemoScanner.CurrentTime + ")");
             }
 
+            if (s.ToLower().IndexOf("-showscores") > -1)
+            {
+                if (LastCmdTimeString.Length > 0)
+                    DemoScanner.LastAltTabStart = LastCmdTimeString;
+                DemoScanner.AltTabEndSearch = true;
+            }
+
             if (s.ToLower().IndexOf("-") > -1 && framecrashcmd != s.ToLower())
             {
                 framecrashcmd = s.ToLower();
                 FrameCrash++;
+                if (FrameCrash > 5 && DemoScanner.AltTabEndSearch)
+                {
+                    DemoScanner.AltTabCount2++;
+                    DemoScanner.AltTabEndSearch = false;
+                    DemoScanner.DemoScanner_AddInfo("[INFO] The player minimized the game from " + LastAltTabStart + " to " + CurrentTimeString);
+                }
             }
-            if (s.ToLower().IndexOf("+") > -1) FrameCrash = 0;
+
+            if (s.ToLower().IndexOf("+") > -1)
+            {
+                DemoScanner.AltTabEndSearch = false;
+                FrameCrash = 0;
+            }
 
             if (s.ToLower().IndexOf("+reload") > -1)
             {
@@ -482,7 +506,7 @@ namespace VolvoWrench.DG
                     {
                         if (JumpHackCount < 10)
                         {
-                            DemoScanner_AddWarn("Detected [XTREMEHACK] jump on (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                            DemoScanner_AddWarn("[XTREMEHACK] jump at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         }
 
                         JumpHackCount++;
@@ -525,7 +549,7 @@ namespace VolvoWrench.DG
                         {
                             if (!IsTeleportus())
                             {
-                                DemoScanner_AddWarn("Detected [AIM TYPE 6] on (" + CurrentTime + "):" + DemoScanner.CurrentTimeString);
+                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString);
                             }
 
                             //SilentAimDetected++;
@@ -709,7 +733,7 @@ namespace VolvoWrench.DG
             if (DemoScanner.DetectStrafeOptimizerStrikes > 5)
             {
                 DemoScanner.DetectStrafeOptimizerStrikes = 0;
-                DemoScanner_AddWarn("Detected [STRAFE OPTIMIZER] (" + CurrentTime + ") : " + CurrentTimeString);
+                DemoScanner_AddWarn("[STRAFE OPTIMIZER] at (" + CurrentTime + ") : " + CurrentTimeString);
             }
 
             //here future forward hack detection
@@ -851,14 +875,14 @@ namespace VolvoWrench.DG
                         // Console.Write("11");
                         //if (JumpErrors < 50)
                         //{
-                        //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
-                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    Console.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //}
                         //else if (JumpErrors == 50)
                         //{
-                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //    DemoScanner.TextComments.WriteLine("Это будет последнее сообщение об этом скрипте");
-                        //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    Console.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
                     }
@@ -869,11 +893,11 @@ namespace VolvoWrench.DG
                         // Console.Write("22");
                         //if (JumpErrors < 50)
                         //{
-                        //    Console.WriteLine("Вероятно Detected скрипт распрыжки on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    Console.WriteLine("Вероятно Detected скрипт распрыжки at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //}
                         //else if (JumpErrors == 50)
                         //{
-                        //    Console.WriteLine("Вероятно Detected скрипт распрыжки on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    Console.WriteLine("Вероятно Detected скрипт распрыжки at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
                     }
@@ -902,14 +926,14 @@ namespace VolvoWrench.DG
                         JumpErrors++;
                         //if (JumpErrors < 50)
                         //{
-                        //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
-                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    Console.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //}
                         //else if (JumpErrors == 50)
                         //{
-                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    DemoScanner.TextComments.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //    DemoScanner.TextComments.WriteLine("Это будет последнее сообщение об этом скрипте");
-                        //    Console.WriteLine("Detected бинд прыжка on колесо мыши on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //    Console.WriteLine("Detected бинд прыжка at колесо мыши at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
                     }
@@ -917,7 +941,7 @@ namespace VolvoWrench.DG
                     if (!IsJump && SearchJumpBug)
                     {
                         JumpErrors2++;
-                        //  Console.WriteLine("Detected [XTREMEHACK] jump on (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                        //  Console.WriteLine("Detected [XTREMEHACK] jump at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //Console.WriteLine(FrameCrash);
                         //Console.WriteLine("Jump unknown script at time: (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                         //Console.WriteLine("time: (" + (DemoScanner.CurrentTime - LastUnJumpTime) + ") ");
@@ -929,7 +953,7 @@ namespace VolvoWrench.DG
                     {
                         BHOPcount += BHOP_JumpWarn - 1;
                         if (CurrentTime - LastBhopTime > 1.0)
-                            DemoScanner_AddWarn("Detected [BHOP TYPE 1] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_JumpWarn - 1) + "]" + " times.");
+                            DemoScanner_AddWarn("[BHOP TYPE 1] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_JumpWarn - 1) + "]" + " times.");
                         LastBhopTime = CurrentTime;
                     }
 
@@ -938,7 +962,7 @@ namespace VolvoWrench.DG
                         BHOPcount += BHOP_GroundWarn - 1;
                         if (CurrentTime - LastBhopTime > 1.0)
                         {
-                            DemoScanner_AddWarn("Detected [BHOP TYPE 2] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.",
+                            DemoScanner_AddWarn("[BHOP TYPE 2] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.",
                                 BHOP_GroundWarn > 3, BHOP_GroundWarn > 3);
 
                         }
@@ -956,7 +980,8 @@ namespace VolvoWrench.DG
                 BHOP_GroundSearchDirection = 0;
                 NeedDetectBHOPHack = false;
             }
-
+            LastCmdTime = CurrentTime;
+            LastCmdTimeString = CurrentTimeString;
             LastCmdFrameId = CurrentFrameId;
         }
 
@@ -971,7 +996,7 @@ namespace VolvoWrench.DG
         public static void PrintNodesRecursive(TreeNode oParentNode)
         {
             outFrames.Add(oParentNode.Text);
-            // Start recursion on all subnodes.
+            // Start recursion at all subnodes.
             foreach (TreeNode oSubNode in oParentNode.Nodes) PrintNodesRecursive(oSubNode);
         }
         public static bool IsRealWeapon()
@@ -1691,8 +1716,8 @@ namespace VolvoWrench.DG
                                                 if (!IsTeleportus())
                                                 {
                                                     DemoScanner_AddWarn(
-                                                        "WARN [AIM TYPE 5] on (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                        "[AIM TYPE 5] at (" + CurrentTime +
+                                                        "):" + DemoScanner.CurrentTimeString, false);
                                                     DemoScanner.LastAim5DetectedReal = 0.0f;
                                                     DemoScanner.LastAim5Detected = 0.0f;
                                                 }
@@ -1705,7 +1730,7 @@ namespace VolvoWrench.DG
                                             if (!IsTeleportus())
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [AIM TYPE 5] on (" + LastAim5DetectedReal +
+                                                    "[AIM TYPE 5] at (" + LastAim5DetectedReal +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
                                                 DemoScanner.LastAim5DetectedReal = 0.0f;
@@ -1718,15 +1743,15 @@ namespace VolvoWrench.DG
                                             if ((SilentAimDetected > 1 || JumpHackCount > 1) && !IsTeleportus())
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [AIM TYPE 5] on (" + CurrentTime +
+                                                    "[AIM TYPE 5] at (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
                                             }
                                             else
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [AIM TYPE 5] on (" + LastAim5Detected +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                    "[AIM TYPE 5] at (" + LastAim5Detected +
+                                                    "):" + DemoScanner.CurrentTimeString, false);
                                             }
                                             DemoScanner.LastAim5DetectedReal = 0.0f;
                                             DemoScanner.LastAim5Detected = 0.0f;
@@ -1877,7 +1902,7 @@ namespace VolvoWrench.DG
                                                         DemoScanner_AddWarn(
                                                             GetAim7String(OldAimType7Frames,
                                                                 AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " on (" + OldAimType7Time +
+                                                                tmpangle2) + " at (" + OldAimType7Time +
                                                             "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                     }
                                                     else if (AimType7Event != 4)
@@ -1892,7 +1917,7 @@ namespace VolvoWrench.DG
                                                         DemoScanner_AddWarn(
                                                              GetAim7String(OldAimType7Frames,
                                                                  AimType7Frames, AimType7Event,
-                                                                 tmpangle2) + " on (" + OldAimType7Time +
+                                                                 tmpangle2) + " at (" + OldAimType7Time +
                                                              "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                     }
                                                 }
@@ -1915,7 +1940,7 @@ namespace VolvoWrench.DG
                                                 DemoScanner_AddWarn(
                                                     GetAim7String(OldAimType7Frames,
                                                         AimType7Frames, AimType7Event,
-                                                        tmpangle2) + " on (" + OldAimType7Time +
+                                                        tmpangle2) + " at (" + OldAimType7Time +
                                                     "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                             }
 
@@ -2262,7 +2287,7 @@ namespace VolvoWrench.DG
                                             if (CurrentTime - LastMovementHackTime > 2.5)
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [MOVEMENT TYPE 2] hack on (" +
+                                                    "[MOVEMENT TYPE 2] hack at (" +
                                                     CurrentTime + ") " + CurrentTimeString);
                                                 LastMovementHackTime = CurrentTime;
                                             }
@@ -2295,7 +2320,7 @@ namespace VolvoWrench.DG
                                             if (CurrentTime - LastMovementHackTime > 2.5)
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [MOVEMENT] hack on (" +
+                                                    "[MOVEMENT] hack at (" +
                                                     CurrentTime + ") " + CurrentTimeString);
                                                 LastMovementHackTime = CurrentTime;
                                             }
@@ -2436,7 +2461,7 @@ namespace VolvoWrench.DG
                                                 //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
                                                 //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
                                                 DemoScanner_AddWarn(
-                                                    "Detected [DUCKHACK2] duck on (" +
+                                                    "[DUCKHACK2] duck at (" +
                                                     CurrentTime + ") " + CurrentTimeString, false);
                                                 LastJumpHackTime = CurrentTime;
                                                 JumpHackCount++;
@@ -2464,7 +2489,7 @@ namespace VolvoWrench.DG
                                                 //    Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
                                                 //    Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
                                                 DemoScanner_AddWarn(
-                                                    "Detected [DUCKHACK] duck on (" +
+                                                    "[DUCKHACK] duck at (" +
                                                     CurrentTime + ") " + CurrentTimeString);
                                                 LastJumpHackTime = CurrentTime;
                                                 JumpHackCount++;
@@ -2636,7 +2661,7 @@ namespace VolvoWrench.DG
                                             if (CurrentIdealJumpsStrike > MaxIdealJumps)
                                             {
                                                 CurrentIdealJumpsStrike = 0;
-                                                DemoScanner_AddWarn("Detected [IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
+                                                DemoScanner_AddWarn("[IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
                                             }
                                             if (DemoScanner.DEBUG_ENABLED)
                                                 Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
@@ -2723,7 +2748,7 @@ namespace VolvoWrench.DG
                                         if (FovHackDetected < 5)
                                         {
                                             DemoScanner_AddWarn(
-                                                "Detected [FOV HACK] on (" + CurrentTime +
+                                                "[FOV HACK] at (" + CurrentTime +
                                                 "):" + DemoScanner.CurrentTimeString + ((cdframeFov == ClientFov) ? "[BY SERVER ???]" : ""));
 
                                             FovHackDetected += 1;
@@ -2737,7 +2762,7 @@ namespace VolvoWrench.DG
                                     {
                                         DemoScanner.NeedDetectThirdPersonHack = false;
                                         DemoScanner_AddWarn(
-                                            "Detected [THIRD PERSON HACK] on (" +
+                                            "[THIRD PERSON HACK] at (" +
                                             CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                         ThirdHackDetected += 1;
                                     }
@@ -2797,15 +2822,15 @@ namespace VolvoWrench.DG
                                         if (CurrentTime - AimType8WarnTime < 0.350f)
                                         {
                                             DemoScanner_AddWarn(
-                                                "WARN [AIM TYPE 8.1] on (" + AimType8WarnTime +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                "[AIM TYPE 8.1] at (" + AimType8WarnTime +
+                                                "):" + DemoScanner.CurrentTimeString, false);
                                             AimType8WarnTime = 0.0f;
                                         }
                                         else if (CurrentTime - AimType8WarnTime2 < 0.350f)
                                         {
                                             DemoScanner_AddWarn(
-                                                "DETECTED [AIM TYPE 8.2] on (" + AimType8WarnTime2 +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                "[AIM TYPE 8.2] at (" + AimType8WarnTime2 +
+                                                "):" + DemoScanner.CurrentTimeString, false);
                                             AimType8WarnTime2 = 0.0f;
                                         }
                                     }
@@ -2828,8 +2853,8 @@ namespace VolvoWrench.DG
                                                 {
                                                     DemoScanner.NoSpreadDetectionTime = CurrentTime;
                                                     DemoScanner_AddWarn(
-                                                        "Detected [NOSPREAD TYPE 1] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                        "[NOSPREAD TYPE 1] at (" +
+                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
                                                 }
                                             }
 
@@ -2865,8 +2890,8 @@ namespace VolvoWrench.DG
                                                 {
                                                     DemoScanner.NoSpreadDetectionTime = CurrentTime;
                                                     DemoScanner_AddWarn(
-                                                        "Detected [NOSPREAD TYPE 2] on (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                        "[NOSPREAD TYPE 2] at (" +
+                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
                                                 }
                                             }
 
@@ -2949,7 +2974,7 @@ namespace VolvoWrench.DG
                                             {
 
                                                 DemoScanner_AddWarn(
-                                                    "Detected [TIMESHIFT] on (" + DemoStartTime + "):"
+                                                    "[TIMESHIFT] at (" + DemoStartTime + "):"
                                                     + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                     DemoScanner.CurrentTimeString, false);
                                                 LastTimeOut = 1;
@@ -2986,7 +3011,7 @@ namespace VolvoWrench.DG
                                                     if (LastTimeOut != 2 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
                                                         DemoScanner_AddWarn(
-                                                            "Detected [TIMESHIFT 2] on (" + DemoStartTime + "):"
+                                                            "[TIMESHIFT 2] at (" + DemoStartTime + "):"
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                             DemoScanner.CurrentTimeString, false);
                                                         LastTimeOut = 2;
@@ -3004,7 +3029,7 @@ namespace VolvoWrench.DG
                                                     if (LastTimeOut != 3 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
                                                     {
                                                         DemoScanner_AddWarn(
-                                                            "Detected [TIMESHIFT 3] on (" + DemoStartTime + "):"
+                                                            "[TIMESHIFT 3] at (" + DemoStartTime + "):"
                                                             + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
                                                             DemoScanner.CurrentTimeString, false);
                                                         LastTimeOut = 3;
@@ -3040,7 +3065,7 @@ namespace VolvoWrench.DG
                                                     RealAlive && FirstAttack)
                                                 {
                                                     DemoScanner_AddWarn(
-                                                        "Detected [AIM TYPE 4] AIM TYPE 3on (" +
+                                                        "[AIM TYPE 4] at (" +
                                                         CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                                     SilentAimDetected++;
                                                 }
@@ -3066,7 +3091,7 @@ namespace VolvoWrench.DG
                                         || CurrentWeapon == WeaponIdType.WEAPON_BAD
                                         || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
                                     {
-                                       
+
                                     }
                                     else if (CurrentFrameAttacked && !FoundDublicader)
                                     {
@@ -3105,28 +3130,28 @@ namespace VolvoWrench.DG
                                             )
                                             {
                                                 //DemoScanner_AddWarn(
-                                                //      "Warn [AIM TYPE 3] on (" +
+                                                //      "Warn [AIM TYPE 3] at (" +
                                                 //      CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                 //if (maxfalsepositiveaim3 > 0 &&
                                                 //    SilentAimDetected <= 1 &&
                                                 //    JumpHackCount <= 1)
                                                 //{
                                                 //    DemoScanner_AddWarn(
-                                                //        "Detected [AIM TYPE 3] on (" +
+                                                //        "Detected [AIM TYPE 3] at (" +
                                                 //        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                 //    maxfalsepositiveaim3--;
                                                 //}
                                                 //else if (!IsTeleportus())
                                                 //{
                                                 //    DemoScanner_AddWarn(
-                                                //        "Detected [AIM TYPE 3] on (" +
+                                                //        "Detected [AIM TYPE 3] at (" +
                                                 //        CurrentTime + "):" + DemoScanner.CurrentTimeString);
                                                 //    SilentAimDetected++;
                                                 //}
                                                 //else
                                                 //{
                                                 //    DemoScanner_AddWarn(
-                                                //        "Detected [AIM TYPE 3] on (" +
+                                                //        "Detected [AIM TYPE 3] at (" +
                                                 //        CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)", false);
                                                 //}
                                             }
@@ -3141,9 +3166,9 @@ namespace VolvoWrench.DG
                                             {
                                                 //var tmpcol = Console.ForegroundColor;
                                                 //Console.ForegroundColor = ConsoleColor.Gray;
-                                                //DemoScanner.TextComments.WriteLine("Detected [AIM TYPE 3] on (" + CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
+                                                //DemoScanner.TextComments.WriteLine("Detected [AIM TYPE 3] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
                                                 //AddViewDemoHelperComment("Detected [AIM TYPE 3]. Weapon:" + CurrentWeapon.ToString() + " (???)", 0.5f);
-                                                //Console.WriteLine("Detected [AIM TYPE 3] on (" + CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
+                                                //Console.WriteLine("Detected [AIM TYPE 3] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString + " (???)");
                                                 //Console.ForegroundColor = tmpcol;
                                             }
                                         }
@@ -3180,7 +3205,7 @@ namespace VolvoWrench.DG
                                                         && !IsTeleportus())
                                                     {
                                                         DemoScanner_AddWarn(
-                                                            "Detected [JUMPHACK] jump on (" +
+                                                            "[JUMPHACK] jump at (" +
                                                             CurrentTime + ") " + DemoScanner.CurrentTimeString);
 
                                                         LastJumpHackTime = CurrentTime;
@@ -3195,7 +3220,7 @@ namespace VolvoWrench.DG
                                                         && !IsTeleportus())
                                                     {
                                                         DemoScanner_AddWarn(
-                                                             "Detected (???) [JUMPHACK] jump at (" +
+                                                             "[JUMPHACK] jump at (" +
                                                              CurrentTime + ") " + DemoScanner.CurrentTimeString, false);
 
                                                         LastJumpHackTime = CurrentTime;
@@ -3210,7 +3235,7 @@ namespace VolvoWrench.DG
                                                         && !IsTeleportus())
                                                     {
                                                         DemoScanner_AddWarn(
-                                                            "WARN (???) [JUMPHACK] jump at (" +
+                                                            "[JUMPHACK] jump at (" +
                                                             CurrentTime + ") " + DemoScanner.CurrentTimeString, false, false);
 
                                                         LastJumpHackTime = CurrentTime;
@@ -3391,7 +3416,7 @@ namespace VolvoWrench.DG
                                         CurrentTime - LastUseTime > 60)
                                     {
                                         DemoScannerBypassDetected = true;
-                                        DemoScanner_AddWarn("Detected [DEMO SCANER BYPASS] ??? " + CurrentTimeString, false, false);
+                                        DemoScanner_AddWarn("[DEMO SCANER BYPASS] ??? " + CurrentTimeString, false, false);
                                     }
                                 }
 
@@ -3539,13 +3564,13 @@ namespace VolvoWrench.DG
                                                 BadAttackCount < 2)
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [AIM TYPE 2] on (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                    "[AIM TYPE 2] at (" + CurrentTime +
+                                                    "):" + DemoScanner.CurrentTimeString, false);
                                             }
                                             else if (!IsTeleportus())
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [AIM TYPE 2] on (" + CurrentTime +
+                                                    "[AIM TYPE 2] at (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
                                             }
@@ -3597,7 +3622,7 @@ namespace VolvoWrench.DG
                                         else
                                         {
                                             DemoScanner_AddWarn(
-                                                "Detected [TRIGGER BOT] on (" + CurrentTime +
+                                                "[TRIGGER BOT] at (" + CurrentTime +
                                                 ") " + DemoScanner.CurrentTimeString);
 
                                             LastTriggerCursor = Console.CursorTop;
@@ -3651,15 +3676,15 @@ namespace VolvoWrench.DG
                                             if ((SilentAimDetected > 0 || JumpHackCount > 0) && !IsTeleportus())
                                             {
                                                 DemoScanner_AddWarn(
-                                                    "Detected [AIM TYPE 1] on (" + CurrentTime +
+                                                    "[AIM TYPE 1] at (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString);
                                                 SilentAimDetected++;
                                             }
                                             else
                                             {
                                                 DemoScanner_AddWarn(
-                                                     "Detected [AIM TYPE 1] on (" + CurrentTime +
-                                                     "):" + DemoScanner.CurrentTimeString + " (???)", false, false);
+                                                     "[AIM TYPE 1] at (" + CurrentTime +
+                                                     "):" + DemoScanner.CurrentTimeString, false, false);
                                             }
                                         }
                                     }
@@ -3668,7 +3693,7 @@ namespace VolvoWrench.DG
                                         if (FirstAttack && !IsTeleportus())
                                         {
                                             DemoScanner_AddWarn(
-                                                "Detected [AIM TYPE 1] on (" + CurrentTime +
+                                                "[AIM TYPE 1] at (" + CurrentTime +
                                                 "):" + DemoScanner.CurrentTimeString);
                                             SilentAimDetected++;
                                         }
@@ -4552,6 +4577,9 @@ namespace VolvoWrench.DG
         public static float LastBhopTime = 0.0f;
         public static bool FoundDublicader = false;
         public static int UnknownMessages = 0;
+        public static string LastAltTabStart = "00h:00m:00s:000ms";
+        public static bool AltTabEndSearch = false;
+        public static int AltTabCount2 = 0;
 
         public static bool IsTeleportus()
         {
@@ -5795,6 +5823,19 @@ namespace VolvoWrench.DG
             DemoScanner.CheckConsoleCommand(stuffstr, true);
 
             DemoScanner.LastStuffCmdCommand = stuffstr;
+
+
+
+            if (DemoScanner.LastStuffCmdCommand.IndexOf("snapshot") > -1 ||
+                DemoScanner.LastStuffCmdCommand.IndexOf("screenshot") > -1)
+            {
+                if (DemoScanner.CurrentTime - DemoScanner.LastStrafeDisabled < 3.5f)
+                {
+                    DemoScanner.DemoScanner_AddWarn("Player tried to got black screenshot at " + DemoScanner.CurrentTimeString, false, false);
+                }
+                DemoScanner.DemoScanner_AddInfo("[INFO] Server request player screenshot at " + DemoScanner.CurrentTimeString);
+            }
+
         }
 
         private void MessageServerInfo()
@@ -7918,9 +7959,9 @@ namespace VolvoWrench.DG
                                         //    {
                                         //        // DemoScanner.ShotFound = true;
 
-                                        //        DemoScanner.TextComments.WriteLine("Detected [TRIGGER BOT] on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                                        //        DemoScanner.TextComments.WriteLine("Detected [TRIGGER BOT] at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                                         //        DemoScanner.AddViewDemoHelperComment("Detected [TRIGGER BOT]. Weapon:" + DemoScanner.CurrentWeapon.ToString(), 0.5f);
-                                        //        Console.WriteLine("Detected [TRIGGER BOT] on (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                                        //        Console.WriteLine("Detected [TRIGGER BOT] at (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                                         //        DemoScanner.BadAttackCount++;
                                         //        DemoScanner.LastBadAttackCount = DemoScanner.CurrentTime;
 
