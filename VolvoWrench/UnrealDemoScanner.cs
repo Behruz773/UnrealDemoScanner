@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.44";
+        public const string PROGRAMVERSION = "1.44fix1";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -539,16 +539,16 @@ namespace VolvoWrench.DG
                     FrameCrash = 0;
                     attackscounter++;
 
-                    if (DemoScanner.DEBUG_ENABLED)
-                    {
-                        Console.WriteLine("User alive func:" + IsUserAlive() + ". User real alive ? : " + RealAlive + ". Weapon:" + CurrentWeapon);
-                    }
+                    //if (DemoScanner.DEBUG_ENABLED)
+                    //{
+                    //    Console.WriteLine("User alive func:" + IsUserAlive() + ". User real alive ? : " + RealAlive + ". Weapon:" + CurrentWeapon);
+                    //}
 
                     if (IsUserAlive())
                     {
                         if (AutoAttackStrikes >= 4)
                         {
-                            if (!IsTeleportus())
+                            if (!IsAngleEditByEngine())
                             {
                                 DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString);
                             }
@@ -1583,7 +1583,7 @@ namespace VolvoWrench.DG
                                 //    }
                                 //}
 
-                                if (GetDistance(oldoriginpos,
+                                if (CurrentFrameAlive && GetDistance(oldoriginpos,
                                           new Point(cdframe.Origin.X,
                                               cdframe.Origin.Y)) > 250)
                                 {
@@ -1718,7 +1718,7 @@ namespace VolvoWrench.DG
                                            CurrentTime - DemoScanner.LastAim5DetectedReal < 0.5f) || (DemoScanner.LastAim5Detected != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5Detected < 0.5f))
                                             {
-                                                if (!IsTeleportus())
+                                                if (!IsAngleEditByEngine())
                                                 {
                                                     DemoScanner_AddWarn(
                                                         "[AIM TYPE 5] at (" + CurrentTime +
@@ -1732,7 +1732,7 @@ namespace VolvoWrench.DG
                                         if (DemoScanner.LastAim5DetectedReal != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5DetectedReal < 0.5f)
                                         {
-                                            if (!IsTeleportus())
+                                            if (!IsAngleEditByEngine())
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 5] at (" + LastAim5DetectedReal +
@@ -1745,7 +1745,7 @@ namespace VolvoWrench.DG
                                         else if (DemoScanner.LastAim5Detected != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5Detected < 0.5f)
                                         {
-                                            if ((SilentAimDetected > 1 || JumpHackCount > 1) && !IsTeleportus())
+                                            if ((SilentAimDetected > 1 || JumpHackCount > 1) && !IsAngleEditByEngine())
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 5] at (" + CurrentTime +
@@ -1877,7 +1877,7 @@ namespace VolvoWrench.DG
                                         if (tmpXangle == 0.0 && tmpYangle == 0.0 && AimType7Frames < 20)
                                         {
                                             //Console.WriteLine("5");
-                                            if (!FoundDublicader)
+                                            if (!CurrentFrameDuplicated)
                                                 AimType7Frames++;
                                         }
                                         else
@@ -1892,7 +1892,7 @@ namespace VolvoWrench.DG
                                                 if (Aim8CurrentFrameViewanglesY !=
                                                     CurrentFrameViewanglesY &&
                                                     Aim8CurrentFrameViewanglesX !=
-                                                    CurrentFrameViewanglesX && !IsTeleportus())
+                                                    CurrentFrameViewanglesX && !IsAngleEditByEngine())
                                                 {
                                                     if (AimType7Event == 4 && DemoScanner.Aim73FalseSkip < 0)
                                                     {
@@ -1929,7 +1929,7 @@ namespace VolvoWrench.DG
                                             }
 
                                             if (Aim8CurrentFrameViewanglesY ==
-                                                    CurrentFrameViewanglesY && !IsTeleportus()/* &&
+                                                    CurrentFrameViewanglesY && !IsAngleEditByEngine()/* &&
                                                     Aim8CurrentFrameViewanglesX !=
                                                     CurrentFrameViewanglesX*/)
                                             {
@@ -1998,7 +1998,7 @@ namespace VolvoWrench.DG
                                                 CurrentFrameViewanglesY;
                                             Aim8CurrentFrameViewanglesX =
                                                 CurrentFrameViewanglesX;
-                                            if (!FoundDublicader)
+                                            if (!CurrentFrameDuplicated)
                                                 AimType7Frames++;
                                         }
                                         // Иначе Если угол изменился и набралось больше 1 таких кадров то вкл поиск аим
@@ -2196,12 +2196,12 @@ namespace VolvoWrench.DG
 
 
                                 // if (nf.RParms.Time != 0.0f && CurrentTime == nf.RParms.Time)
-                                FoundDublicader = false;
+                                CurrentFrameDuplicated = false;
                                 if (CurrentTime != 0.0f && nf == PreviewNetMsgFrame)
                                 {
                                     if (DUMP_ALL_FRAMES)
                                         subnode.Text += "[D U B L I C A D E R]";
-                                    FoundDublicader = true;
+                                    CurrentFrameDuplicated = true;
                                     FrameDuplicates++;
                                 }
 
@@ -2215,7 +2215,7 @@ namespace VolvoWrench.DG
 
                                 RealAlive = CurrentFrameAlive && PreviewFrameAlive;
 
-                                if (FoundDublicader)
+                                if (CurrentFrameDuplicated)
                                 {
                                     if (NeedWriteAim)
                                         AimType1FalseDetect = true;
@@ -2239,7 +2239,7 @@ namespace VolvoWrench.DG
                                 CurrentTime = nf.RParms.Time;
                                 if ((nf.UCmd.Buttons & 1) > 0)
                                 {
-                                    if (CurrentFrameAttacked && !FoundDublicader)
+                                    if (CurrentFrameAttacked && !CurrentFrameDuplicated)
                                     {
                                         DemoScanner.FrameAttackStrike++;
                                         DemoScanner.FrameUnattackStrike = 0;
@@ -2248,7 +2248,7 @@ namespace VolvoWrench.DG
                                 }
                                 else
                                 {
-                                    if (!CurrentFrameAttacked && !FoundDublicader)
+                                    if (!CurrentFrameAttacked && !CurrentFrameDuplicated)
                                     {
                                         DemoScanner.FrameUnattackStrike++;
                                         DemoScanner.FrameAttackStrike = 0;
@@ -2265,7 +2265,7 @@ namespace VolvoWrench.DG
                                     attackscounter3++;
                                 }
 
-                                if (RealAlive && !IsTeleportus())
+                                if (RealAlive && !IsAngleEditByEngine())
                                 {
                                     if (DemoScanner.MoveLeft && !DemoScanner.MoveRight)
                                     {
@@ -2306,7 +2306,7 @@ namespace VolvoWrench.DG
                                     DemoScanner.MoveLeftStrike = 0;
                                 }
 
-                                if (RealAlive && !IsTeleportus())
+                                if (RealAlive && !IsAngleEditByEngine())
                                 {
                                     if (((nf.UCmd.Buttons & 512) > 0)
                                         || ((nf.UCmd.Buttons & 1024) > 0))
@@ -2338,7 +2338,7 @@ namespace VolvoWrench.DG
                                 {
                                     if (PreviewFrameAttacked && !CurrentFrameAttacked)
                                     {
-                                        var dublicheck = nf;
+                                        var duplicheck = nf;
                                         int tmpframeattacked = 0;
                                         for (int n = frameindex + 1;
                                             n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
@@ -2377,7 +2377,7 @@ namespace VolvoWrench.DG
                                                     var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
                                                     if (tmpnetmsgframe1 != nf)
                                                     {
-                                                        dublicheck = tmpnetmsgframe1;
+                                                        duplicheck = tmpnetmsgframe1;
                                                         if ((tmpnetmsgframe1.UCmd.Buttons & 1) > 0)
                                                         {
                                                             tmpframeattacked = -1;
@@ -2453,12 +2453,12 @@ namespace VolvoWrench.DG
                                     IsDuck = false;
                                 }
 
-                                if (FirstDuck && RealAlive && /*InForward &&*/ CurrentTime - LastAliveTime > 5.0 && (CurrentTime - DemoScanner.LastMoveLeft < 20.0 || CurrentTime - DemoScanner.LastMoveRight < 20.0))
+                                if (!CurrentFrameDuplicated && FirstDuck && RealAlive && /*InForward &&*/ CurrentTime - LastAliveTime > 5.0 && (CurrentTime - DemoScanner.LastMoveLeft < 20.0 || CurrentTime - DemoScanner.LastMoveRight < 20.0))
                                 {
                                     if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime > 60.0 &&
                                     CurrentTime - LastDuckTime > 60.0)
                                     {
-                                        if (!IsTeleportus())
+                                        if (!IsAngleEditByEngine())
                                         {
                                             DemoScanner.DuckHack2Strikes++;
                                             if (DemoScanner.DuckHack2Strikes > 5 && CurrentTime - LastJumpHackTime > 10.0)
@@ -2483,16 +2483,16 @@ namespace VolvoWrench.DG
                                     }
 
 
-                                    if (!CurrentFrameDuck && !PreviewFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 2.5 &&
+                                    if (!CurrentFrameDuplicated && !CurrentFrameDuck && !PreviewFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > 2.5 &&
                                     CurrentTime - LastDuckTime > 2.5)
                                     {
-                                        if (!IsTeleportus() && DemoScanner.DuckStrikes < 2)
+                                        if (!IsAngleEditByEngine() && DemoScanner.DuckStrikes < 2)
                                         {
                                             DemoScanner.DuckHack1Strikes++;
-                                            if (DemoScanner.DuckHack1Strikes > 10 && CurrentTime - LastJumpHackTime > 10.0)
+                                            if (DemoScanner.DuckHack1Strikes > 1 && CurrentTime - LastJumpHackTime > 10.0)
                                             {
-                                                //    Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
-                                                //    Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
+                                                //Console.WriteLine("11:" + (CurrentTime - LastUnDuckTime));
+                                                //Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
                                                 DemoScanner_AddWarn(
                                                     "[DUCKHACK] duck at (" +
                                                     CurrentTime + ") " + CurrentTimeString);
@@ -2655,7 +2655,7 @@ namespace VolvoWrench.DG
                                 // * */
 
                                 // 01 
-                                if (RealAlive && !FoundDublicader)
+                                if (RealAlive && !CurrentFrameDuplicated)
                                 {
                                     if (SearchNextJumpStrike)
                                     {
@@ -2820,7 +2820,7 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (RealAlive && !IsTeleportus())
+                                if (RealAlive && !IsAngleEditByEngine())
                                 {
                                     if (CurrentFrameAttacked || PreviewFrameAttacked)
                                     {
@@ -2971,7 +2971,7 @@ namespace VolvoWrench.DG
                                         DemoScanner.MaximumTimeBetweenFrames = 0.01f;
                                     else
                                     {
-                                        if (!FoundDublicader && CurrentTime - PreviewTime > 0.5f && !DemoScanner.GameEnd && CurrentFrameId > 10)
+                                        if (!CurrentFrameDuplicated && CurrentTime - PreviewTime > 0.5f && !DemoScanner.GameEnd && CurrentFrameId > 10)
                                         {
                                             DemoScanner.TimeShiftCount += 1;
 
@@ -3010,7 +3010,7 @@ namespace VolvoWrench.DG
                                             if (SecondFound && CurrentTime != 0.0 &&
                                                 CurrentTime2 != 0.0)
                                             {
-                                                if (!FoundDublicader && !DemoScanner.GameEnd)
+                                                if (!CurrentFrameDuplicated && !DemoScanner.GameEnd)
                                                 {
                                                     DemoScanner.TimeShiftCount += 1;
                                                     if (LastTimeOut != 2 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
@@ -3028,7 +3028,7 @@ namespace VolvoWrench.DG
                                             if (SecondFound2 && CurrentTime != 0.0 &&
                                                 CurrentTime2 != 0.0)
                                             {
-                                                if (!FoundDublicader && !DemoScanner.GameEnd)
+                                                if (!CurrentFrameDuplicated && !DemoScanner.GameEnd)
                                                 {
                                                     DemoScanner.TimeShiftCount += 1;
                                                     if (LastTimeOut != 3 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
@@ -3098,7 +3098,7 @@ namespace VolvoWrench.DG
                                     {
 
                                     }
-                                    else if (CurrentFrameAttacked && !FoundDublicader)
+                                    else if (CurrentFrameAttacked && !CurrentFrameDuplicated)
                                     {
                                         NeedSearchViewAnglesAfterAttack = 0;
                                         ViewanglesXAfterAttack = CurrentFrameViewanglesX;
@@ -3110,7 +3110,7 @@ namespace VolvoWrench.DG
                                 }
                                 else
                                 {
-                                    if (!FoundDublicader)
+                                    if (!CurrentFrameDuplicated)
                                     {
                                         NeedSearchViewAnglesAfterAttack = 0;
                                         if (NeedSearchViewAnglesAfterAttackNext && RealAlive &&
@@ -3207,7 +3207,7 @@ namespace VolvoWrench.DG
                                                     FirstJump)
                                                 {
                                                     if (CurrentTime - LastJumpHackTime > 2.5
-                                                        && !IsTeleportus())
+                                                        && !IsAngleEditByEngine())
                                                     {
                                                         DemoScanner_AddWarn(
                                                             "[JUMPHACK] jump at (" +
@@ -3222,7 +3222,7 @@ namespace VolvoWrench.DG
                                                    FirstJump)
                                                 {
                                                     if (CurrentTime - LastJumpHackTime > 2.5
-                                                        && !IsTeleportus())
+                                                        && !IsAngleEditByEngine())
                                                     {
                                                         DemoScanner_AddWarn(
                                                              "[JUMPHACK] jump at (" +
@@ -3237,7 +3237,7 @@ namespace VolvoWrench.DG
                                                    FirstJump)
                                                 {
                                                     if (CurrentTime - LastJumpHackTime > 2.5
-                                                        && !IsTeleportus())
+                                                        && !IsAngleEditByEngine())
                                                     {
                                                         DemoScanner_AddWarn(
                                                             "[JUMPHACK] jump at (" +
@@ -3572,7 +3572,7 @@ namespace VolvoWrench.DG
                                                     "[AIM TYPE 2] at (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString, false);
                                             }
-                                            else if (!IsTeleportus())
+                                            else if (!IsAngleEditByEngine())
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 2] at (" + CurrentTime +
@@ -3620,7 +3620,7 @@ namespace VolvoWrench.DG
                                         {
                                             //  Console.WriteLine("Dead (" + DemoScanner.CurrentTime + ") " + DemoScanner.CurrentTimeString);
                                         }
-                                        else if (IsTeleportus())
+                                        else if (IsAngleEditByEngine())
                                         {
                                             //  Console.WriteLine("Teleportus");
                                         }
@@ -3678,7 +3678,7 @@ namespace VolvoWrench.DG
                                         AimType1FalseDetect = false;
                                         if (FirstAttack)
                                         {
-                                            if ((SilentAimDetected > 0 || JumpHackCount > 0) && !IsTeleportus())
+                                            if ((SilentAimDetected > 0 || JumpHackCount > 0) && !IsAngleEditByEngine())
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 1] at (" + CurrentTime +
@@ -3695,7 +3695,7 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                     {
-                                        if (FirstAttack && !IsTeleportus())
+                                        if (FirstAttack && !IsAngleEditByEngine())
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 1] at (" + CurrentTime +
@@ -3717,7 +3717,7 @@ namespace VolvoWrench.DG
                                         CurrentWeapon != WeaponIdType.WEAPON_SMOKEGRENADE
                                         && CurrentWeapon != WeaponIdType.WEAPON_FLASHBANG)
                                     {
-                                        if (!FoundDublicader)
+                                        if (!CurrentFrameDuplicated)
                                         {
                                             if (DemoScanner.DEBUG_ENABLED)
                                                 Console.WriteLine("Check attack:" + AttackCheck + " " + SkipNextAttack + " " + nf.UCmd.Buttons + " " + CurrentTime);
@@ -3733,7 +3733,7 @@ namespace VolvoWrench.DG
                                                     //File.AppendAllText("bug.log", "NeedWriteAim" + CurrentTime + " " + IsAttackLastTime + "\n");
                                                     if (DemoScanner.DEBUG_ENABLED)
                                                     {
-                                                        Console.WriteLine("Aim detected?... Teleport:" + IsTeleportus() + ". Alive:" + IsUserAlive());
+                                                        Console.WriteLine("Aim detected?... Teleport:" + IsAngleEditByEngine() + ". Alive:" + IsUserAlive());
                                                     }
 
                                                     NeedWriteAim = true;
@@ -4438,7 +4438,7 @@ namespace VolvoWrench.DG
 
                     if (FrameDuplicates > 0)
                     {
-                        Console.WriteLine("Dublicate frames: " + FrameDuplicates);
+                        Console.WriteLine("Duplicate frames: " + FrameDuplicates);
                     }
 
                     if (LostStopAttackButton > 3)
@@ -4589,17 +4589,19 @@ namespace VolvoWrench.DG
         public static int BHOP_JumpWarn = 0;
         public static int BHOP_GroundSearchDirection = 0;
         public static float LastBhopTime = 0.0f;
-        public static bool FoundDublicader = false;
+        public static bool CurrentFrameDuplicated = false;
         public static int UnknownMessages = 0;
         public static string LastAltTabStart = "00h:00m:00s:000ms";
         public static bool AltTabEndSearch = false;
         public static int AltTabCount2 = 0;
+        public static float LastAngleManipulation = 0.0f;
 
-        public static bool IsTeleportus()
+        public static bool IsAngleEditByEngine()
         {
             if (NO_TELEPORT)
                 return false;
-            return CurrentTime - LastTeleportusTime < 2.5f;
+            return CurrentTime - LastTeleportusTime < 2.5f ||
+                CurrentTime - LastAngleManipulation < 1.0;
         }
 
         public class Player
@@ -5211,7 +5213,7 @@ namespace VolvoWrench.DG
             AddMessageHandler((byte)MessageId.svc_cdtrack, 2);
             AddMessageHandler((byte)MessageId.svc_weaponanim, 2);
             AddMessageHandler((byte)MessageId.svc_roomtype, 2);
-            AddMessageHandler((byte)MessageId.svc_addangle, 2);
+            AddMessageHandler((byte)MessageId.svc_addangle, MessageAddAngle);
             AddMessageHandler((byte)MessageId.svc_newusermsg, MessageNewUserMsg);
             AddMessageHandler((byte)MessageId.svc_packetentities,
                 MessagePacketEntities);
@@ -6830,6 +6832,14 @@ namespace VolvoWrench.DG
             Seek(4); // unsigned int
             BitBuffer.ReadString(); // The cvar.
         }
+
+        
+        private void MessageAddAngle()
+        {
+            var angle = BitBuffer.ReadUInt16();
+            DemoScanner.LastAngleManipulation = DemoScanner.CurrentTime;
+        }
+
 
         private void MessageCurWeapon()
         {
