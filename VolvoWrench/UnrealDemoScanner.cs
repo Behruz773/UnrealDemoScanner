@@ -410,12 +410,12 @@ namespace VolvoWrench.DG
             {
                 var tmpcol = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Gray;
-                Console.WriteLine( "[WARN] " + warn + "(???)");
+                Console.WriteLine("[WARN] " + warn + "(???)");
                 Console.ForegroundColor = tmpcol;
             }
             else
             {
-                Console.WriteLine( "[DETECTED] " + warn);
+                Console.WriteLine("[DETECTED] " + warn);
             }
 
             if (log)
@@ -3429,7 +3429,6 @@ namespace VolvoWrench.DG
                                 {
                                     if (LastUsernameCheckTime == 0.0f || CurrentTime - LastUsernameCheckTime > 60)
                                     {
-                                        LastUsernameCheckTime = CurrentTime;
                                         string plname = "NONAME";
                                         string plsteam = "NOSTEAM";
                                         foreach (var player in fullPlayerList)
@@ -3437,8 +3436,12 @@ namespace VolvoWrench.DG
                                             if (player.Name.Length == 0) continue;
                                             if (player.Slot == UserId)
                                             {
-                                                plname = player.Name;
-                                                plsteam = player.Steam;
+                                                if ("NOSTEAM" != player.Steam || NeedFirstNickname)
+                                                {
+                                                    NeedFirstNickname = false;
+                                                    plname = player.Name;
+                                                    plsteam = player.Steam;
+                                                }
                                             }
                                         }
 
@@ -3473,6 +3476,8 @@ namespace VolvoWrench.DG
                                         Console.ForegroundColor = tmpconsolecolor;
                                         Console.CursorTop = tmpcursortop;
                                         Console.CursorLeft = tmpcursorleft;
+                                        LastUername = plname;
+                                        LastUsernameCheckTime = CurrentTime;
                                     }
                                 }
 
@@ -4533,6 +4538,7 @@ namespace VolvoWrench.DG
         public static int Aim73FalseSkip = 2;
         public static int UserNameAndSteamIDField;
         public static int UserNameAndSteamIDField2;
+        public static string LastUername = "";
         public static float LastUsernameCheckTime = 0.0f;
         public static int MessageCount = 0;
         public static int SVC_CHOKEMSGID = 0;
@@ -4595,6 +4601,7 @@ namespace VolvoWrench.DG
         public static bool AltTabEndSearch = false;
         public static int AltTabCount2 = 0;
         public static float LastAngleManipulation = 0.0f;
+        public static bool NeedFirstNickname = true;
 
         public static bool IsAngleEditByEngine()
         {
@@ -6833,7 +6840,7 @@ namespace VolvoWrench.DG
             BitBuffer.ReadString(); // The cvar.
         }
 
-        
+
         private void MessageAddAngle()
         {
             var angle = BitBuffer.ReadUInt16();
