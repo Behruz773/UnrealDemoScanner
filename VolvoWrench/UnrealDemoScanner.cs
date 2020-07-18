@@ -1694,7 +1694,7 @@ namespace VolvoWrench.DG
                                 CurrentFrameViewanglesX = cdframe.Viewangles.X;
                                 CurrentFrameViewanglesY = cdframe.Viewangles.Y;
 
-                                if (PreviewFrameViewanglesY > CurrentFrameViewanglesY)
+                                if (GetAngleDirection(PreviewFrameViewanglesY,CurrentFrameViewanglesY) == AngleDirection.AngleDirectionLeft)
                                 {
                                     if (DemoScanner.AngleStrikeDirection > 0)
                                     {
@@ -1703,7 +1703,7 @@ namespace VolvoWrench.DG
                                     else
                                         DemoScanner.AngleStrikeDirection--;
                                 }
-                                else
+                                else if (GetAngleDirection(PreviewFrameViewanglesY, CurrentFrameViewanglesY) == AngleDirection.AngleDirectionRight)
                                 {
                                     if (DemoScanner.AngleStrikeDirection < 0)
                                     {
@@ -2328,9 +2328,21 @@ namespace VolvoWrench.DG
                                     NewAttack = true;
                                     attackscounter3++;
                                 }
+                                if (CurrentFrameAttacked)
+                                {
+                                    Console.WriteLine("AngleDirX111:" + GetAngleDirection(nf.RParms.ClViewangles.X, PreviewNetMsgFrame.RParms.ClViewangles.X) +
+                                        ". AngleDirY111:" + GetAngleDirection(nf.RParms.ClViewangles.Y, PreviewNetMsgFrame.RParms.ClViewangles.Y));
+                                    Console.WriteLine("AngleDirX222:" + GetAngleDirection(nf.RParms.Viewangles.X, PreviewNetMsgFrame.RParms.Viewangles.X) +
+                                        ". AngleDirY222:" + GetAngleDirection(nf.RParms.Viewangles.Y, PreviewNetMsgFrame.RParms.Viewangles.Y));
+                                    Console.WriteLine("AngleDirX333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviewNetMsgFrame.UCmd.Viewangles.Y) +
+                                        ". AngleDirY333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviewNetMsgFrame.UCmd.Viewangles.Y) + "\n");
+                                }
 
                                 if (RealAlive && !IsAngleEditByEngine())
                                 {
+                                  
+                                    
+
                                     if (DemoScanner.MoveLeft && !DemoScanner.MoveRight)
                                     {
                                         DemoScanner.MoveLeftStrike++;
@@ -4674,6 +4686,75 @@ namespace VolvoWrench.DG
                 return false;
             return CurrentTime - LastTeleportusTime < 2.5f ||
                 CurrentTime - LastAngleManipulation < 1.0;
+        }
+
+
+        public enum AngleDirection : int
+        {
+            AngleDirectionLeft = -1,
+            AngleDirectionRight = 1,
+            AngleDirectionNO = 0 
+
+        }
+
+
+        public static AngleDirection GetAngleDirection(double val1, double val2)
+        {
+            uint uval1 = (uint)(val1 / 60);
+            uint uval2 = (uint)(val2 / 60);
+
+            if (val1 == val2)
+            {
+                return AngleDirection.AngleDirectionNO;
+            }
+
+            if (uval1 == uval2)
+            {
+                if (val2 < val1)
+                    return AngleDirection.AngleDirectionLeft;
+                else
+                    return AngleDirection.AngleDirectionRight;
+            }
+
+            switch (uval1)
+            {
+                case 0:
+                    if (uval2 == 1 || uval2 == 2 || uval2 == 3)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+                case 1:
+                    if (uval2 == 2 || uval2 == 3 || uval2 == 4)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+                case 2:
+                    if (uval2 == 3 || uval2 == 4 || uval2 == 5)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+                case 3:
+                    if (uval2 == 4 || uval2 == 5 || uval2 == 6)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+                case 4:
+                    if (uval2 == 5 || uval2 == 6 || uval2 == 0)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+                case 5:
+                    if (uval2 == 6 || uval2 == 0 || uval2 == 1)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+                case 6:
+                    if (uval2 == 0 || uval2 == 1 || uval2 == 2)
+                        return AngleDirection.AngleDirectionRight;
+                    else
+                        return AngleDirection.AngleDirectionLeft;
+            }
+            return 0;
         }
 
         public class Player
