@@ -743,15 +743,18 @@ namespace VolvoWrench.DG
             {
                 DemoScanner.InForward = true;
                 DemoScanner.LastMoveForward = CurrentTime;
+                DemoScanner.StrafeOptimizerFalse = false;
             }
             else if (s.ToLower().IndexOf("-forward") > -1)
-            {
+                {
+                    DemoScanner.StrafeOptimizerFalse = true;
                 if (DemoScanner.InForward && DemoScanner.DetectStrafeOptimizerStrikes >= 3)
                 {
                     DemoScanner.DetectStrafeOptimizerStrikes--;
                     DemoScanner.DetectStrafeOptimizerStrikes--;
                 }
                 DemoScanner.InForward = false;
+                DemoScanner.LastUnMoveForward = CurrentTime;
             }
 
 
@@ -780,18 +783,28 @@ namespace VolvoWrench.DG
                      *  и между текущим временем и последним нажатием +moveright прошло меньше 330мс
                      *  но больше чем 10мс
                      *  то +1 детект*/
-                    if (CurrentTime == LastUnMoveRight && CurrentTime - DemoScanner.LastMoveRight < 0.33
-                        && CurrentTime - DemoScanner.LastMoveRight > 0.01)
+                    if (CurrentTime == LastUnMoveRight && CurrentTime - DemoScanner.LastMoveRight < 1.00)
                     {
                         if (DemoScanner.DEBUG_ENABLED)
                             Console.WriteLine("11111:" + AngleStrikeDirection);
 
-                        if (!(AngleStrikeDirection < 0 && AngleStrikeDirection > -50))
+                        if (!(AngleStrikeDirection < 2 && AngleStrikeDirection > -90))
                         {
+                           //Console.WriteLine("False 4:" + AngleStrikeDirection);
                             DemoScanner.StrafeOptimizerFalse = true;
                         }
-                        DemoScanner.DetectStrafeOptimizerStrikes++;
 
+                        if (CurrentTime - DemoScanner.LastMoveRight > 0.33
+                        && CurrentTime - DemoScanner.LastMoveRight < 0.01)
+                        {
+                           // Console.WriteLine("False 3");
+                            DemoScanner.StrafeOptimizerFalse = true;
+                        }
+
+                        DemoScanner.NeedCheckAngleDiffForStrafeOptimizer = true;
+                        DemoScanner.LastStrafeOptimizerWarnTime = CurrentTime;
+                        DemoScanner.DetectStrafeOptimizerStrikes++; 
+                       // Console.Write("WarnLeft:" + DetectStrafeOptimizerStrikes + ". AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". CurrentTime:" + CurrentTime + ". Diff:" + Math.Abs(CurrentTime - AngleDirectionChangeTime) + "\n");
                     }
                     else
                     {
@@ -815,10 +828,10 @@ namespace VolvoWrench.DG
                 {
                     if (LastCmd.ToLower().IndexOf("-moveright") > -1)
                     {
-                        if (DemoScanner.DetectStrafeOptimizerStrikes > 0)
+                        if (DemoScanner.DetectStrafeOptimizerStrikes > 1)
                         {
-                            DemoScanner.StrafeOptimizerFalse = false;
-                            DemoScanner.DetectStrafeOptimizerStrikes = 0;
+                           // Console.WriteLine("False 8");
+                            DemoScanner.StrafeOptimizerFalse = true;
                         }
                     }
                 }
@@ -835,15 +848,26 @@ namespace VolvoWrench.DG
             {
                 if (RealAlive && (!CurrentFrameOnGround || CurrentFrameJumped))
                 {
-                    if (CurrentTime == LastUnMoveLeft && CurrentTime - DemoScanner.LastMoveLeft < 0.33)
+                    if (CurrentTime == LastUnMoveLeft && CurrentTime - DemoScanner.LastMoveLeft < 1.00)
                     {
                         if (DemoScanner.DEBUG_ENABLED)
                             Console.WriteLine("22222:" + AngleStrikeDirection);
-                        if (!(AngleStrikeDirection > 0 && AngleStrikeDirection < 50))
+                        if (!(AngleStrikeDirection > -2 && AngleStrikeDirection < 90))
                         {
+                            // Console.WriteLine("False 5:" + AngleStrikeDirection);
                             DemoScanner.StrafeOptimizerFalse = true;
                         }
+                        if (CurrentTime - DemoScanner.LastMoveLeft > 0.33
+                    && CurrentTime - DemoScanner.LastMoveLeft < 0.01)
+                        {
+                            //Console.WriteLine("False 6");
+                            DemoScanner.StrafeOptimizerFalse = true;
+                        }
+
+                        DemoScanner.NeedCheckAngleDiffForStrafeOptimizer = true;
+                        DemoScanner.LastStrafeOptimizerWarnTime = CurrentTime;
                         DemoScanner.DetectStrafeOptimizerStrikes++;
+                        // Console.Write("WarnRight:" + DetectStrafeOptimizerStrikes + ". AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". CurrentTime:" + CurrentTime + ". Diff:" + Math.Abs(CurrentTime-AngleDirectionChangeTime) + "\n");
                     }
                     else
                     {
@@ -867,10 +891,10 @@ namespace VolvoWrench.DG
                 {
                     if (LastCmd.ToLower().IndexOf("-moveleft") > -1)
                     {
-                        if (DemoScanner.DetectStrafeOptimizerStrikes > 0)
+                        if (DemoScanner.DetectStrafeOptimizerStrikes > 1)
                         {
-                            DemoScanner.StrafeOptimizerFalse = false;
-                            DemoScanner.DetectStrafeOptimizerStrikes = 0;
+                            //Console.WriteLine("False 7");
+                            DemoScanner.StrafeOptimizerFalse = true;
                         }
                     }
                 }
@@ -1694,7 +1718,12 @@ namespace VolvoWrench.DG
                                 CurrentFrameViewanglesX = cdframe.Viewangles.X;
                                 CurrentFrameViewanglesY = cdframe.Viewangles.Y;
 
-                                if (GetAngleDirection(PreviewFrameViewanglesY,CurrentFrameViewanglesY) == AngleDirection.AngleDirectionLeft)
+                           
+
+                                var tmpAngleDirY = GetAngleDirection(PreviewFrameViewanglesY, CurrentFrameViewanglesY);
+
+
+                                if (tmpAngleDirY == AngleDirection.AngleDirectionLeft)
                                 {
                                     if (DemoScanner.AngleStrikeDirection > 0)
                                     {
@@ -1702,8 +1731,21 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                         DemoScanner.AngleStrikeDirection--;
+
+                                    if (DemoScanner.LastAngleDirection != tmpAngleDirY)
+                                    {
+                                        DemoScanner.AngleDirectionChangeTime = CurrentTime;
+                                        if (DetectStrafeOptimizerStrikes > 1 && NeedCheckAngleDiffForStrafeOptimizer && Math.Abs(CurrentTime - LastStrafeOptimizerWarnTime) > 0.02)
+                                        {
+                                            //Console.WriteLine("False 1");
+                                            StrafeOptimizerFalse = true;
+                                        }
+                                        NeedCheckAngleDiffForStrafeOptimizer = false;
+                                        //  Console.Write("AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". Diff: " + Math.Abs(CurrentTime - LastStrafeOptimizerWarnTime) + "\n");
+                                    }
+                                    DemoScanner.LastAngleDirection = tmpAngleDirY;
                                 }
-                                else if (GetAngleDirection(PreviewFrameViewanglesY, CurrentFrameViewanglesY) == AngleDirection.AngleDirectionRight)
+                                else if (tmpAngleDirY == AngleDirection.AngleDirectionRight)
                                 {
                                     if (DemoScanner.AngleStrikeDirection < 0)
                                     {
@@ -1711,7 +1753,22 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                         DemoScanner.AngleStrikeDirection++;
+
+                                    if (DemoScanner.LastAngleDirection != tmpAngleDirY)
+                                    {
+                                        DemoScanner.AngleDirectionChangeTime = CurrentTime;
+                                        if (DetectStrafeOptimizerStrikes > 1 && NeedCheckAngleDiffForStrafeOptimizer && Math.Abs(CurrentTime - LastStrafeOptimizerWarnTime) > 0.02)
+                                        {
+                                            //Console.WriteLine("False 2");
+                                            StrafeOptimizerFalse = true;
+                                        }
+                                        NeedCheckAngleDiffForStrafeOptimizer = false;
+                                        //Console.Write("AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". Diff: " + Math.Abs(CurrentTime - LastStrafeOptimizerWarnTime) + "\n");
+                                    }
+                                    DemoScanner.LastAngleDirection = tmpAngleDirY;
                                 }
+
+                                
 
                                 if (RealAlive)
                                 {
@@ -2328,27 +2385,18 @@ namespace VolvoWrench.DG
                                     NewAttack = true;
                                     attackscounter3++;
                                 }
-                                if (CurrentFrameAttacked)
-                                {
-                                    Console.WriteLine("AngleDirX111:" + GetAngleDirection(nf.RParms.ClViewangles.X, PreviewNetMsgFrame.RParms.ClViewangles.X) +
-                                        ". AngleDirY111:" + GetAngleDirection(nf.RParms.ClViewangles.Y, PreviewNetMsgFrame.RParms.ClViewangles.Y));
-                                    Console.WriteLine("AngleDirX222:" + GetAngleDirection(nf.RParms.Viewangles.X, PreviewNetMsgFrame.RParms.Viewangles.X) +
-                                        ". AngleDirY222:" + GetAngleDirection(nf.RParms.Viewangles.Y, PreviewNetMsgFrame.RParms.Viewangles.Y));
-                                    Console.WriteLine("AngleDirX333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviewNetMsgFrame.UCmd.Viewangles.Y) +
-                                        ". AngleDirY333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviewNetMsgFrame.UCmd.Viewangles.Y) + "\n");
-                                }
 
-                                if (RealAlive && !IsAngleEditByEngine())
+                                if (RealAlive)
                                 {
-                                  
-                                    
 
                                     if (DemoScanner.MoveLeft && !DemoScanner.MoveRight)
                                     {
+                                        DemoScanner.MoveRightStrike = 0;
                                         DemoScanner.MoveLeftStrike++;
                                     }
                                     else if (DemoScanner.MoveRight && !DemoScanner.MoveLeft)
                                     {
+                                        DemoScanner.MoveLeftStrike = 0;
                                         DemoScanner.MoveRightStrike++;
                                     }
                                     else
@@ -2356,6 +2404,25 @@ namespace VolvoWrench.DG
                                         DemoScanner.MoveRightStrike = 0;
                                         DemoScanner.MoveLeftStrike = 0;
                                     }
+                                }
+                                else
+                                {
+                                    DemoScanner.MoveRightStrike = 0;
+                                    DemoScanner.MoveLeftStrike = 0;
+                                }
+
+                                if (RealAlive && !IsAngleEditByEngine())
+                                {
+                                    //if (CurrentFrameAttacked)
+                                    //{
+                                    //    Console.WriteLine("AngleDirX111:" + GetAngleDirection(nf.RParms.ClViewangles.X, PreviewNetMsgFrame.RParms.ClViewangles.X) +
+                                    //        ". AngleDirY111:" + GetAngleDirection(nf.RParms.ClViewangles.Y, PreviewNetMsgFrame.RParms.ClViewangles.Y));
+                                    //    Console.WriteLine("AngleDirX222:" + GetAngleDirection(nf.RParms.Viewangles.X, PreviewNetMsgFrame.RParms.Viewangles.X) +
+                                    //        ". AngleDirY222:" + GetAngleDirection(nf.RParms.Viewangles.Y, PreviewNetMsgFrame.RParms.Viewangles.Y));
+                                    //    Console.WriteLine("AngleDirX333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviewNetMsgFrame.UCmd.Viewangles.Y) +
+                                    //        ". AngleDirY333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviewNetMsgFrame.UCmd.Viewangles.Y) + "\n");
+                                    //}
+
 
                                     if (nf.UCmd.Sidemove < -100 || nf.UCmd.Sidemove > 100)
                                     {
@@ -2375,11 +2442,6 @@ namespace VolvoWrench.DG
                                             JumpHackCount++;
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    DemoScanner.MoveRightStrike = 0;
-                                    DemoScanner.MoveLeftStrike = 0;
                                 }
 
                                 if (RealAlive && !IsAngleEditByEngine())
@@ -4654,6 +4716,7 @@ namespace VolvoWrench.DG
         public static float LastMovementHackTime = 0.0f;
         public static int AirShots = 0;
         public static bool InForward = false;
+        public static float LastUnMoveForward = 0.0f;
         public static float LastMoveForward = 0.0f;
         public static int DuckStrikes = 0;
         public static bool NeedDetectThirdPersonHack = false;
@@ -4679,6 +4742,10 @@ namespace VolvoWrench.DG
         public static float LastAngleManipulation = 0.0f;
         public static bool NeedFirstNickname = true;
         public static int AngleStrikeDirection = 0;
+        public static float AngleDirectionChangeTime = 0.0f;
+        public static AngleDirection LastAngleDirection = AngleDirection.AngleDirectionNO;
+        public static bool NeedCheckAngleDiffForStrafeOptimizer = false;
+        public static float LastStrafeOptimizerWarnTime = 0.0f;
 
         public static bool IsAngleEditByEngine()
         {
