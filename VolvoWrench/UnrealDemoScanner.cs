@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.46";
+        public const string PROGRAMVERSION = "1.46fix1";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -794,8 +794,8 @@ namespace VolvoWrench.DG
                             DemoScanner.StrafeOptimizerFalse = true;
                         }
 
-                        if (CurrentTime - DemoScanner.LastMoveRight > 0.33
-                        && CurrentTime - DemoScanner.LastMoveRight < 0.01)
+                        if (CurrentTime - DemoScanner.LastMoveRight > 0.50
+                         || CurrentTime - DemoScanner.LastMoveRight < 0.01)
                         {
                            // Console.WriteLine("False 3");
                             DemoScanner.StrafeOptimizerFalse = true;
@@ -857,8 +857,9 @@ namespace VolvoWrench.DG
                             // Console.WriteLine("False 5:" + AngleStrikeDirection);
                             DemoScanner.StrafeOptimizerFalse = true;
                         }
-                        if (CurrentTime - DemoScanner.LastMoveLeft > 0.33
-                    && CurrentTime - DemoScanner.LastMoveLeft < 0.01)
+
+                        if (CurrentTime - DemoScanner.LastMoveLeft > 0.50
+                    || CurrentTime - DemoScanner.LastMoveLeft < 0.01)
                         {
                             //Console.WriteLine("False 6");
                             DemoScanner.StrafeOptimizerFalse = true;
