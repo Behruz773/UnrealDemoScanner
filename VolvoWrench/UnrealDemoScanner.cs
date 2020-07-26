@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.47beta";
+        public const string PROGRAMVERSION = "1.47beta2";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -3038,7 +3038,8 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (RealAlive && !IsAngleEditByEngine())
+                                if (RealAlive && !IsAngleEditByEngine() && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
+                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT)
                                 {
                                     if (CurrentFrameAttacked || PreviewFrameAttacked)
                                     {
@@ -3960,6 +3961,7 @@ namespace VolvoWrench.DG
 
                                             if (AttackCheck > 0)
                                             {
+                                                NeedWriteAim = false;
                                                 AttackCheck--;
                                             }
                                             else
@@ -3972,7 +3974,14 @@ namespace VolvoWrench.DG
                                                         Console.WriteLine("Aim detected?... Teleport:" + IsAngleEditByEngine() + ". Alive:" + IsUserAlive());
                                                     }
 
-                                                    NeedWriteAim = true;
+                                                    if (!IsAngleEditByEngine())
+                                                    {
+                                                        NeedWriteAim = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        AttackCheck = -1;
+                                                    }
                                                     AttackCheck--;
                                                 }
                                                 SkipNextAttack = 0;
@@ -6756,7 +6765,11 @@ namespace VolvoWrench.DG
 
         private void MessageSetPause()
         {
-            Seek(1);
+            var pause = BitBuffer.ReadByte() > 0;
+            var tmpcolor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine("[POSSIBLE FALSE DETECTION BELLOW!] Warning!!! Server " + (pause ? "paused" : "unpaused") + " at " + DemoScanner.CurrentTimeString + ". ");
+            Console.ForegroundColor = tmpcolor;
         }
 
         private void MessageCenterPrint()
