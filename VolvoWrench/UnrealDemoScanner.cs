@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.47beta2";
+        public const string PROGRAMVERSION = "1.47beta3";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -1120,7 +1120,7 @@ namespace VolvoWrench.DG
             }
         }
 
-        public static string GetAim7String(int val1, int val2, int type, double angle)
+        public static string GetAim7String(ref int val1, ref int val2, ref int val3, int type, double angle, ref bool detect)
         {
             if (val1 > 11) val1 = 11;
 
@@ -1132,7 +1132,7 @@ namespace VolvoWrench.DG
             val1 *= 10;
             val2 *= 10;
 
-            var val3 = 100;
+            val3 = 100;
             if (angle < 0.0001)
                 val3 = 10;
             else if (angle < 0.001)
@@ -1159,37 +1159,38 @@ namespace VolvoWrench.DG
             {
                 val3 = 1000;
             }
-            string detect = "Detected";
-            string detect2 = "";
 
             if (type - 1 == 4)
             {
-                detect = "WARN";
-                detect2 = "(???)";
+                detect = false;
 
-                if (val3 > 50 && (val2 > 50 || val1 > 50))
+                if (val3 > 50)
                 {
-                    detect = "Detected";
+                    detect = true;
                 }
             }
 
             if (Aim7PunchangleY != 0.0f)
             {
-                detect = "WARN";
-                detect2 = "(????)";
+                detect = false;
                 val1 = 5;
                 val2 = 5;
             }
 
             if (val1 <= 10)
             {
-                detect = "WARN";
-                detect2 = "(????)";
+                detect = false;
                 val1 = 5;
             }
 
-            return detect + " [AIM TYPE 7." + (type - 1) + " MATCH1:" + val1 + "% MATCH2:" +
-                   val2 + "% MATCH3:" + val3 + "%]" + detect2;
+            if (val2 <= 10)
+            {
+                detect = false;
+                val2 = 5;
+            }
+
+            return "[AIM TYPE 7." + (type - 1) + " MATCH1:" + val1 + "% MATCH2:" +
+                   val2 + "% MATCH3:" + val3 + "%]";
         }
 
         public static int invalidframes = 0;
@@ -2001,6 +2002,12 @@ namespace VolvoWrench.DG
                                             //Console.WriteLine("5");
                                             if (!CurrentFrameDuplicated)
                                                 AimType7Frames++;
+
+                                            if (IsAngleEditByEngine() || !CurrentFrameOnGround)
+                                            {
+                                                AimType7Frames = -2;
+                                                AimType7Event = 0;
+                                            }
                                         }
                                         else
                                         {
@@ -2014,7 +2021,7 @@ namespace VolvoWrench.DG
                                                 if (Aim8CurrentFrameViewanglesY !=
                                                     CurrentFrameViewanglesY &&
                                                     Aim8CurrentFrameViewanglesX !=
-                                                    CurrentFrameViewanglesX && !IsAngleEditByEngine())
+                                                    CurrentFrameViewanglesX && !IsAngleEditByEngine() && CurrentFrameOnGround)
                                                 {
                                                     if (AimType7Event == 4 && DemoScanner.Aim73FalseSkip < 0)
                                                     {
@@ -2025,12 +2032,17 @@ namespace VolvoWrench.DG
                                                             AngleBetween(
                                                                     Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
-
-                                                        DemoScanner_AddWarn(
-                                                            GetAim7String(OldAimType7Frames,
-                                                                AimType7Frames, AimType7Event,
-                                                                tmpangle2) + " at (" + OldAimType7Time +
-                                                            "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                        int Aim7var1 = OldAimType7Frames;
+                                                        int Aim7var2 = AimType7Frames;
+                                                        int Aim7var3 = 0;
+                                                        bool Aim7detected = true;
+                                                        string Aim7str = GetAim7String(ref Aim7var1,
+                                                                ref Aim7var2, ref Aim7var3, AimType7Event,
+                                                                tmpangle2, ref Aim7detected);
+                                                       if (Aim7detected)
+                                                            DemoScanner_AddWarn(Aim7str
+                                                                 + " at (" + OldAimType7Time +
+                                                                "):" + DemoScanner.CurrentTimeString, Aim7detected && (Aim7var3 > 50 || (Aim7var1 >= 80 && Aim7var2 >= 80)));
                                                     }
                                                     else if (AimType7Event != 4)
                                                     {
@@ -2041,17 +2053,23 @@ namespace VolvoWrench.DG
                                                             AngleBetween(
                                                                     Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
-                                                        DemoScanner_AddWarn(
-                                                             GetAim7String(OldAimType7Frames,
-                                                                 AimType7Frames, AimType7Event,
-                                                                 tmpangle2) + " at (" + OldAimType7Time +
-                                                             "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                        int Aim7var1 = OldAimType7Frames;
+                                                        int Aim7var2 = AimType7Frames;
+                                                        int Aim7var3 = 0;
+                                                        bool Aim7detected = true;
+                                                        string Aim7str = GetAim7String(ref Aim7var1,
+                                                                ref Aim7var2, ref Aim7var3, AimType7Event,
+                                                                tmpangle2, ref Aim7detected);
+                                                        if (Aim7detected)
+                                                            DemoScanner_AddWarn(Aim7str
+                                                             + " at (" + OldAimType7Time +
+                                                            "):" + DemoScanner.CurrentTimeString, Aim7detected && (Aim7var3 > 50 || (Aim7var1 >= 80 && Aim7var2 >= 80)));
                                                     }
                                                 }
                                             }
 
                                             if (Aim8CurrentFrameViewanglesY ==
-                                                    CurrentFrameViewanglesY && !IsAngleEditByEngine()/* &&
+                                                    CurrentFrameViewanglesY && !IsAngleEditByEngine() && CurrentFrameOnGround/* &&
                                                     Aim8CurrentFrameViewanglesX !=
                                                     CurrentFrameViewanglesX*/)
                                             {
@@ -2064,11 +2082,17 @@ namespace VolvoWrench.DG
                                                             Aim8CurrentFrameViewanglesY, CurrentFrameViewanglesY);
 
 
-                                                DemoScanner_AddWarn(
-                                                    GetAim7String(OldAimType7Frames,
-                                                        AimType7Frames, AimType7Event,
-                                                        tmpangle2) + " at (" + OldAimType7Time +
-                                                    "):" + DemoScanner.CurrentTimeString + " (???)", false);
+                                                int Aim7var1 = OldAimType7Frames;
+                                                int Aim7var2 = AimType7Frames;
+                                                int Aim7var3 = 0;
+                                                bool Aim7detected = true;
+                                                string Aim7str = GetAim7String(ref Aim7var1,
+                                                        ref Aim7var2, ref Aim7var3, AimType7Event,
+                                                        tmpangle2, ref Aim7detected);
+                                                if (Aim7detected)
+                                                    DemoScanner_AddWarn(Aim7str
+                                                     + " at (" + OldAimType7Time +
+                                                    "):" + DemoScanner.CurrentTimeString, Aim7detected && ( Aim7var3 > 50 || (Aim7var1 >= 80 && Aim7var2 >= 80)));
                                             }
 
                                             AimType7Frames = 0;
@@ -2658,7 +2682,7 @@ namespace VolvoWrench.DG
 
                                 if (!DemoScanner.AlreadyInDuck && !CurrentFrameDuplicated && FirstDuck && RealAlive && /*InForward &&*/ CurrentTime - LastAliveTime > 2.0 /*&& (CurrentTime - DemoScanner.LastMoveLeft < 20.0 || CurrentTime - DemoScanner.LastMoveRight < 20.0)*/)
                                 {
-                                    if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime < CurrentTime - LastDuckTime && CurrentTime - LastUnDuckTime  > 1.5 &&
+                                    if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime < CurrentTime - LastDuckTime && CurrentTime - LastUnDuckTime > 1.5 &&
                                     CurrentTime - LastDuckTime > 5.0)
                                     {
                                         if (!IsAngleEditByEngine())
@@ -3625,7 +3649,7 @@ namespace VolvoWrench.DG
                                         if (!DemoScanner.Intermission && FirstUserAlive && nf.Viewmodel != 0)
                                         {
                                             DemoScanner.NeedSearchUserAliveTime = CurrentTime;
-                                           // Console.WriteLine("Alive 4");
+                                            // Console.WriteLine("Alive 4");
                                         }
                                         DemoScanner.Intermission = false;
                                         ViewEntity = -1;
