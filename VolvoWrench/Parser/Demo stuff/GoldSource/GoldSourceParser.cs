@@ -315,7 +315,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
 
             public struct EventArgs
             {
-                public Point3D Angles;
+                public DPoint3D Angles;
                 public int Bparam1;
                 public int Bparam2;
                 public int Ducking;
@@ -1461,9 +1461,46 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             eframe.EventArguments.Origin.X = br.ReadSingle();
                                             eframe.EventArguments.Origin.Y = br.ReadSingle();
                                             eframe.EventArguments.Origin.Z = br.ReadSingle();
-                                            eframe.EventArguments.Angles.X = br.ReadSingle();
-                                            eframe.EventArguments.Angles.Y = br.ReadSingle();
-                                            eframe.EventArguments.Angles.Z = br.ReadSingle();
+
+                                            float tmpfloat22 = br.ReadSingle();
+                                            //if (tmpfloat.ToString().IndexOf("E") > 0)
+                                            //    cdframe.ErrAngles++;
+                                            try
+                                            {
+                                                tmpfloat22 = float.Parse(Math.Round(tmpfloat22, 8, MidpointRounding.AwayFromZero).ToString("F8"));
+                                            }
+                                            catch
+                                            {
+
+                                            }
+
+                                            float tmpfloat222 = br.ReadSingle();
+                                            //if (tmpfloat.ToString().IndexOf("E") > 0)
+                                            //    cdframe.ErrAngles++;
+                                            try
+                                            {
+                                                tmpfloat222 = float.Parse(Math.Round(tmpfloat222, 8, MidpointRounding.AwayFromZero).ToString("F8"));
+                                            }
+                                            catch
+                                            {
+
+                                            }
+
+                                            float tmpfloat2222 = br.ReadSingle();
+                                            //if (tmpfloat.ToString().IndexOf("E") > 0)
+                                            //    cdframe.ErrAngles++;
+                                            try
+                                            {
+                                                tmpfloat2222 = float.Parse(Math.Round(tmpfloat2222, 8, MidpointRounding.AwayFromZero).ToString("F8"));
+                                            }
+                                            catch
+                                            {
+
+                                            }
+
+                                            eframe.EventArguments.Angles.X = tmpfloat22;
+                                            eframe.EventArguments.Angles.Y = tmpfloat222;
+                                            eframe.EventArguments.Angles.Z = tmpfloat2222;
                                             eframe.EventArguments.Velocity.X = br.ReadSingle();
                                             eframe.EventArguments.Velocity.Y = br.ReadSingle();
                                             eframe.EventArguments.Velocity.Z = br.ReadSingle();

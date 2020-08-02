@@ -47,7 +47,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.47beta4";
+        public const string PROGRAMVERSION = "1.48";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -296,10 +296,11 @@ namespace VolvoWrench.DG
         public static List<string> PlayerSensitivityHistoryStrTime = new List<string>();
         public static List<string> PlayerSensitivityHistoryStrWeapon = new List<string>();
         public static string LastSensWeapon = "";
-        public static bool PlayerSensitivityWarning = false;
+        public static int PlayerSensitivityWarning = 0;
 
 
         public static int CurrentFrameIdAll = 0;
+        private static float LastClientDataTime;
         public static int NeedSearchID = 0;
         public static DemoStuff.L4D2Branch.PortalStuff.Result.DPoint3D viewanglesforsearch = new DemoStuff.L4D2Branch.PortalStuff.Result.DPoint3D();
 
@@ -733,10 +734,22 @@ namespace VolvoWrench.DG
 
             if (DemoScanner.DetectStrafeOptimizerStrikes > 5)
             {
-                DemoScanner_AddWarn("[STRAFE OPTIMIZER] at (" + CurrentTime + ") : " + CurrentTimeString, !DemoScanner.StrafeOptimizerFalse && DemoScanner.StrafeAngleDirectionChanges > 4);
-                DemoScanner.StrafeOptimizerFalse = false;
-                DemoScanner.StrafeAngleDirectionChanges = 0;
-                DemoScanner.DetectStrafeOptimizerStrikes = 0;
+
+                // if (DemoScanner.DetectStrafeOptimizerStrikes > 5 || CurrentTime - DemoScanner.LastStrafeOptimizerDetectWarnTime > 25.0f)
+                DemoScanner_AddWarn("[STRAFE OPTIMIZER" + /*(DemoScanner.DetectStrafeOptimizerStrikes <= 5 ? " ( WARN ) " : "") +*/ "] at (" + CurrentTime + ") : " + CurrentTimeString, !DemoScanner.StrafeOptimizerFalse && DemoScanner.StrafeAngleDirectionChanges > 4);
+
+                if (DemoScanner.DEBUG_ENABLED)
+                    Console.WriteLine(" --- DIR CHANGE : " + DemoScanner.StrafeAngleDirectionChanges + " --- ");
+
+                // if (DemoScanner.DetectStrafeOptimizerStrikes <= 5)
+                //     DemoScanner.LastStrafeOptimizerDetectWarnTime = CurrentTime;
+
+                if (DemoScanner.DetectStrafeOptimizerStrikes > 5)
+                {
+                    DemoScanner.StrafeOptimizerFalse = false;
+                    DemoScanner.StrafeAngleDirectionChanges = 0;
+                    DemoScanner.DetectStrafeOptimizerStrikes = 0;
+                }
             }
 
             //here future forward hack detection
@@ -800,7 +813,7 @@ namespace VolvoWrench.DG
 
                         DemoScanner.NeedCheckAngleDiffForStrafeOptimizer = true;
                         DemoScanner.LastStrafeOptimizerWarnTime = CurrentTime;
-                        DemoScanner.DetectStrafeOptimizerStrikes++; 
+                        DemoScanner.DetectStrafeOptimizerStrikes++;
                         if (DemoScanner.DEBUG_ENABLED)
                             Console.Write("WarnLeft:" + DetectStrafeOptimizerStrikes + ". AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". CurrentTime:" + CurrentTime + ". Diff:" + Math.Abs(CurrentTime - AngleDirectionChangeTime) + "\n");
                     }
@@ -870,7 +883,7 @@ namespace VolvoWrench.DG
                         DemoScanner.LastStrafeOptimizerWarnTime = CurrentTime;
                         DemoScanner.DetectStrafeOptimizerStrikes++;
                         if (DemoScanner.DEBUG_ENABLED)
-                         Console.Write("WarnRight:" + DetectStrafeOptimizerStrikes + ". AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". CurrentTime:" + CurrentTime + ". Diff:" + Math.Abs(CurrentTime-AngleDirectionChangeTime) + "\n");
+                            Console.Write("WarnRight:" + DetectStrafeOptimizerStrikes + ". AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". CurrentTime:" + CurrentTime + ". Diff:" + Math.Abs(CurrentTime - AngleDirectionChangeTime) + "\n");
                     }
                     else
                     {
@@ -967,8 +980,8 @@ namespace VolvoWrench.DG
                         //    Console.WriteLine("Это будет последнее сообщение об этом скрипте");
                         //}
                     }
-                    if (DemoScanner.DEBUG_ENABLED)
-                        Console.WriteLine("JUMP ID [" + JumpCount + "] OFFSET [" + (CurrentFrameId - LastCmdFrameId) + "]  at (" + CurrentTime + ") : " + CurrentTimeString);
+                    // if (DemoScanner.DEBUG_ENABLED)
+                    //  Console.WriteLine("JUMP ID [" + JumpCount + "] OFFSET [" + (CurrentFrameId - LastCmdFrameId) + "]  at (" + CurrentTime + ") : " + CurrentTimeString);
 
                 }
 
@@ -1627,6 +1640,7 @@ namespace VolvoWrench.DG
                                 {
                                     break;
                                 }
+                                LastClientDataTime = CurrentTime2;
                                 NeedSearchID = CurrentFrameIdAll;
                                 CurrentFrameId++;
                                 if (DUMP_ALL_FRAMES) subnode.Text = "{\n";
@@ -1753,7 +1767,7 @@ namespace VolvoWrench.DG
                                         }
                                         NeedCheckAngleDiffForStrafeOptimizer = false;
                                         if (DemoScanner.DEBUG_ENABLED)
-                                             Console.Write("AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". Diff: " + Math.Abs(CurrentTime - LastStrafeOptimizerWarnTime) + "\n");
+                                            Console.Write("AngleDirChange: " + DemoScanner.AngleDirectionChangeTime + ". Diff: " + Math.Abs(CurrentTime - LastStrafeOptimizerWarnTime) + "\n");
                                     }
                                     DemoScanner.LastAngleDirection = tmpAngleDirY;
                                 }
@@ -1793,23 +1807,33 @@ namespace VolvoWrench.DG
                                     // List<double> tmpSens = new List<double>();
 
                                     var anglecheat = 0.0022;
+
+                                    var anglecheat3 = 0.0022;
+                                    var averageangle = 0.0;
+                                    var averageangles = 0;
+
+
                                     if (PlayerSensitivityHistory.Count > 10)
                                     {
-                                        anglecheat = 10.0;
+                                        anglecheat = 100.0;
                                         var i = PlayerSensitivityHistory.Count - 10;
                                         for (; i < PlayerSensitivityHistory.Count - 1; i++)
                                         {
                                             //tmpSens.Add(PlayerSensitivityHistory[i]);
                                             if (anglecheat > (PlayerSensitivityHistory[i] * 0.022) / 2.1)
                                                 anglecheat = (PlayerSensitivityHistory[i] * 0.022) / 2.1;
+                                            averageangle += PlayerSensitivityHistory[i];
+                                            averageangles++;
                                         }
+
+                                        averageangle /= averageangles;
                                     }
 
                                     var anglecheat2 = 0.0003;
 
                                     if (PlayerSensitivityHistory.Count > 25)
                                     {
-                                        anglecheat2 = 10.0;
+                                        anglecheat2 = 100.0;
                                         var i = PlayerSensitivityHistory.Count - 25;
                                         for (; i < PlayerSensitivityHistory.Count - 1; i++)
                                         {
@@ -1820,6 +1844,7 @@ namespace VolvoWrench.DG
                                     }
 
                                     if (anglecheat < 0.0022) anglecheat = 0.0022;
+                                    if (anglecheat3 < 0.0022) anglecheat3 = 0.0022;
                                     if (anglecheat2 < 0.0003) anglecheat2 = 0.0003;
 
                                     if (CurrentWeapon == WeaponIdType.WEAPON_AWP ||
@@ -1829,6 +1854,7 @@ namespace VolvoWrench.DG
                                     {
                                         anglecheat = anglecheat / 100.0;
                                         anglecheat2 = anglecheat2 / 150.0;
+                                        anglecheat3 = anglecheat3 / 150.0;
                                     }
                                     else if (
                                         CurrentWeapon == WeaponIdType.WEAPON_SG552 ||
@@ -1836,36 +1862,19 @@ namespace VolvoWrench.DG
                                     {
                                         anglecheat = anglecheat / 50.0;
                                         anglecheat2 = anglecheat2 / 100.0;
+                                        anglecheat3 = anglecheat3 / 50.0;
                                     }
-                                    if (DemoScanner.LastAim5DetectedReal != 0.0f && CurrentTime - DemoScanner.LastAim5DetectedReal >= 0.5f)
+                                    if (DemoScanner.LastAim5DetectedReal != 0.0f && CurrentTime - DemoScanner.LastAim5DetectedReal >= 0.75f)
                                     {
                                         DemoScanner.LastAim5DetectedReal = 0.0f;
                                     }
-                                    if (DemoScanner.LastAim5Detected != 0.0f && CurrentTime - DemoScanner.LastAim5Detected >= 0.5f)
+                                    if (DemoScanner.LastAim5Detected != 0.0f && CurrentTime - DemoScanner.LastAim5Detected >= 0.75f)
                                     {
                                         DemoScanner.LastAim5Detected = 0.0f;
                                     }
                                     if (NewAttack)
                                     {
-                                        if (PlayerSensitivityWarning)
-                                        {
-                                            PlayerSensitivityWarning = false;
-                                            if ((DemoScanner.LastAim5DetectedReal != 0.0f &&
-                                           CurrentTime - DemoScanner.LastAim5DetectedReal < 0.5f) || (DemoScanner.LastAim5Detected != 0.0f &&
-                                            CurrentTime - DemoScanner.LastAim5Detected < 0.5f))
-                                            {
-                                                if (!IsAngleEditByEngine())
-                                                {
-                                                    DemoScanner_AddWarn(
-                                                        "[AIM TYPE 5] at (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString, false);
-                                                    DemoScanner.LastAim5DetectedReal = 0.0f;
-                                                    DemoScanner.LastAim5Detected = 0.0f;
-                                                }
-                                            }
-                                        }
-                                        else
-                                        if (DemoScanner.LastAim5DetectedReal != 0.0f &&
+                                        if (PlayerSensitivityWarning == 0 && DemoScanner.LastAim5DetectedReal != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5DetectedReal < 0.5f)
                                         {
                                             if (!IsAngleEditByEngine())
@@ -1878,7 +1887,7 @@ namespace VolvoWrench.DG
                                                 DemoScanner.LastAim5Detected = 0.0f;
                                             }
                                         }
-                                        else if (DemoScanner.LastAim5Detected != 0.0f &&
+                                        else if (PlayerSensitivityWarning == 0 && DemoScanner.LastAim5Detected != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5Detected < 0.5f)
                                         {
                                             if ((SilentAimDetected > 1 || JumpHackCount > 1) && !IsAngleEditByEngine())
@@ -1897,77 +1906,138 @@ namespace VolvoWrench.DG
                                             DemoScanner.LastAim5DetectedReal = 0.0f;
                                             DemoScanner.LastAim5Detected = 0.0f;
                                         }
-                                    }
-
-
-                                    {
-                                        if (tmpXangle > 0.0 &&
-                                        tmpXangle < anglecheat2)
+                                        else if (PlayerSensitivityWarning == 1)
                                         {
-                                            if (CurrentWeapon == WeaponIdType.WEAPON_C4
-                                                || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
-                                                || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
-                                                || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG
-                                                || CurrentWeapon == WeaponIdType.WEAPON_NONE
-                                                || CurrentWeapon == WeaponIdType.WEAPON_BAD
-                                                || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
+                                            PlayerSensitivityWarning = 0;
+                                            if ((DemoScanner.LastAim5DetectedReal != 0.0f &&
+                                           CurrentTime - DemoScanner.LastAim5DetectedReal < 0.75f) || (DemoScanner.LastAim5Detected != 0.0f &&
+                                            CurrentTime - DemoScanner.LastAim5Detected < 0.75f))
                                             {
-                                            }
-                                            else
-                                            {
-                                                //  foreach (var s in tmpSens)
-                                                //  {
-                                                //      Console.WriteLine(Math
-                                                //.Round(s, 8,
-                                                //    MidpointRounding.AwayFromZero)
-                                                //.ToString("F5"));
-                                                //  }
-                                                //  Console.WriteLine(Math
-                                                //.Round(tmpXangle / 0.022, 8,
-                                                //    MidpointRounding.AwayFromZero)
-                                                //.ToString("F5"));
-                                                if (CurrentFrameAttacked
-                                                        || PreviewFrameAttacked)
+                                                if (!IsAngleEditByEngine())
                                                 {
-                                                    DemoScanner.LastAim5Detected = CurrentTime;
-                                                    PlayerSensitivityWarning = true;
+                                                    DemoScanner_AddWarn(
+                                                        "[AIM TYPE 5] at (" + CurrentTime +
+                                                        "):" + DemoScanner.CurrentTimeString, false);
+                                                    DemoScanner.LastAim5DetectedReal = 0.0f;
+                                                    DemoScanner.LastAim5Detected = 0.0f;
                                                 }
-                                                else
-                                                    DemoScanner.LastAim5DetectedReal = CurrentTime;
                                             }
                                         }
-                                        else if (tmpXangle > 0.0 &&
-                                        tmpXangle < anglecheat)
+                                        else
                                         {
-                                            if (CurrentWeapon == WeaponIdType.WEAPON_C4
-                                                || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
-                                                || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
-                                                || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG
-                                                || CurrentWeapon == WeaponIdType.WEAPON_NONE
-                                                || CurrentWeapon == WeaponIdType.WEAPON_BAD
-                                                || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
+                                            PlayerSensitivityWarning = 0;
+                                            if ((DemoScanner.LastAim5DetectedReal != 0.0f &&
+                                           CurrentTime - DemoScanner.LastAim5DetectedReal < 0.75f) || (DemoScanner.LastAim5Detected != 0.0f &&
+                                            CurrentTime - DemoScanner.LastAim5Detected < 0.75f))
                                             {
+                                                if (!IsAngleEditByEngine())
+                                                {
+                                                    DemoScanner_AddWarn(
+                                                        "[AIM TYPE 5.2] at (" + CurrentTime +
+                                                        "):" + DemoScanner.CurrentTimeString, false);
+                                                    DemoScanner.LastAim5DetectedReal = 0.0f;
+                                                    DemoScanner.LastAim5Detected = 0.0f;
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+                                    if (tmpXangle > 0.0 &&
+                                    tmpXangle < anglecheat2)
+                                    {
+                                        if (CurrentWeapon == WeaponIdType.WEAPON_C4
+                                            || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG
+                                            || CurrentWeapon == WeaponIdType.WEAPON_NONE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_BAD
+                                            || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
+                                        {
+                                        }
+                                        else
+                                        {
+                                            //  foreach (var s in tmpSens)
+                                            //  {
+                                            //      Console.WriteLine(Math
+                                            //.Round(s, 8,
+                                            //    MidpointRounding.AwayFromZero)
+                                            //.ToString("F5"));
+                                            //  }
+                                            //  Console.WriteLine(Math
+                                            //.Round(tmpXangle / 0.022, 8,
+                                            //    MidpointRounding.AwayFromZero)
+                                            //.ToString("F5"));
+                                            if (CurrentFrameAttacked
+                                                    || PreviewFrameAttacked)
+                                            {
+                                                DemoScanner.LastAim5Detected = CurrentTime;
+                                                PlayerSensitivityWarning = 1;
                                             }
                                             else
+                                                DemoScanner.LastAim5DetectedReal = CurrentTime;
+                                        }
+                                    }
+                                    else if (tmpXangle > 0.0 &&
+                                    tmpXangle < anglecheat)
+                                    {
+                                        if (CurrentWeapon == WeaponIdType.WEAPON_C4
+                                            || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG
+                                            || CurrentWeapon == WeaponIdType.WEAPON_NONE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_BAD
+                                            || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
+                                        {
+                                        }
+                                        else
+                                        {
+                                            //  foreach (var s in tmpSens)
+                                            //  {
+                                            //      Console.WriteLine(Math
+                                            //  .Round(s, 8,
+                                            //      MidpointRounding.AwayFromZero)
+                                            //  .ToString("F5"));
+                                            //  }
+                                            //  Console.WriteLine(Math
+                                            //.Round(tmpXangle / 0.022, 8,
+                                            //    MidpointRounding.AwayFromZero)
+                                            //.ToString("F5"));
+                                            if (CurrentFrameAttacked
+                                                    || PreviewFrameAttacked)
                                             {
-                                                //  foreach (var s in tmpSens)
-                                                //  {
-                                                //      Console.WriteLine(Math
-                                                //  .Round(s, 8,
-                                                //      MidpointRounding.AwayFromZero)
-                                                //  .ToString("F5"));
-                                                //  }
-                                                //  Console.WriteLine(Math
-                                                //.Round(tmpXangle / 0.022, 8,
-                                                //    MidpointRounding.AwayFromZero)
-                                                //.ToString("F5"));
-                                                if (CurrentFrameAttacked
-                                                        || PreviewFrameAttacked)
-                                                {
-                                                    PlayerSensitivityWarning = true;
-                                                }
-                                                DemoScanner.LastAim5Detected = CurrentTime;
+                                                PlayerSensitivityWarning = 1;
                                             }
+                                            DemoScanner.LastAim5Detected = CurrentTime;
+                                        }
+                                    }
+                                    else if (tmpXangle > 0.0 &&
+                                   tmpXangle < anglecheat3)
+                                    {
+                                        if (CurrentWeapon == WeaponIdType.WEAPON_C4
+                                            || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG
+                                            || CurrentWeapon == WeaponIdType.WEAPON_NONE
+                                            || CurrentWeapon == WeaponIdType.WEAPON_BAD
+                                            || CurrentWeapon == WeaponIdType.WEAPON_BAD2)
+                                        {
+                                        }
+                                        else
+                                        {
+                                            //  foreach (var s in tmpSens)
+                                            //  {
+                                            //      Console.WriteLine(Math
+                                            //  .Round(s, 8,
+                                            //      MidpointRounding.AwayFromZero)
+                                            //  .ToString("F5"));
+                                            //  }
+                                            //  Console.WriteLine(Math
+                                            //.Round(tmpXangle / 0.022, 8,
+                                            //    MidpointRounding.AwayFromZero)
+                                            //.ToString("F5"));
+                                            PlayerSensitivityWarning = 2;
+                                            DemoScanner.LastAim5Detected = CurrentTime;
                                         }
                                     }
 
@@ -2002,7 +2072,6 @@ namespace VolvoWrench.DG
                                         }
                                         else
                                         {
-
                                             LastSensWeapon = CurrentWeapon.ToString();
                                             CurrentSensitivity = tmpXangle / 0.022;
                                         }
@@ -2232,7 +2301,7 @@ namespace VolvoWrench.DG
                                     subnode.Text +=
                                         @"Angles.X = " + eframe.EventArguments.Angles.X + "\n";
                                     subnode.Text +=
-                                        @"Origin.Y = " + eframe.EventArguments.Origin.Y + "\n";
+                                        @"Angles.Y = " + eframe.EventArguments.Angles.Y + "\n";
                                     subnode.Text +=
                                         @"Angles.Z = " + eframe.EventArguments.Angles.Z + "\n";
                                     subnode.Text +=
@@ -2259,6 +2328,14 @@ namespace VolvoWrench.DG
                                     subnode.Text +=
                                         @"Bparam2 = " + eframe.EventArguments.Bparam2 + "\n";
                                     subnode.Text += "}\n";
+                                }
+
+                                if (CurrentTime2 == LastClientDataTime)
+                                {
+                                    if (viewanglesforsearch.Y != eframe.EventArguments.Angles.Y)
+                                    {
+                                        // Console.WriteLine("AIM IM IM:" + viewanglesforsearch.Y + ":" + eframe.EventArguments.Angles.Y);
+                                    }
                                 }
 
                                 break;
@@ -2471,7 +2548,7 @@ namespace VolvoWrench.DG
                                     DemoScanner.MoveLeftStrike = 0;
                                 }
 
-                                if (RealAlive && !IsAngleEditByEngine())
+                                if (RealAlive)
                                 {
                                     //if (CurrentFrameAttacked)
                                     //{
@@ -2496,7 +2573,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[MOVEMENT HACK TYPE 2] at (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
+                                                    CurrentTime + ") " + CurrentTimeString, !IsAngleEditByEngine());
                                                 LastMovementHackTime = CurrentTime;
                                             }
                                             JumpHackCount++;
@@ -2504,7 +2581,7 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                if (RealAlive && !IsAngleEditByEngine())
+                                if (RealAlive)
                                 {
                                     if (((nf.UCmd.Buttons & 512) > 0)
                                         || ((nf.UCmd.Buttons & 1024) > 0))
@@ -2524,7 +2601,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[MOVEMENT HACK TYPE 1] at (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
+                                                    CurrentTime + ") " + CurrentTimeString, !IsAngleEditByEngine());
                                                 LastMovementHackTime = CurrentTime;
                                             }
                                             JumpHackCount++;
@@ -2650,6 +2727,15 @@ namespace VolvoWrench.DG
                                     IsDuck = false;
                                 }
 
+                                if (!PreviewFrameDuck && CurrentFrameDuck)
+                                {
+                                    DemoScanner.LastDuckUnduckTime = CurrentTime;
+                                }
+                                else if (PreviewFrameDuck && !CurrentFrameDuck)
+                                {
+                                    DemoScanner.LastDuckUnduckTime = CurrentTime;
+                                }
+
                                 if (CurrentFrameDuck && !DemoScanner.AlreadyInDuck && CurrentTime - LastUnDuckTime < 1.5 &&
                                     CurrentTime - LastDuckTime < 1.5)
                                 {
@@ -2698,23 +2784,16 @@ namespace VolvoWrench.DG
                                     if (CurrentFrameDuck && PreviewFrameDuck && !IsDuck && CurrentTime - LastUnDuckTime < CurrentTime - LastDuckTime && CurrentTime - LastUnDuckTime > 1.5 &&
                                     CurrentTime - LastDuckTime > 5.0)
                                     {
-                                        if (!IsAngleEditByEngine())
+                                        DemoScanner.DuckHack2Strikes++;
+                                        if (/*DemoScanner.DuckHack2Strikes > 5 &&*/ CurrentTime - LastJumpHackTime > 2.5)
                                         {
-                                            DemoScanner.DuckHack2Strikes++;
-                                            if (/*DemoScanner.DuckHack2Strikes > 5 &&*/ CurrentTime - LastJumpHackTime > 2.5)
-                                            {
-                                                //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
-                                                //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
-                                                DemoScanner_AddWarn(
-                                                    "[DUCK HACK TYPE 2]  at (" +
-                                                    CurrentTime + ") " + CurrentTimeString/*, false*/);
-                                                LastJumpHackTime = CurrentTime;
-                                                JumpHackCount++;
-                                                DemoScanner.DuckHack2Strikes = 0;
-                                            }
-                                        }
-                                        else
-                                        {
+                                            //Console.WriteLine("1:" + (CurrentTime - LastUnDuckTime));
+                                            //Console.WriteLine("2:" + (CurrentTime - LastDuckTime));
+                                            DemoScanner_AddWarn(
+                                                "[DUCK HACK TYPE 2]  at (" +
+                                                CurrentTime + ") " + CurrentTimeString, !IsAngleEditByEngine());
+                                            LastJumpHackTime = CurrentTime;
+                                            JumpHackCount++;
                                             DemoScanner.DuckHack2Strikes = 0;
                                         }
                                     }
@@ -2727,7 +2806,7 @@ namespace VolvoWrench.DG
                                     if (!CurrentFrameDuck && !PreviewFrameDuck && IsDuck && CurrentTime - LastUnDuckTime > CurrentTime - LastDuckTime &&
                                     CurrentTime - LastDuckTime > 2.5)
                                     {
-                                        if (!IsAngleEditByEngine() && DemoScanner.DuckStrikes < 2)
+                                        if (DemoScanner.DuckStrikes < 2)
                                         {
                                             //DemoScanner.DuckHack1Strikes++;
                                             if (/*DemoScanner.DuckHack1Strikes > 1 && */CurrentTime - LastJumpHackTime > 2.5)
@@ -2736,7 +2815,7 @@ namespace VolvoWrench.DG
                                                 //Console.WriteLine("22:" + (CurrentTime - LastDuckTime));
                                                 DemoScanner_AddWarn(
                                                     "[DUCK HACK TYPE 1] duck at (" +
-                                                    CurrentTime + ") " + CurrentTimeString);
+                                                    CurrentTime + ") " + CurrentTimeString, !IsAngleEditByEngine());
                                                 LastJumpHackTime = CurrentTime;
                                                 JumpHackCount++;
                                                 DemoScanner.DuckHack1Strikes = 0;
@@ -2768,6 +2847,9 @@ namespace VolvoWrench.DG
                                     DemoScanner.FramesOnGround++;
                                     DemoScanner.FramesOnFly = 0;
                                 }
+
+                                if (RealAlive && CurrentFrameOnGround)
+                                    DemoScanner.StrafeAngleDirectionChanges = 0;
 
                                 if (NewAttack)
                                 {
@@ -3075,8 +3157,7 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (RealAlive && !IsAngleEditByEngine() && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
-                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT)
+                                if (RealAlive && !IsAngleEditByEngine())
                                 {
                                     if (CurrentFrameAttacked || PreviewFrameAttacked)
                                     {
@@ -3091,7 +3172,8 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 8.2] at (" + AimType8WarnTime2 +
-                                                "):" + DemoScanner.CurrentTimeString + " (???)");
+                                                "):" + DemoScanner.CurrentTimeString + " (???)", DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
+                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT);
                                             AimType8WarnTime2 = 0.0f;
                                         }
                                     }
@@ -3181,7 +3263,7 @@ namespace VolvoWrench.DG
                                                || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG
                                                || CurrentWeapon == WeaponIdType.WEAPON_NONE
                                                || CurrentWeapon == WeaponIdType.WEAPON_BAD
-                                               || CurrentWeapon == WeaponIdType.WEAPON_BAD2 || !CurrentFrameOnGround)
+                                               || CurrentWeapon == WeaponIdType.WEAPON_BAD2 || !CurrentFrameOnGround || IsAngleEditByEngine())
                                         {
                                             AimType8Warn = 0;
                                         }
@@ -3466,12 +3548,11 @@ namespace VolvoWrench.DG
                                                     CurrentTime - LastJumpTime > 1.5 &&
                                                     FirstJump)
                                                 {
-                                                    if (CurrentTime - LastJumpHackTime > 2.5
-                                                        && !IsAngleEditByEngine() && LastJumpHackFalseDetectionTime == 0.0f)
+                                                    if (CurrentTime - LastJumpHackTime > 2.5 && LastJumpHackFalseDetectionTime == 0.0f)
                                                     {
                                                         DemoScanner_AddWarn(
                                                             "[JUMPHACK] jump at (" +
-                                                            CurrentTime + ") " + DemoScanner.CurrentTimeString);
+                                                            CurrentTime + ") " + DemoScanner.CurrentTimeString, !IsAngleEditByEngine());
 
                                                         LastJumpHackTime = CurrentTime;
                                                         JumpHackCount++;
@@ -4900,14 +4981,15 @@ namespace VolvoWrench.DG
         public static float LastJumpHackFalseDetectionTime = 0.0f;
         public static int AngleDirectionChanges = 0;
         public static int StrafeAngleDirectionChanges = 0;
-
+        public static float LastStrafeOptimizerDetectWarnTime = 0.0f;
+        public static float LastDuckUnduckTime = 0.0f;
 
         public static bool IsAngleEditByEngine()
         {
             if (NO_TELEPORT)
                 return false;
             return CurrentTime - LastTeleportusTime < 2.5f ||
-                CurrentTime - LastAngleManipulation < 1.0;
+                CurrentTime - LastAngleManipulation < 1.0f || CurrentTime - LastDuckUnduckTime < 1.5f;
         }
 
 

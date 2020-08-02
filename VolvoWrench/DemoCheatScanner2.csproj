@@ -119,7 +119,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>queue</ErrorReport>
     <CodeAnalysisRuleSet>Other\DemoCheatScanner2.ruleset</CodeAnalysisRuleSet>
