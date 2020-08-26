@@ -1874,7 +1874,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                             else
                             {
                                 if (f.RParms.Frametime > 0) gDemo.AditionalStats.FrametimeMin = Math.Min(gDemo.AditionalStats.FrametimeMin, f.RParms.Frametime);
-
+                                //Console.WriteLine(f.RParms.Frametime);
                                 gDemo.AditionalStats.FrametimeMax = Math.Max(gDemo.AditionalStats.FrametimeMax, f.RParms.Frametime);
                                 if (f.UCmd.Msec > 0) gDemo.AditionalStats.MsecMin = Math.Min(gDemo.AditionalStats.MsecMin, f.UCmd.Msec);
 
