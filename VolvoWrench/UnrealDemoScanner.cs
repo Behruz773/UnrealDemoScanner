@@ -979,7 +979,7 @@ namespace VolvoWrench.DG
 
             if (s.ToLower().IndexOf("+jump") > -1)
             {
-                //Console.WriteLine("+++JUMP [" + JumpCount + "] OFFSET [" + (CurrentFrameId - LastCmdFrameId) + "]  at (" + CurrentTime + ") : " + CurrentTimeString);
+                // Console.WriteLine("+++JUMP [" + JumpCount + "] OFFSET [" + (CurrentFrameId - LastCmdFrameId) + "] | WARN: " +  DemoScanner.JmpWarn + " at (" + CurrentTime + ") : " + CurrentTimeString);
                 SearchJumpBug = true;
                 FrameCrash = 0;
                 FirstJump = true;
@@ -998,11 +998,12 @@ namespace VolvoWrench.DG
 
                 if (IsUserAlive())
                 {
+
                     if (CurrentFrameId - LastCmdFrameId == 2)
                     {
                         DemoScanner.JmpWarn++;
                     }
-                    else if (CurrentFrameId - LastCmdFrameId == 1)
+                    else
                     {
                         DemoScanner.JmpWarn--;
                     }
@@ -1298,7 +1299,7 @@ namespace VolvoWrench.DG
             {
                 ConsoleUtils.CenterConsole();
                 Console.SetWindowSize(115, 32);
-                Console.SetBufferSize(115, 3555);
+                Console.SetBufferSize(114, 3555);
                 ConsoleUtils.CenterConsole();
             }
             catch
@@ -2952,6 +2953,17 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
+                                //if (RealAlive)
+                                //{
+                                //    if (FramesOnGround > 10)
+                                //    {
+                                //        if (nf.UCmd.Forwardmove > DemoScanner.MaxSpeed)
+                                //        {
+                                //            DemoScanner.MaxSpeed = nf.UCmd.Forwardmove;
+                                //            Console.WriteLine("Max speed : " + MaxSpeed);
+                                //        }
+                                //    }
+                                //}
 
                                 if (!PreviousFrameOnGround && !CurrentFrameOnGround)
                                 {
@@ -2990,9 +3002,9 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                if (PreviousFrameOnGround && !CurrentFrameOnGround)
+                                if (PreviousFrameOnGround && !CurrentFrameOnGround && (IsJump || CurrentTime - LastJumpTime < 0.2))
                                 {
-                                    if (JmpWarn - DemoScanner.CurJmpWarns >= 2)
+                                    if (JmpWarn - DemoScanner.CurJmpWarns >= 1 && DemoScanner.CurJmpWarns > 0)
                                     {
                                         DemoScanner.RealJumpEmulatorHackWarns++;
                                     }
@@ -3001,7 +3013,12 @@ namespace VolvoWrench.DG
                                         DemoScanner.RealJumpEmulatorHackWarns--;
                                     }
 
-                                    if (DemoScanner.RealJumpEmulatorHackWarns >= 4)
+                                    if (JumpCount - DemoScanner.CurJumpCount < 5)
+                                    {
+                                        DemoScanner.RealJumpEmulatorHackWarns--;
+                                    }
+
+                                    if (DemoScanner.RealJumpEmulatorHackWarns >= 3)
                                     {
                                         DemoScanner.RealJumpEmulatorHackWarns = 0;
                                         DemoScanner_AddWarn("[JUMP EMULATOR] at (" + CurrentTime + ") : " + CurrentTimeString, false);
@@ -3010,15 +3027,13 @@ namespace VolvoWrench.DG
                                     {
                                         DemoScanner.RealJumpEmulatorHackWarns = 0;
                                     }
+
+
                                     DemoScanner.CurJmpWarns = JmpWarn;
+                                    //Console.WriteLine("REAL UNJUMP ( " + (JumpCount - DemoScanner.CurJumpCount) + " ) at (" + CurrentTime + ") : " + CurrentTimeString);
                                     DemoScanner.CurJumpCount = JumpCount;
                                 }
 
-                                if (!PreviousFrameOnGround && CurrentFrameOnGround)
-                                {
-                                    // Console.WriteLine("REAL UNJUMP ( " + (JumpCount - DemoScanner.CurJumpCount) + " ) at (" + CurrentTime + ") : " + CurrentTimeString);
-                                    // DemoScanner.CurJumpCount = JumpCount;
-                                }
                                 //if (NeedDetectBHOPHack)
                                 //{
                                 //    NeedDetectBHOPHack = false;
@@ -3107,7 +3122,7 @@ namespace VolvoWrench.DG
                                     if (SearchNextJumpStrike)
                                     {
                                         SearchNextJumpStrike = false;
-                                        if (PreviousFrameOnGround && !CurrentFrameOnGround && (IsJump || CurrentTime - LastUnJumpTime < 0.5))
+                                        if (PreviousFrameOnGround && !CurrentFrameOnGround && (IsJump || CurrentTime - LastUnJumpTime < 0.2 || CurrentTime - LastJumpTime < 0.2))
                                         {
                                             CurrentIdealJumpsStrike++;
                                             if (CurrentIdealJumpsStrike > MaxIdealJumps)
@@ -5158,6 +5173,7 @@ namespace VolvoWrench.DG
         public static int CurJumpCount = 0;
         public static int JmpWarn = 0;
         public static int RealJumpEmulatorHackWarns = 0;
+        public static float MaxSpeed = 0.0f;
 
         public static bool IsAngleEditByEngine()
         {
