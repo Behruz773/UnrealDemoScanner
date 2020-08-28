@@ -44,7 +44,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.50";
+        public const string PROGRAMVERSION = "1.50fix1";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -785,8 +785,8 @@ namespace VolvoWrench.DG
             if (DemoScanner.DetectStrafeOptimizerStrikes > 5)
             {
 
-                // if (DemoScanner.DetectStrafeOptimizerStrikes > 5 || CurrentTime - DemoScanner.LastStrafeOptimizerDetectWarnTime > 25.0f)
-                DemoScanner_AddWarn("[STRAFE OPTIMIZER" + /*(DemoScanner.DetectStrafeOptimizerStrikes <= 5 ? " ( WARN ) " : "") +*/ "] at (" + CurrentTime + ") : " + CurrentTimeString, !DemoScanner.StrafeOptimizerFalse && DemoScanner.StrafeAngleDirectionChanges > 4);
+                if (!DemoScanner.StrafeOptimizerFalse && DemoScanner.StrafeAngleDirectionChanges > 4)
+                    DemoScanner_AddWarn("[STRAFE OPTIMIZER" + /*(DemoScanner.DetectStrafeOptimizerStrikes <= 5 ? " ( WARN ) " : "") +*/ "] at (" + CurrentTime + ") : " + CurrentTimeString);
 
                 if (DemoScanner.DEBUG_ENABLED)
                     Console.WriteLine(" --- DIR CHANGE : " + DemoScanner.StrafeAngleDirectionChanges + " --- ");
@@ -3310,8 +3310,8 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 8.2] at (" + AimType8WarnTime2 +
-                                                "):" + DemoScanner.CurrentTimeString, DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
-                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT && !AimType8False);
+                                                "):" + DemoScanner.CurrentTimeString, /*DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
+                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT &&*/ !AimType8False);
                                             AimType8WarnTime2 = 0.0f;
                                             AimType8False = false;
                                         }
