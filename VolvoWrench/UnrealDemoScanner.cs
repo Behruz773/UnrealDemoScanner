@@ -14,6 +14,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 using System.Xml.Serialization;
 using VolvoWrench.DemoStuff;
 using VolvoWrench.DemoStuff.GoldSource;
@@ -44,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b3";
+        public const string PROGRAMVERSION = "1.52b4";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -413,32 +414,70 @@ namespace VolvoWrench.DG
             Console.WriteLine(info);
             Console.ForegroundColor = tmpcol;
         }
+
+        public struct WarnStruct
+        {
+            public string Warn;
+            public bool Detected;
+            public bool Log;
+            public bool Visited;
+            public float WarnTime;
+        }
+
+        public static List<WarnStruct> DemoScannerWarnList = new List<WarnStruct>();
+
+
         public static void DemoScanner_AddWarn(string warn, bool detected = true, bool log = true)
         {
-            if (!detected || LossFalseDetection)
-            {
-                var tmpcol = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write("[WARN] " + warn);
-                Console.ForegroundColor = ConsoleColor.Red;
-                if (LossFalseDetection)
-                    Console.WriteLine(" (LAG)");
-                else
-                    Console.WriteLine(" (FALSE)");
-                Console.ForegroundColor = tmpcol;
-            }
-            else
-            {
-                Console.WriteLine("[DETECTED] " + warn);
-            }
+            WarnStruct warnStruct = new WarnStruct();
+            warnStruct.Warn = warn;
+            warnStruct.WarnTime = CurrentTime;
+            warnStruct.Detected = detected;
+            warnStruct.Log = log;
+            warnStruct.Visited = false;
+            DemoScannerWarnList.Add(warnStruct);
+        }
 
-            if (detected)
-                LossFalseDetection = false;
-
-            if (log)
+        public static void UpdateWarnList()
+        {
+            for (int i = 0; i < DemoScannerWarnList.Count; i++)
             {
-                TextComments.WriteLine(warn);
-                AddViewDemoHelperComment(warn);
+                var curwarn = DemoScannerWarnList[i];
+                if (!curwarn.Visited && CurrentTime - curwarn.WarnTime > 0.1)
+                {
+                    curwarn.Visited = true;
+
+                    if (!curwarn.Detected || LossFalseDetection || !RealAlive)
+                    {
+                        var tmpcol = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write("[WARN] " + curwarn.Warn);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        if (LossFalseDetection)
+                            Console.WriteLine(" (LAG)");
+                        else if (!RealAlive)
+                            Console.WriteLine(" (DEAD)");
+                        else 
+                            Console.WriteLine(" (FALSE)");
+                        Console.ForegroundColor = tmpcol;
+                    }
+                    else
+                    {
+                        Console.WriteLine("[DETECTED] " + curwarn.Warn);
+                    }
+
+                    if (curwarn.Detected)
+                        LossFalseDetection = false;
+
+                    if (curwarn.Log)
+                    {
+                        TextComments.WriteLine(curwarn.Warn);
+                        AddViewDemoHelperComment(curwarn.Warn);
+                    }
+
+
+                    DemoScannerWarnList[i] = curwarn;
+                }
             }
         }
 
@@ -1647,6 +1686,7 @@ namespace VolvoWrench.DG
                 for (int frameindex = 0; frameindex < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
                     .Frames.Count; frameindex++)
                 {
+                    UpdateWarnList();
                     if (NeedRescanDemoForce)
                     {
                         NeedRescanDemoForce = false;
