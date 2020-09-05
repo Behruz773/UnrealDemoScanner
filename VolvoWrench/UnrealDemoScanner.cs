@@ -44,7 +44,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b2";
+        public const string PROGRAMVERSION = "1.52b3";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -1771,6 +1771,7 @@ namespace VolvoWrench.DG
                                               cdframe.Origin.Y)) > 250)
                                 {
                                     DemoScanner.PlayerTeleportus++;
+                                    DemoScanner.ReloadWarns = 0;
                                     if (DemoScanner.DEBUG_ENABLED)
                                         Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     DemoScanner.LastTeleportusTime = CurrentTime;
@@ -2783,7 +2784,21 @@ namespace VolvoWrench.DG
                                     attackscounter3++;
                                 }
 
-
+                                if (DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_KNIFE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_C4
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_HEGRENADE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_SMOKEGRENADE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_FLASHBANG
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_NONE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD2
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_XM1014
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3
+                                       || DemoScanner.IsAngleEditByEngine()
+                                       || !DemoScanner.RealAlive)
+                                {
+                                    DemoScanner.ReloadWarns = 0;
+                                }
 
                                 if (RealAlive)
                                 {
@@ -5482,7 +5497,8 @@ namespace VolvoWrench.DG
         public static int WeaponAnimWarn = 0;
         public static WeaponIdType LastWeaponAnim = WeaponIdType.WEAPON_NONE;
         public static float ReloadTime = 0.0f;
-        public static WeaponIdType ReloadWarnWeapon = WeaponIdType.WEAPON_NONE;
+        public static WeaponIdType EndReloadWeapon = WeaponIdType.WEAPON_NONE;
+        public static WeaponIdType StartReloadWeapon = WeaponIdType.WEAPON_NONE;
         public static int ReloadWarns = 0;
 
         public static bool IsAngleEditByEngine()
@@ -8852,24 +8868,11 @@ namespace VolvoWrench.DG
                                             DemoScanner.AttackCheck = -1;
                                             DemoScanner.Reloads++;
                                             DemoScanner.ReloadTime = DemoScanner.CurrentTime;
+                                            DemoScanner.StartReloadWeapon = DemoScanner.CurrentWeapon;
                                         }
                                         else
                                         {
-                                            if (DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_KNIFE
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_C4
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_HEGRENADE
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_SMOKEGRENADE
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_FLASHBANG
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_NONE
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD2
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_XM1014
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3
-                                       || DemoScanner.IsAngleEditByEngine())
-                                            {
-                                                DemoScanner.ReloadWarns = 0;
-                                            }
-                                            else if (DemoScanner.RealAlive && DemoScanner.ReloadWarnWeapon == DemoScanner.CurrentWeapon)
+                                            if (DemoScanner.RealAlive && DemoScanner.EndReloadWeapon == DemoScanner.CurrentWeapon && DemoScanner.StartReloadWeapon == DemoScanner.EndReloadWeapon)
                                             {
                                                 if (DemoScanner.CurrentTime - DemoScanner.ReloadTime < 0.2)
                                                 {
@@ -8893,7 +8896,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner.ReloadWarns = 0;
                                             }
-                                            DemoScanner.ReloadWarnWeapon = DemoScanner.CurrentWeapon;
+                                            DemoScanner.EndReloadWeapon = DemoScanner.CurrentWeapon;
                                             DemoScanner.Reloads2++;
                                             DemoScanner.IsReload = false;
                                         }
@@ -8986,7 +8989,7 @@ namespace VolvoWrench.DG
                                         DemoScanner.NeedCheckAttack = false;
                                         var ammocount = value != null ? (int)value : 0;
                                         DemoScanner.attackscounter4++;
-
+                                        // Console.WriteLine("Attack " + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString);
                                         //if (DemoScanner.LastWatchWeapon == DemoScanner.CurrentWeapon && DemoScanner.UserAlive && DemoScanner.AmmoCount > 0 && ammocount > 0 && DemoScanner.AmmoCount - ammocount > 0 && DemoScanner.AmmoCount - ammocount < 4)
                                         //{
                                         //    DemoScanner.SkipNextAttack2--;
