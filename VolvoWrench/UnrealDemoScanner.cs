@@ -44,7 +44,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b";
+        public const string PROGRAMVERSION = "1.52b2";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -3689,12 +3689,16 @@ namespace VolvoWrench.DG
                                             if (AimType8Warn == 1 ||
                                                 AimType8Warn == 2)
                                             {
-                                                AimType8WarnTime = CurrentTime;
+                                                if (bAimType8WarnTime != CurrentTime)
+                                                    AimType8WarnTime = CurrentTime;
+                                                bAimType8WarnTime = CurrentTime;
                                                 if (!DemoScanner.AimType8False)
+                                                {
                                                     DemoScanner.AimType8False = CurrentWeapon == WeaponIdType.WEAPON_C4
                                                || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
                                                || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
                                                || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG || !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection();
+                                                }
                                                 //AimType8Warn = -1;
                                             }
                                         }
@@ -3706,12 +3710,16 @@ namespace VolvoWrench.DG
                                             if (AimType8Warn == 1 ||
                                                 AimType8Warn == 2)
                                             {
-                                                AimType8WarnTime2 = CurrentTime;
+                                                if (bAimType8WarnTime2 != CurrentTime)
+                                                    AimType8WarnTime2 = CurrentTime;
+                                                bAimType8WarnTime2 = CurrentTime;
                                                 if (!DemoScanner.AimType8False)
+                                                {
                                                     DemoScanner.AimType8False = CurrentWeapon == WeaponIdType.WEAPON_C4
                                                || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
                                                || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
                                                || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG || !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection();
+                                                }
                                                 //AimType8Warn = -1;
                                             }
                                         }
@@ -5342,6 +5350,8 @@ namespace VolvoWrench.DG
         public static float AimType8WarnTime = 0.0f;
         public static bool AimType8False = false;
         public static float AimType8WarnTime2 = 0.0f;
+        public static float bAimType8WarnTime = 0.0f;
+        public static float bAimType8WarnTime2 = 0.0f;
         public static int AimType8Warn = 0;
 
         public static float Aim7PunchangleY = 0.0f;
@@ -8854,8 +8864,8 @@ namespace VolvoWrench.DG
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD2
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_XM1014
-                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3 
-                                       || DemoScanner.IsAngleEditByEngine( ))
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3
+                                       || DemoScanner.IsAngleEditByEngine())
                                             {
                                                 DemoScanner.ReloadWarns = 0;
                                             }
