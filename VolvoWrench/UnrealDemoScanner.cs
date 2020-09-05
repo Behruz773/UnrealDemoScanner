@@ -44,7 +44,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.51b";
+        public const string PROGRAMVERSION = "1.52b";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -489,13 +489,18 @@ namespace VolvoWrench.DG
             {
                 framecrashcmd = s.ToLower();
                 FrameCrash++;
-                if (FrameCrash > 5 && DemoScanner.AltTabEndSearch)
+                if (FrameCrash > 7 && DemoScanner.AltTabEndSearch)
                 {
                     DemoScanner.AltTabCount2++;
                     DemoScanner.AltTabEndSearch = false;
                     DemoScanner.DemoScanner_AddInfo("[INFO] Player minimized game from " + LastAltTabStart + " to " + CurrentTimeString);
                     DemoScanner.LastGameMaximizeTime = CurrentTime;
                 }
+            }
+            else
+            {
+                DemoScanner.AltTabEndSearch = false;
+                FrameCrash = 0;
             }
 
             if (s.ToLower().IndexOf("+") > -1)
@@ -1769,7 +1774,7 @@ namespace VolvoWrench.DG
                                     if (DemoScanner.DEBUG_ENABLED)
                                         Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     DemoScanner.LastTeleportusTime = CurrentTime;
-                                    if (DemoScanner.LastGameMaximizeTime == DemoScanner.LastTeleportusTime)
+                                    if (DemoScanner.LastGameMaximizeTime == DemoScanner.LastTeleportusTime && !DemoScanner.GameEnd)
                                     {
                                         DemoScanner_AddWarn("[RETURN TO GAME FEATURE]");
                                     }
@@ -1954,15 +1959,25 @@ namespace VolvoWrench.DG
                                         //    Console.WriteLine("Angle2 : " + (tmpYangle % 0.022));
                                         //    Console.Read();
                                         //}
-                                        if (tmpMinSens < 2 && (tmpXangle / (tmpMinSens * 0.022)) > 600.0)
+                                        DemoScanner.TestValue1 = (tmpXangle / (tmpMinSens * 0.022));
+                                        DemoScanner.TestValue2 = (tmpYangle / (tmpMinSens * 0.022));
+
+                                        if (CurrentWeapon == WeaponIdType.WEAPON_AWP ||
+                                            CurrentWeapon == WeaponIdType.WEAPON_SCOUT ||
+                                            CurrentWeapon == WeaponIdType.WEAPON_G3SG1 ||
+                                            CurrentWeapon == WeaponIdType.WEAPON_SG550 ||
+                                            CurrentWeapon == WeaponIdType.WEAPON_SG552 ||
+                                                CurrentWeapon == WeaponIdType.WEAPON_AUG)
                                         {
-                                            DemoScanner.TestValue1 = (tmpXangle / (tmpMinSens * 0.022));
+                                            DemoScanner.TestValue1 /= 1000.0f;
+                                            DemoScanner.TestValue2 /= 1000.0f;
+                                        }
+                                        if (tmpMinSens < 2 && DemoScanner.TestValue1 > 5000.0)
+                                        {
                                             DemoScanner.TestTime1 = CurrentTime;
                                         }
-
-                                        if (tmpMinSens < 2 && (tmpYangle / (tmpMinSens * 0.022)) > 900.0)
+                                        if (tmpMinSens < 2 && DemoScanner.TestValue2 > 5000.0)
                                         {
-                                            DemoScanner.TestValue2 = (tmpYangle / (tmpMinSens * 0.022));
                                             DemoScanner.TestTime2 = CurrentTime;
                                         }
 
@@ -2548,8 +2563,37 @@ namespace VolvoWrench.DG
                                     subnode.Text += @"Body = " + waframe.Body + "\n";
 
                                     subnode.Text += "}\n";
-                                }
 
+
+                                }
+                                if (RealAlive)
+                                {
+                                    if (DemoScanner.LastWeaponAnim != WeaponIdType.WEAPON_NONE && DemoScanner.LastWeaponAnim != DemoScanner.CurrentWeapon)
+                                    {
+                                        DemoScanner.WeaponAnimWarn = 0;
+                                    }
+                                    if (waframe.Anim == 0 && waframe.Body == 0)
+                                    {
+                                        DemoScanner.WeaponAnimWarn++;
+                                        DemoScanner.LastWeaponAnim = DemoScanner.CurrentWeapon;
+                                        if (DemoScanner.WeaponAnimWarn > 50)
+                                        {
+                                            DemoScanner_AddWarn("[NO WEAPON ANIM] hack at (" + CurrentTime + ") " + CurrentTimeString);
+                                            DemoScanner.WeaponAnimWarn = 0;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (DemoScanner.WeaponAnimWarn > 0)
+                                        {
+                                            DemoScanner.WeaponAnimWarn--;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    DemoScanner.WeaponAnimWarn = 0;
+                                }
                                 break;
                             }
                         case GoldSource.DemoFrameType.Sound:
@@ -2743,7 +2787,7 @@ namespace VolvoWrench.DG
 
                                 if (RealAlive)
                                 {
-                                    if (NewAttack)
+                                    if (NewAttack && !IsAngleEditByEngine())
                                     {
                                         DemoScanner.NewAttackTime = CurrentTime;
                                         DemoScanner.NewAttackTimeAim9 = CurrentTime;
@@ -3209,7 +3253,7 @@ namespace VolvoWrench.DG
                                             }
                                             else
                                             {
-                                                DemoScanner.JumpEmulatorWarnPart1++; 
+                                                DemoScanner.JumpEmulatorWarnPart1++;
                                                 if (DemoScanner.JumpEmulatorWarnPart1 > 8)
                                                 {
                                                     DemoScanner_AddWarn("[HPP BHOP] at (" + CurrentTime + ") : " + CurrentTimeString, false);
@@ -5425,6 +5469,11 @@ namespace VolvoWrench.DG
         public static float LastGameMaximizeTime = 0;
         public static List<int> JumpHistory = new List<int>();
         public static int JumpEmulatorWarnPart1 = 0;
+        public static int WeaponAnimWarn = 0;
+        public static WeaponIdType LastWeaponAnim = WeaponIdType.WEAPON_NONE;
+        public static float ReloadTime = 0.0f;
+        public static WeaponIdType ReloadWarnWeapon = WeaponIdType.WEAPON_NONE;
+        public static int ReloadWarns = 0;
 
         public static bool IsAngleEditByEngine()
         {
@@ -8792,9 +8841,49 @@ namespace VolvoWrench.DG
                                             DemoScanner.IsReload = true;
                                             DemoScanner.AttackCheck = -1;
                                             DemoScanner.Reloads++;
+                                            DemoScanner.ReloadTime = DemoScanner.CurrentTime;
                                         }
                                         else
                                         {
+                                            if (DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_KNIFE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_C4
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_HEGRENADE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_SMOKEGRENADE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_FLASHBANG
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_NONE
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD2
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_XM1014
+                                       || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3 
+                                       || DemoScanner.IsAngleEditByEngine( ))
+                                            {
+                                                DemoScanner.ReloadWarns = 0;
+                                            }
+                                            else if (DemoScanner.RealAlive && DemoScanner.ReloadWarnWeapon == DemoScanner.CurrentWeapon)
+                                            {
+                                                if (DemoScanner.CurrentTime - DemoScanner.ReloadTime < 0.2)
+                                                {
+                                                    DemoScanner.ReloadWarns++;
+                                                    if (DemoScanner.ReloadWarns > 1)
+                                                    {
+                                                        DemoScanner.ReloadWarns = 0;
+                                                        DemoScanner.DemoScanner_AddWarn("[NO RELOAD] hack at (" + DemoScanner.CurrentTime +
+                                                                                    "):" + DemoScanner.CurrentTimeString);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (DemoScanner.ReloadWarns > 0)
+                                                    {
+                                                        DemoScanner.ReloadWarns--;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                DemoScanner.ReloadWarns = 0;
+                                            }
+                                            DemoScanner.ReloadWarnWeapon = DemoScanner.CurrentWeapon;
                                             DemoScanner.Reloads2++;
                                             DemoScanner.IsReload = false;
                                         }
