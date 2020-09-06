@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b4";
+        public const string PROGRAMVERSION = "1.52b5";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -457,7 +457,7 @@ namespace VolvoWrench.DG
                             Console.WriteLine(" (LAG)");
                         else if (!RealAlive)
                             Console.WriteLine(" (DEAD)");
-                        else 
+                        else
                             Console.WriteLine(" (FALSE)");
                         Console.ForegroundColor = tmpcol;
                     }
@@ -2834,8 +2834,9 @@ namespace VolvoWrench.DG
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_BAD2
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_XM1014
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3
-                                       || DemoScanner.IsAngleEditByEngine()
-                                       || !DemoScanner.RealAlive)
+                                       //|| DemoScanner.IsAngleEditByEngine()
+                                       || !DemoScanner.RealAlive
+                                       || IsRoundEnd())
                                 {
                                     DemoScanner.ReloadWarns = 0;
                                 }
@@ -2858,27 +2859,27 @@ namespace VolvoWrench.DG
                                         }
                                     }
 
-                                    if (CurrentTime - DemoScanner.NewAttackTimeAim9 > 0.2
-                                        && CurrentTime - DemoScanner.NewAttackTimeAim9 < 0.5)
-                                    {
-                                        DemoScanner.NewAttackTimeAim9 = 0.0f;
-                                        if (CurrentTime - TestTime1 < 0.4)
-                                        {
-                                            TestTime1 = 0.0f;
-                                            DemoScanner_AddWarn(
-                                              "[BETA TEST AIM TYPE 9.1][" + TestValue1 + "] at (" + CurrentTime +
-                                              "):" + DemoScanner.CurrentTimeString, false);
-                                            //Console.WriteLine("Aim8DetectionTimeX: " + TestValue1);
-                                        }
-                                        if (CurrentTime - TestTime2 < 0.4)
-                                        {
-                                            TestTime2 = 0.0f;
-                                            DemoScanner_AddWarn(
-                                              "[BETA TEST AIM TYPE 9.2][" + TestValue2 + "] at (" + CurrentTime +
-                                              "):" + DemoScanner.CurrentTimeString, false);
-                                            //Console.WriteLine("Aim8DetectionTimeY: " + TestValue2);
-                                        }
-                                    }
+                                    //if (CurrentTime - DemoScanner.NewAttackTimeAim9 > 0.2
+                                    //    && CurrentTime - DemoScanner.NewAttackTimeAim9 < 0.5)
+                                    //{
+                                    //    DemoScanner.NewAttackTimeAim9 = 0.0f;
+                                    //    if (CurrentTime - TestTime1 < 0.4)
+                                    //    {
+                                    //        TestTime1 = 0.0f;
+                                    //        DemoScanner_AddWarn(
+                                    //          "[BETA TEST AIM TYPE 9.1][" + TestValue1 + "] at (" + CurrentTime +
+                                    //          "):" + DemoScanner.CurrentTimeString, false);
+                                    //        //Console.WriteLine("Aim8DetectionTimeX: " + TestValue1);
+                                    //    }
+                                    //    if (CurrentTime - TestTime2 < 0.4)
+                                    //    {
+                                    //        TestTime2 = 0.0f;
+                                    //        DemoScanner_AddWarn(
+                                    //          "[BETA TEST AIM TYPE 9.2][" + TestValue2 + "] at (" + CurrentTime +
+                                    //          "):" + DemoScanner.CurrentTimeString, false);
+                                    //        //Console.WriteLine("Aim8DetectionTimeY: " + TestValue2);
+                                    //    }
+                                    //}
 
                                     if (DemoScanner.MoveLeft && !DemoScanner.MoveRight)
                                     {
@@ -5359,6 +5360,11 @@ namespace VolvoWrench.DG
             }
         }
 
+        private static bool IsRoundEnd()
+        {
+            return CurrentTime - RoundEndTime < 10.0f;
+        }
+
         private static double normalizeangle(double angle)
         {
             if (angle > 360.0 || angle < -360.0)
@@ -5540,6 +5546,7 @@ namespace VolvoWrench.DG
         public static WeaponIdType EndReloadWeapon = WeaponIdType.WEAPON_NONE;
         public static WeaponIdType StartReloadWeapon = WeaponIdType.WEAPON_NONE;
         public static int ReloadWarns = 0;
+        public static float RoundEndTime = 0.0f;
 
         public static bool IsAngleEditByEngine()
         {
@@ -5555,7 +5562,6 @@ namespace VolvoWrench.DG
             AngleDirectionLeft = -1,
             AngleDirectionRight = 1,
             AngleDirectionNO = 0
-
         }
 
 
@@ -6262,6 +6268,7 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("Crosshair", MessageCrosshair);
             AddUserMessageHandler("Spectator", MessageSpectator);
             AddUserMessageHandler("ScoreAttrib", MessageScoreAttrib);
+            AddUserMessageHandler("TextMsg", TextMsg);
         }
 
         // public so svc_deltadescription can be parsed elsewhere
@@ -7931,7 +7938,37 @@ namespace VolvoWrench.DG
             if (DemoScanner.UserAlive && !DemoScanner.UsingAnotherMethodWeaponDetection)
                 DemoScanner.CurrentWeapon = weaponid;
         }
+        private void TextMsg()
+        {
+            var len = BitBuffer.ReadByte();
+            var endbyte = BitBuffer.CurrentByte + len;
 
+            var type = BitBuffer.ReadByte();
+            var arg1 = BitBuffer.ReadString();
+
+            if (arg1 == "#Game_Commencing"
+                || arg1 == "#Game_will_restart_in"
+                || arg1 == "#CTs_Win"
+                || arg1 == "#Terrorists_Win"
+                || arg1 == "#Round_Draw"
+                || arg1 == "#Target_Bombed"
+                || arg1 == "#Target_Saved"
+                || arg1 == "#Hostages_Not_Rescued"
+                || arg1 == "#All_Hostages_Rescued"
+                || arg1 == "#VIP_Escaped"
+                || arg1 == "#VIP_Assassinated")
+            {
+                //Console.WriteLine("Round end at " + DemoScanner.CurrentTimeString);
+                DemoScanner.RoundEndTime = DemoScanner.CurrentTime;
+            }
+
+            //var arg2 = BitBuffer.ReadString();
+            //var arg3 = BitBuffer.ReadString();
+            //var arg4 = BitBuffer.ReadString();
+            //var arg5 = BitBuffer.ReadString();
+            BitBuffer.SkipRemainingBits();
+            BitBuffer.SeekBytes(endbyte, SeekOrigin.Begin);
+        }
         private void MessageDeath()
         {
             if (DemoScanner.GameEnd && DemoScanner.CurrentTime - DemoScanner.GameEndTime > 5.0f)
