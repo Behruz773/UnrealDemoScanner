@@ -443,17 +443,17 @@ namespace VolvoWrench.DG
             for (int i = 0; i < DemoScannerWarnList.Count; i++)
             {
                 var curwarn = DemoScannerWarnList[i];
-                if (!curwarn.Visited && CurrentTime - curwarn.WarnTime > 0.1)
+                if (!curwarn.Visited && CurrentTime - curwarn.WarnTime > 0.2)
                 {
                     curwarn.Visited = true;
 
-                    if (!curwarn.Detected || LossFalseDetection || !RealAlive)
+                    if (!curwarn.Detected || IsPlayerLossConnection() || !RealAlive)
                     {
                         var tmpcol = Console.ForegroundColor;
                         Console.ForegroundColor = ConsoleColor.Gray;
                         Console.Write("[WARN] " + curwarn.Warn);
                         Console.ForegroundColor = ConsoleColor.Red;
-                        if (LossFalseDetection)
+                        if (IsPlayerLossConnection())
                             Console.WriteLine(" (LAG)");
                         else if (!RealAlive)
                             Console.WriteLine(" (DEAD)");
@@ -2836,9 +2836,14 @@ namespace VolvoWrench.DG
                                        || DemoScanner.CurrentWeapon == DemoScanner.WeaponIdType.WEAPON_M3
                                        //|| DemoScanner.IsAngleEditByEngine()
                                        || !DemoScanner.RealAlive
-                                       || IsRoundEnd())
+                                       /*|| IsRoundEnd()*/)
                                 {
                                     DemoScanner.ReloadWarns = 0;
+                                }
+
+                                if (IsRoundEnd())
+                                {
+                                    DemoScanner.DesyncHackWarns = 0;
                                 }
 
                                 if (RealAlive)
@@ -2914,7 +2919,45 @@ namespace VolvoWrench.DG
                                     //    Console.WriteLine("AngleDirX333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviousNetMsgFrame.UCmd.Viewangles.Y) +
                                     //        ". AngleDirY333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviousNetMsgFrame.UCmd.Viewangles.Y) + "\n");
                                     //}
-
+                                    if (nf.UCmd.Sidemove != 0)
+                                    {
+                                        DemoScanner.LastSideMoveTime = CurrentTime;
+                                    }
+                                    if (nf.UCmd.Forwardmove != 0)
+                                    {
+                                        DemoScanner.LastForwardMoveTime = CurrentTime;
+                                    }
+                                    if (!DemoScanner.CurrentFrameOnGround || IsAngleEditByEngine())
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+                                    if (DemoScanner.CurrentTime - DemoScanner.LastSideMoveTime > 2.0
+                                        && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 2.0)
+                                    {
+                                        if (Math.Abs(nf.RParms.Simvel.X) > 0.1f &&
+                                            Math.Abs(nf.RParms.Simvel.Y) > 0.1f)
+                                        {
+                                            DemoScanner.DesyncHackWarns++;
+                                            if (DemoScanner.DesyncHackWarns > 5)
+                                            {
+                                                DemoScanner_AddWarn(
+                                                   "[DESYNC HACK] at (" +
+                                                   CurrentTime + ") " + CurrentTimeString, !IsAngleEditByEngine() && !IsPlayerLossConnection());
+                                                DemoScanner.DesyncHackWarns = 0;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (DemoScanner.DesyncHackWarns > 0)
+                                            {
+                                                DemoScanner.DesyncHackWarns--;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
 
                                     if (nf.UCmd.Sidemove < -80 || nf.UCmd.Sidemove > 80)
                                     {
@@ -2934,6 +2977,10 @@ namespace VolvoWrench.DG
                                             JumpHackCount++;
                                         }
                                     }
+                                }
+                                else
+                                {
+                                    DemoScanner.DesyncHackWarns = 0;
                                 }
 
                                 if (RealAlive)
@@ -5362,7 +5409,7 @@ namespace VolvoWrench.DG
 
         private static bool IsRoundEnd()
         {
-            return CurrentTime - RoundEndTime < 10.0f;
+            return Math.Abs(CurrentTime - RoundEndTime) < 10.0f;
         }
 
         private static double normalizeangle(double angle)
@@ -5437,7 +5484,7 @@ namespace VolvoWrench.DG
 
         public static bool IsPlayerLossConnection()
         {
-            return CurrentTime - LastLossPacket < 0.5;
+            return CurrentTime - LastLossPacket < 1.5;
         }
 
         public static float LastChokePacket;
@@ -5547,13 +5594,25 @@ namespace VolvoWrench.DG
         public static WeaponIdType StartReloadWeapon = WeaponIdType.WEAPON_NONE;
         public static int ReloadWarns = 0;
         public static float RoundEndTime = 0.0f;
+        public static float LastSideMoveTime = 0.0f;
+        public static float LastForwardMoveTime = 0.0f;
+        public static int DesyncHackWarns = 0;
+        public static float LastDamageTime = 0.0f;
+
+        public static bool IsTakeDamage( )
+        {
+            return CurrentTime - LastDamageTime < 0.25;
+        }
 
         public static bool IsAngleEditByEngine()
         {
             if (NO_TELEPORT)
                 return false;
-            return CurrentTime - LastTeleportusTime < 2.5f ||
-                CurrentTime - LastAngleManipulation < 1.0f || CurrentTime - LastDuckUnduckTime < 1.5f;
+            return
+                CurrentTime - LastTeleportusTime < 2.5f ||
+                CurrentTime - LastAngleManipulation < 1.0f ||
+                CurrentTime - LastDuckUnduckTime < 1.5f ||
+                IsTakeDamage( );
         }
 
 
@@ -6269,6 +6328,7 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("Spectator", MessageSpectator);
             AddUserMessageHandler("ScoreAttrib", MessageScoreAttrib);
             AddUserMessageHandler("TextMsg", TextMsg);
+            AddUserMessageHandler("Damage", Damage);
         }
 
         // public so svc_deltadescription can be parsed elsewhere
@@ -7938,6 +7998,16 @@ namespace VolvoWrench.DG
             if (DemoScanner.UserAlive && !DemoScanner.UsingAnotherMethodWeaponDetection)
                 DemoScanner.CurrentWeapon = weaponid;
         }
+        private void Damage()
+        {
+            BitBuffer.ReadByte();
+            BitBuffer.ReadByte();
+            BitBuffer.ReadInt16();
+            BitBuffer.ReadCoord();
+            BitBuffer.ReadCoord();
+            BitBuffer.ReadCoord();
+            DemoScanner.LastDamageTime = DemoScanner.CurrentTime;
+        }
         private void TextMsg()
         {
             var len = BitBuffer.ReadByte();
@@ -7958,7 +8028,7 @@ namespace VolvoWrench.DG
                 || arg1 == "#VIP_Escaped"
                 || arg1 == "#VIP_Assassinated")
             {
-                //Console.WriteLine("Round end at " + DemoScanner.CurrentTimeString);
+               // Console.WriteLine("Round end ( " + arg1 + " ) at " + DemoScanner.CurrentTimeString);
                 DemoScanner.RoundEndTime = DemoScanner.CurrentTime;
             }
 
