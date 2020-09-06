@@ -2608,7 +2608,9 @@ namespace VolvoWrench.DG
                                     subnode.Text += "}\n";
                                 }
                                 if (RealAlive && !IsRoundEnd() && IsRealWeapon() && CurrentWeapon != WeaponIdType.WEAPON_KNIFE
-                                     && CurrentWeapon != WeaponIdType.WEAPON_XM1014 && CurrentWeapon != WeaponIdType.WEAPON_M3)
+                                     && CurrentWeapon != WeaponIdType.WEAPON_XM1014 && CurrentWeapon != WeaponIdType.WEAPON_M3
+                                      && CurrentWeapon != WeaponIdType.WEAPON_HEGRENADE && CurrentWeapon != WeaponIdType.WEAPON_FLASHBANG
+                                       && CurrentWeapon != WeaponIdType.WEAPON_SMOKEGRENADE && CurrentWeapon != WeaponIdType.WEAPON_C4)
                                 {
                                     if (!IsAngleEditByEngine() && !IsPlayerLossConnection() )
                                     {
