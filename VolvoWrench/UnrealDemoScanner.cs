@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b6";
+        public const string PROGRAMVERSION = "1.52b7";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -620,14 +620,16 @@ namespace VolvoWrench.DG
 
                         if (AutoAttackStrikes >= 4)
                         {
-                            if (AimType6FalseDetect && AutoAttackStrikes == 6)
+                            if (AimType6FalseDetect && AutoAttackStrikes == 4)
                             {
-                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, !IsAngleEditByEngine() && !IsPlayerLossConnection() && !AimType6FalseDetect);
+                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
+                                AutoAttackStrikes = 0;
+                                AimType6FalseDetect = false;
                             }
                             else if (!AimType6FalseDetect)
                             {
-                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, !IsAngleEditByEngine() && !IsPlayerLossConnection() && !AimType6FalseDetect);
-
+                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
+                                AimType6FalseDetect = false;
                                 //SilentAimDetected++;
                                 //Console.ForegroundColor = tmpcol;
                                 /*if (DemoScanner.AutoAttackStrikes > 0)
@@ -639,16 +641,20 @@ namespace VolvoWrench.DG
                                                  && CurrentFrameId - LastCmdFrameId > 1)
                         {
 
-                            if (WeaponAvaiabled && CurrentFrameIdWeapon - WeaponAvaiabledFrameId <= 7
-                                                 && CurrentFrameIdWeapon - WeaponAvaiabledFrameId > 1)
-                            {
-                                AimType6FalseDetect = false;
-                            }
-                            else if (CurrentFrameId - LastCmdFrameId <= 7
-                                                 && CurrentFrameId - LastCmdFrameId > 1)
-                            {
-                                AimType6FalseDetect = true;
-                            }
+                            //if (CurrentFrameId - LastCmdFrameId <= 7
+                            //                     && CurrentFrameId - LastCmdFrameId > 1)
+                            //{
+                            //    AimType6FalseDetect = true;
+                            //}
+                            //if (CurrentFrameIdWeapon - WeaponAvaiabledFrameId == 1)
+                            //{
+                            //    AimType6FalseDetect = true;
+                            //}
+                            //if (!AimType6FalseDetect && WeaponAvaiabled && CurrentFrameIdWeapon - WeaponAvaiabledFrameId <= 7
+                            //                     && CurrentFrameIdWeapon - WeaponAvaiabledFrameId > 1)
+                            //{
+                            //    AimType6FalseDetect = false;
+                            //}
 
                             //if (AutoAttackStrikes >= 3)
                             //{
@@ -1152,7 +1158,7 @@ namespace VolvoWrench.DG
                     if (BHOP_JumpWarn > 2)
                     {
                         BHOPcount += BHOP_JumpWarn - 1;
-                        if (CurrentTime - LastBhopTime > 1.0)
+                        if (CurrentTime - LastBhopTime > 1.0 && LastBhopTime != 0.0)
                             DemoScanner_AddWarn("[BHOP TYPE 1] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_JumpWarn - 1) + "]" + " times.");
                         LastBhopTime = CurrentTime;
                     }
@@ -1160,7 +1166,7 @@ namespace VolvoWrench.DG
                     if (BHOP_GroundWarn > 2)
                     {
                         BHOPcount += BHOP_GroundWarn - 1;
-                        if (CurrentTime - LastBhopTime > 0.5 && CurrentTime - LastBhopTime < 2.5f)
+                        if (CurrentTime - LastBhopTime > 0.5 && CurrentTime - LastBhopTime < 2.5f && LastBhopTime != 0.0)
                         {
                             DemoScanner_AddWarn("[BHOP TYPE 2] at (" + CurrentTime + ") " + DemoScanner.CurrentTimeString + " [" + (BHOP_GroundWarn - 1) + "]" + " times.",
                                 BHOP_GroundWarn > 3, BHOP_GroundWarn > 3);
@@ -2866,6 +2872,10 @@ namespace VolvoWrench.DG
                                 {
                                     DemoScanner.DesyncHackWarns = 0;
                                 }
+                                if (DemoScanner.IsAngleEditByEngine())
+                                {
+                                    DemoScanner.DesyncHackWarns = 0;
+                                }
 
                                 if (RealAlive)
                                 {
@@ -4364,21 +4374,22 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
-                                if (DemoScanner.NeedSearchUserAliveTime != 0.0 && CurrentTime - DemoScanner.NeedSearchUserAliveTime < 5.0)
-                                {
-                                    if ((CurrentFrameForward && InForward) || (CurrentFrameDuck && IsDuck))
-                                    {
-                                        if (DemoScanner.DEBUG_ENABLED)
-                                            Console.WriteLine("Alive 4 at " + CurrentTimeString);
-                                        UserAlive = true;
-                                        FirstUserAlive = false;
-                                        LastAliveTime = CurrentTime;
-                                    }
-                                }
-                                else
-                                {
-                                    DemoScanner.NeedSearchUserAliveTime = 0.0f;
-                                }
+
+                                //if (DemoScanner.NeedSearchUserAliveTime != 0.0 && CurrentTime - DemoScanner.NeedSearchUserAliveTime < 5.0)
+                                //{
+                                //    if ((CurrentFrameForward && InForward) || (CurrentFrameDuck && IsDuck))
+                                //    {
+                                //        if (DemoScanner.DEBUG_ENABLED)
+                                //            Console.WriteLine("Alive 4 at " + CurrentTimeString);
+                                //        UserAlive = true;
+                                //        FirstUserAlive = false;
+                                //        LastAliveTime = CurrentTime;
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    DemoScanner.NeedSearchUserAliveTime = 0.0f;
+                                //}
 
                                 if (UserAlive && CurrentTime != 0.0f)
                                 {
@@ -5646,6 +5657,7 @@ namespace VolvoWrench.DG
         public static int CurrentGameSecond2 = 0;
         public static float LastRealJumpTime = 0.0f;
         public static int BHOPJumpHistoryCount1Warn = 0;
+        public static uint LastWeaponReloadStatus = 0;
 
         public static bool IsGameStartSecond()
         {
@@ -8119,6 +8131,8 @@ namespace VolvoWrench.DG
                 DemoScanner.DeathsCoount++;
                 if (DemoScanner.DUMP_ALL_FRAMES)
                     outDataStr += "LocalPlayer " + iVictim + " killed!\n";
+                if (DemoScanner.DEBUG_ENABLED)
+                    Console.WriteLine("LocalPlayer " + iVictim + " killed! at " + DemoScanner.CurrentTimeString);
                 // Console.WriteLine("Dead time: " + DemoScanner.CurrentTimeString);
             }
             else if (iKiller == DemoScanner.UserId + 1)
@@ -9062,6 +9076,11 @@ namespace VolvoWrench.DG
                                     if (entryList[index].Name == "m_fInReload")
                                     {
                                         var reloadstatus = value != null ? (uint)value : 0;
+                                        if (DemoScanner.LastWeaponReloadStatus == reloadstatus)
+                                        {
+                                            DemoScanner.ReloadWarns = 0;
+                                        }
+                                        DemoScanner.LastWeaponReloadStatus = reloadstatus;
                                         if (reloadstatus > 0)
                                         {
                                             if (DemoScanner.DEBUG_ENABLED)
