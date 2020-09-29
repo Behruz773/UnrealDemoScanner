@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b7";
+        public const string PROGRAMVERSION = "1.52b8";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -430,6 +430,10 @@ namespace VolvoWrench.DG
 
         public static void DemoScanner_AddWarn(string warn, bool detected = true, bool log = true, bool skipallchecks = false)
         {
+            if (GameEnd)
+            {
+                return;
+            }
             WarnStruct warnStruct = new WarnStruct();
             warnStruct.Warn = warn;
             warnStruct.WarnTime = CurrentTime;
@@ -449,7 +453,7 @@ namespace VolvoWrench.DG
                 {
                     curwarn.Visited = true;
 
-                    if (!curwarn.SkipAllChecks && (!curwarn.Detected || IsPlayerLossConnection() || !RealAlive) )
+                    if (!curwarn.SkipAllChecks && (!curwarn.Detected || IsPlayerLossConnection() || !RealAlive))
                     {
                         var tmpcol = Console.ForegroundColor;
                         Console.ForegroundColor = ConsoleColor.Gray;
@@ -631,7 +635,7 @@ namespace VolvoWrench.DG
                                 DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
                                 AimType6FalseDetect = false;
                                 //SilentAimDetected++;
-                                //Console.ForegroundColor = tmpcol;
+                                //Console.ForegroundColor = tmpcol; 
                                 /*if (DemoScanner.AutoAttackStrikes > 0)
                                     Console.WriteLine("Reset combo 3 ( " + DemoScanner.AutoAttackStrikes + " )");*/
                                 AutoAttackStrikes = 0;
@@ -1720,8 +1724,13 @@ namespace VolvoWrench.DG
                         switch (frame.Key.Type)
                         {
                             case GoldSource.DemoFrameType.NetMsg:
-                                PreviousNetMsgFrame = CurrentNetMsgFrame;
-                                CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
+                                // PreviousNetMsgFrame = CurrentNetMsgFrame;
+                                //CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
+                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time != 0.0f)
+                                {
+                                    if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2)
+                                        DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
+                                }
                                 break;
                             case GoldSource.DemoFrameType.DemoStart:
                                 break;
@@ -1740,8 +1749,10 @@ namespace VolvoWrench.DG
                             case GoldSource.DemoFrameType.DemoBuffer:
                                 break;
                             default:
-                                PreviousNetMsgFrame = CurrentNetMsgFrame;
-                                CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
+                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2)
+                                    DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
+                                // PreviousNetMsgFrame = CurrentNetMsgFrame;
+                               // CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
                                 invalidframes++;
                                 break;
                         }
@@ -1814,7 +1825,7 @@ namespace VolvoWrench.DG
                                 //    }
                                 //}
 
-                                if ( GetDistance(oldoriginpos,
+                                if (GetDistance(oldoriginpos,
                                           new Point(cdframe.Origin.X,
                                               cdframe.Origin.Y)) > 250)
                                 {
@@ -1824,7 +1835,7 @@ namespace VolvoWrench.DG
                                         Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     if (DemoScanner.LastGameMaximizeTime != 0.0f && DemoScanner.LastTeleportusTime != 0.0f && DemoScanner.LastGameMaximizeTime == CurrentTime && !DemoScanner.GameEnd)
                                     {
-                                        DemoScanner_AddWarn("[RETURN TO GAME FEATURE]",true,true,true);
+                                        DemoScanner_AddWarn("[RETURN TO GAME FEATURE]", true, true, true);
                                     }
                                     DemoScanner.LastTeleportusTime = CurrentTime;
                                 }
@@ -2618,7 +2629,7 @@ namespace VolvoWrench.DG
                                       && CurrentWeapon != WeaponIdType.WEAPON_HEGRENADE && CurrentWeapon != WeaponIdType.WEAPON_FLASHBANG
                                        && CurrentWeapon != WeaponIdType.WEAPON_SMOKEGRENADE && CurrentWeapon != WeaponIdType.WEAPON_C4)
                                 {
-                                    if (!IsAngleEditByEngine() && !IsPlayerLossConnection() )
+                                    if (!IsAngleEditByEngine() && !IsPlayerLossConnection())
                                     {
                                         if (DemoScanner.LastWeaponAnim != WeaponIdType.WEAPON_NONE && DemoScanner.LastWeaponAnim != DemoScanner.CurrentWeapon)
                                         {
@@ -2685,6 +2696,7 @@ namespace VolvoWrench.DG
                         case GoldSource.DemoFrameType.NetMsg:
                         default:
                             {
+                                
                                 //if (frame.Key.Type != GoldSource.DemoFrameType.NetMsg)
                                 //{
                                 //    Console.WriteLine("Invalid");
@@ -2699,6 +2711,7 @@ namespace VolvoWrench.DG
                                       "NETMESSAGE";
 
                                 var nf = (GoldSource.NetMsgFrame)frame.Value;
+                                CurrentNetMsgFrame = nf;
                                 var outstr = "";
                                 ParseGameData(nf.MsgBytes, ref outstr);
                                 // Console.WriteLine("Frame:" + frame.Key.Type.ToString() +". Len:" + nf.MsgBytes.Length);
@@ -2962,6 +2975,18 @@ namespace VolvoWrench.DG
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
+
+                                    if (CurrentTime - LastScreenshotTime < 10.0f)
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+
+                                    if (GameEndTime2 - CurrentTime < 10.0f)
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+
+                                    
                                     if (DemoScanner.CurrentTime - DemoScanner.LastSideMoveTime > 2.0
                                         && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 2.0)
                                     {
@@ -4880,7 +4905,7 @@ namespace VolvoWrench.DG
                                 SecondFound = false;
                                 SecondFound2 = false;
 
-                                //PreviousNetMsgFrame = nf;
+                                PreviousNetMsgFrame = nf;
                                 // FrameCrash = 0;
                                 break;
                             }
@@ -5658,6 +5683,8 @@ namespace VolvoWrench.DG
         public static float LastRealJumpTime = 0.0f;
         public static int BHOPJumpHistoryCount1Warn = 0;
         public static uint LastWeaponReloadStatus = 0;
+        public static float LastScreenshotTime = 0.0f;
+        public static float GameEndTime2 = 0.0f;
 
         public static bool IsGameStartSecond()
         {
@@ -6995,6 +7022,7 @@ namespace VolvoWrench.DG
                 //{
                 //    DemoScanner.DemoScanner_AddWarn("Player tried to got black screenshot at " + DemoScanner.CurrentTimeString, false, false);
                 //}
+                DemoScanner.LastScreenshotTime = DemoScanner.CurrentTime;
                 DemoScanner.DemoScanner_AddInfo("[INFO] Server request player screenshot at " + DemoScanner.CurrentTimeString);
             }
 
@@ -9096,7 +9124,7 @@ namespace VolvoWrench.DG
                                         }
                                         else
                                         {
-                                            if ( DemoScanner.RealAlive && DemoScanner.EndReloadWeapon == DemoScanner.CurrentWeapon && DemoScanner.StartReloadWeapon == DemoScanner.EndReloadWeapon)
+                                            if (DemoScanner.RealAlive && DemoScanner.EndReloadWeapon == DemoScanner.CurrentWeapon && DemoScanner.StartReloadWeapon == DemoScanner.EndReloadWeapon)
                                             {
                                                 if (!DemoScanner.IsRoundEnd() && DemoScanner.CurrentTime - DemoScanner.ReloadTime < 0.2)
                                                 {
