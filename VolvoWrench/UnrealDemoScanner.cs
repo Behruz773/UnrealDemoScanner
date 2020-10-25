@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b8";
+        public const string PROGRAMVERSION = "1.52b9";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -238,6 +238,16 @@ namespace VolvoWrench.DG
 
         public static int SelectSlot = 0;
 
+        public static bool IsChangeWeapon()
+        {
+            return CurrentTime - ChangeWeaponTime < 0.25f;
+        }
+        public static float ForceCenterViewTime = 0.0f;
+        public static bool IsForceCenterView()
+        {
+            return CurrentTime - ForceCenterViewTime < 0.25f;
+        }
+
         public static int SkipNextAttack = 0;
         public static int SkipNextAttack2 = 0;
         public static int AttackCurrentFrameI = 0;
@@ -366,6 +376,7 @@ namespace VolvoWrench.DG
         public static bool Aim2AttackDetected;
 
         public static int ShotFound = -1;
+        public static float ChangeWeaponTime = 0.0f;
         public static WeaponIdType LastWatchWeapon = WeaponIdType.WEAPON_NONE;
         public static int ReallyAim2;
         public static float LastJumpHackTime;
@@ -589,6 +600,11 @@ namespace VolvoWrench.DG
                 CaminCount = 0;
             }
 
+            if (s.ToLower().IndexOf("force_centerview") > -1)
+            {
+                ForceCenterViewTime = CurrentTime;
+            }
+
             if (s.ToLower().IndexOf("slot") > -1 || s.ToLower().IndexOf("invprev") > -1 ||
                 s.ToLower().IndexOf("invnext") > -1)
             {
@@ -597,6 +613,7 @@ namespace VolvoWrench.DG
                 NeedSearchAim2 = false;
                 Aim2AttackDetected = false;
                 ShotFound = -1;
+                ChangeWeaponTime = CurrentTime;
             }
 
             if (s.ToLower().IndexOf("attack2") == -1)
@@ -626,13 +643,14 @@ namespace VolvoWrench.DG
                         {
                             if (AimType6FalseDetect && AutoAttackStrikes == 4)
                             {
-                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
+                                // DISABLED FOR REWRITE
+                                //DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
                                 AutoAttackStrikes = 0;
                                 AimType6FalseDetect = false;
                             }
                             else if (!AimType6FalseDetect)
                             {
-                                DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
+                                //DemoScanner_AddWarn("[AIM TYPE 6] at (" + CurrentTime + "):" + DemoScanner.CurrentTimeString, false);
                                 AimType6FalseDetect = false;
                                 //SilentAimDetected++;
                                 //Console.ForegroundColor = tmpcol; 
@@ -1340,8 +1358,15 @@ namespace VolvoWrench.DG
                 val2 = 5;
             }
 
+            if (IsForceCenterView())
+            {
+                val1 = 5;
+                val2 = 5;
+                val3 = 5;
+            }
+
             return "[AIM TYPE 7." + (type - 1) + " MATCH1:" + val1 + "% MATCH2:" +
-                   val2 + "% MATCH3:" + val3 + "%]";
+           val2 + "% MATCH3:" + val3 + "%]";
         }
 
         public static int invalidframes = 0;
@@ -1752,7 +1777,7 @@ namespace VolvoWrench.DG
                                 if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2)
                                     DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
                                 // PreviousNetMsgFrame = CurrentNetMsgFrame;
-                               // CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
+                                // CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
                                 invalidframes++;
                                 break;
                         }
@@ -2143,7 +2168,7 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 5] at (" + LastAim5DetectedReal +
-                                                "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsAngleEditByEngine());
+                                                "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsAngleEditByEngine() && !IsChangeWeapon());
                                             SilentAimDetected++;
                                             DemoScanner.LastAim5DetectedReal = 0.0f;
                                             DemoScanner.LastAim5Detected = 0.0f;
@@ -2155,7 +2180,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 5] at (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString);
+                                                    "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsAngleEditByEngine() && !IsChangeWeapon());
                                                 SilentAimDetected++;
                                             }
                                             else
@@ -2394,7 +2419,7 @@ namespace VolvoWrench.DG
                                                         if (Aim7detected)
                                                             DemoScanner_AddWarn(Aim7str
                                                                  + " at (" + OldAimType7Time +
-                                                                "):" + DemoScanner.CurrentTimeString, Aim7detected && Aim7var3 > 50 && (Aim7var1 >= 20 && Aim7var2 >= 20));
+                                                                "):" + DemoScanner.CurrentTimeString, Aim7detected && Aim7var3 > 50 && (Aim7var1 >= 20 && Aim7var2 >= 20) && !IsChangeWeapon());
                                                     }
                                                     else if (AimType7Event != 4)
                                                     {
@@ -2415,7 +2440,7 @@ namespace VolvoWrench.DG
                                                         if (Aim7detected)
                                                             DemoScanner_AddWarn(Aim7str
                                                                  + " at (" + OldAimType7Time +
-                                                                "):" + DemoScanner.CurrentTimeString, Aim7detected && Aim7var3 > 50 && (Aim7var1 >= 20 && Aim7var2 >= 20));
+                                                                "):" + DemoScanner.CurrentTimeString, Aim7detected && Aim7var3 > 50 && (Aim7var1 >= 20 && Aim7var2 >= 20) && !IsChangeWeapon());
                                                     }
                                                 }
                                             }
@@ -2444,7 +2469,7 @@ namespace VolvoWrench.DG
                                                 if (Aim7detected)
                                                     DemoScanner_AddWarn(Aim7str
                                                                 + " at (" + OldAimType7Time +
-                                                               "):" + DemoScanner.CurrentTimeString, Aim7detected && Aim7var3 > 50 && (Aim7var1 >= 20 && Aim7var2 >= 20));
+                                                               "):" + DemoScanner.CurrentTimeString, Aim7detected && Aim7var3 > 50 && (Aim7var1 >= 20 && Aim7var2 >= 20) && !IsChangeWeapon());
                                             }
 
                                             AimType7Frames = 0;
@@ -2696,7 +2721,7 @@ namespace VolvoWrench.DG
                         case GoldSource.DemoFrameType.NetMsg:
                         default:
                             {
-                                
+
                                 //if (frame.Key.Type != GoldSource.DemoFrameType.NetMsg)
                                 //{
                                 //    Console.WriteLine("Invalid");
@@ -2986,7 +3011,7 @@ namespace VolvoWrench.DG
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
 
-                                    
+
                                     if (DemoScanner.CurrentTime - DemoScanner.LastSideMoveTime > 2.0
                                         && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 2.0)
                                     {
@@ -3772,7 +3797,7 @@ namespace VolvoWrench.DG
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 8.2] at (" + AimType8WarnTime2 +
                                                 "):" + DemoScanner.CurrentTimeString, /*DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
-                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT &&*/ !AimType8False);
+                                    && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT &&*/ !AimType8False && !IsChangeWeapon());
                                             AimType8WarnTime2 = 0.0f;
                                             AimType8False = false;
                                         }
@@ -3871,15 +3896,18 @@ namespace VolvoWrench.DG
                                             if (AimType8Warn == 1 ||
                                                 AimType8Warn == 2)
                                             {
-                                                if (bAimType8WarnTime != CurrentTime)
-                                                    AimType8WarnTime = CurrentTime;
-                                                bAimType8WarnTime = CurrentTime;
+                                                if (!IsForceCenterView())
+                                                {
+                                                    if (bAimType8WarnTime != CurrentTime)
+                                                        AimType8WarnTime = CurrentTime;
+                                                    bAimType8WarnTime = CurrentTime;
+                                                }
                                                 if (!DemoScanner.AimType8False)
                                                 {
                                                     DemoScanner.AimType8False = CurrentWeapon == WeaponIdType.WEAPON_C4
                                                || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
                                                || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
-                                               || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG || !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection();
+                                               || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG || !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection() || IsChangeWeapon();
                                                 }
                                                 //AimType8Warn = -1;
                                             }
@@ -3900,7 +3928,7 @@ namespace VolvoWrench.DG
                                                     DemoScanner.AimType8False = CurrentWeapon == WeaponIdType.WEAPON_C4
                                                || CurrentWeapon == WeaponIdType.WEAPON_HEGRENADE
                                                || CurrentWeapon == WeaponIdType.WEAPON_SMOKEGRENADE
-                                               || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG || !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection();
+                                               || CurrentWeapon == WeaponIdType.WEAPON_FLASHBANG || !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection() || IsChangeWeapon();
                                                 }
                                                 //AimType8Warn = -1;
                                             }
@@ -3929,7 +3957,6 @@ namespace VolvoWrench.DG
 
                                             if (LastTimeOut != 1 && DemoScanner.TimeShiftCount - DemoScanner.LossPackets > 4 + DemoScanner.ChokePackets && CurrentTime - LastChokePacket > 60)
                                             {
-
                                                 DemoScanner_AddWarn(
                                                     "[TIMESHIFT] at (" + DemoStartTime + "):"
                                                     + "(" + CurrentTime + "):" + "(" + DemoStartTime2 + "):" + "(" + CurrentTime2 + "):" +
@@ -4052,7 +4079,7 @@ namespace VolvoWrench.DG
                                                 {
                                                     DemoScanner_AddWarn(
                                                         "[AIM TYPE 4] at (" +
-                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString);
+                                                        CurrentTime + "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsChangeWeapon());
                                                     SilentAimDetected++;
                                                 }
                                 }
@@ -4581,7 +4608,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 2] at (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString);
+                                                    "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsChangeWeapon());
                                                 SilentAimDetected++;
                                             }
 
@@ -4633,7 +4660,7 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[TRIGGER BOT] at (" + CurrentTime +
-                                                ") " + DemoScanner.CurrentTimeString);
+                                                ") " + DemoScanner.CurrentTimeString, !IsChangeWeapon());
 
                                             LastTriggerCursor = Console.CursorTop;
 
@@ -4687,7 +4714,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 1] at (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString);
+                                                    "):" + DemoScanner.CurrentTimeString, !IsChangeWeapon() && !IsPlayerLossConnection());
                                                 SilentAimDetected++;
                                             }
                                             else
@@ -4704,7 +4731,7 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 1] at (" + CurrentTime +
-                                                "):" + DemoScanner.CurrentTimeString);
+                                                "):" + DemoScanner.CurrentTimeString, !IsChangeWeapon() && !IsPlayerLossConnection());
                                             SilentAimDetected++;
                                         }
                                     }
