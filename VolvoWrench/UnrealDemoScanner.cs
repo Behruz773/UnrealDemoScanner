@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b9";
+        public const string PROGRAMVERSION = "1.52b10";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -8220,34 +8220,37 @@ namespace VolvoWrench.DG
             }
             else if (iKiller == DemoScanner.UserId + 1)
             {
-                if (!DemoScanner.UserAlive && DemoScanner.CurrentTime - DemoScanner.LastDeathTime > 5.0f)
+                if (!DemoScanner.UserAlive && (DemoScanner.CurrentTime - DemoScanner.LastDeathTime > 5.0f || DemoScanner.FirstUserAlive))
                 {
                     //Console.WriteLine("User alive 1" + " time " + DemoScanner.CurrentTimeString);
-                    if (!DemoScanner.FirstUserAlive)
+                    DemoScanner.UserAlive = true;
+                    if (DemoScanner.FirstUserAlive)
                     {
                         if (DemoScanner.DEBUG_ENABLED)
                             Console.WriteLine("Alive 3 at " + DemoScanner.CurrentTimeString);
-                        DemoScanner.UserAlive = true;
                         DemoScanner.LastAliveTime = DemoScanner.CurrentTime;
-                    }
-                    DemoScanner.FirstUserAlive = false;
-                    if (!DemoScanner.FirstBypassKill)
-                    {
-                        if (DemoScanner.BypassCount > 1)
-                        {
-                            var tmpcolor = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                            Console.WriteLine("Warning (???) Tried to bypass demo scanner (" + DemoScanner.CurrentTimeString + ")");
-                            Console.WriteLine("( dead user kill another player! dead user is alive! )");
-                            Console.ForegroundColor = tmpcolor;
-                        }
-                        DemoScanner.BypassCount++;
                     }
                     else
                     {
-                        DemoScanner.FirstBypassKill = false;
-                        DemoScanner.NeedRescanDemoForce = true;
+                        if (!DemoScanner.FirstBypassKill)
+                        {
+                            if (DemoScanner.BypassCount > 1)
+                            {
+                                var tmpcolor = Console.ForegroundColor;
+                                Console.ForegroundColor = ConsoleColor.Gray;
+                                Console.WriteLine("Warning (???) Tried to bypass demo scanner (" + DemoScanner.CurrentTimeString + ")");
+                                Console.WriteLine("( dead user kill another player! dead user is alive! )");
+                                Console.ForegroundColor = tmpcolor;
+                            }
+                            DemoScanner.BypassCount++;
+                        }
+                        else
+                        {
+                            DemoScanner.FirstBypassKill = false;
+                            DemoScanner.NeedRescanDemoForce = true;
+                        }
                     }
+                    DemoScanner.FirstUserAlive = false;
                 }
                 // Console.WriteLine("Kill time: " + DemoScanner.CurrentTimeString);
                 DemoScanner.KillsCount++;
