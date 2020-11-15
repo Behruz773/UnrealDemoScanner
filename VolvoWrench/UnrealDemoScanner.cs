@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b10";
+        public const string PROGRAMVERSION = "1.52b11";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -2175,7 +2175,8 @@ namespace VolvoWrench.DG
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 5] at (" + LastAim5DetectedReal +
                                                 "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsAngleEditByEngine() && !IsChangeWeapon());
-                                            SilentAimDetected++;
+                                            if (!IsPlayerLossConnection() && !IsAngleEditByEngine() && !IsChangeWeapon())
+                                                SilentAimDetected++;
                                             DemoScanner.LastAim5DetectedReal = 0.0f;
                                             DemoScanner.LastAim5Detected = 0.0f;
                                         }
@@ -2187,7 +2188,8 @@ namespace VolvoWrench.DG
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 5] at (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsAngleEditByEngine() && !IsChangeWeapon());
-                                                SilentAimDetected++;
+                                                if (!IsPlayerLossConnection() && !IsAngleEditByEngine() && !IsChangeWeapon())
+                                                    SilentAimDetected++;
                                             }
                                             else
                                             {
@@ -3003,7 +3005,7 @@ namespace VolvoWrench.DG
                                     //    Console.WriteLine("AngleDirX333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviousNetMsgFrame.UCmd.Viewangles.Y) +
                                     //        ". AngleDirY333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviousNetMsgFrame.UCmd.Viewangles.Y) + "\n");
                                     //}
-                                  
+
                                     if (!DemoScanner.CurrentFrameOnGround || IsAngleEditByEngine())
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
@@ -3810,6 +3812,8 @@ namespace VolvoWrench.DG
                                                 "[AIM TYPE 8.2] at (" + AimType8WarnTime2 +
                                                 "):" + DemoScanner.CurrentTimeString, /*DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_AWP
                                     && DemoScanner.CurrentWeapon != WeaponIdType.WEAPON_SCOUT &&*/ !AimType8False && !IsChangeWeapon());
+                                            if (!AimType8False && !IsChangeWeapon())
+                                                SilentAimDetected++;
                                             AimType8WarnTime2 = 0.0f;
                                             AimType8False = false;
                                         }
@@ -4636,7 +4640,8 @@ namespace VolvoWrench.DG
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 2] at (" + CurrentTime +
                                                     "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsChangeWeapon());
-                                                SilentAimDetected++;
+                                                if (!IsPlayerLossConnection() && !IsChangeWeapon())
+                                                    SilentAimDetected++;
                                             }
 
                                             //FirstAttack = false;
@@ -5017,8 +5022,8 @@ namespace VolvoWrench.DG
 
             if (JumpErrors > 0)
             {
-                TextComments.WriteLine("Detected \"MOUSE JUMP\". Detect count:" + JumpErrors);
-                Console.WriteLine("Detected \"MOUSE JUMP\". Detect count:" + JumpErrors);
+                TextComments.WriteLine("Detected [MOUSE JUMP] bind. Detect count:" + JumpErrors);
+                Console.WriteLine("Detected [MOUSE JUMP] bind. Detect count:" + JumpErrors);
             }
 
             if (JumpErrors2 > 0)
@@ -5051,10 +5056,10 @@ namespace VolvoWrench.DG
             if (JumpHackCount > 0)
             {
                 TextComments.WriteLine(
-                    "Detected [MOVE/DUCK/JUMP HACK]. Detect count:" +
+                    "Detected [STRAFE/GROUND/FASTRUN HACK]. Detect count:" +
                     JumpHackCount /*+ ". Found " + JumpCount + " +jump commands"*/);
                 Console.WriteLine(
-                    "Detected [MOVE/DUCK/JUMP HACK]. Detect count:" +
+                    "Detected [STRAFE/GROUND/FASTRUN HACK]. Detect count:" +
                     JumpHackCount /*+ ". Found " + JumpCount + " +jump commands*/);
             }
 
