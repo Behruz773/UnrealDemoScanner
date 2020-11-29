@@ -5745,6 +5745,8 @@ namespace VolvoWrench.DG
         public static float LastScreenshotTime = 0.0f;
         public static float GameEndTime2 = 0.0f;
         public static bool UsedPlugin = false;
+        public static bool PluginVersionFound = false;
+        public static string PluginVersion = "UNKNOWN";
 
         public static bool IsGameStartSecond()
         {
@@ -8074,6 +8076,16 @@ namespace VolvoWrench.DG
                             var col = Console.ForegroundColor;
                             Console.ForegroundColor = ConsoleColor.Cyan;
                             Console.WriteLine("Found Unreal Demo Scanner plugin for AMXX.");
+                            Console.ForegroundColor = col;
+                        }
+                        if (subs[1] == "PLUGINVERSION" && !DemoScanner.PluginVersionFound)
+                        {
+                            DemoScanner.PluginVersionFound = true;
+                            var col = Console.ForegroundColor;
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.Write("Unreal Demo Scanner plugin version: ");
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine(subs[2]);
                             Console.ForegroundColor = col;
                         }
                     }
