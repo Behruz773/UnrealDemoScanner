@@ -5744,6 +5744,7 @@ namespace VolvoWrench.DG
         public static uint LastWeaponReloadStatus = 0;
         public static float LastScreenshotTime = 0.0f;
         public static float GameEndTime2 = 0.0f;
+        public static bool UsedPlugin = false;
 
         public static bool IsGameStartSecond()
         {
@@ -6818,7 +6819,10 @@ namespace VolvoWrench.DG
                 if (messageHandler == null)
                 {
                     if (messageId != 0)
+                    {
                         DemoScanner.UnknownMessages++;
+                        DemoScanner.CheckConsoleCommand("Unknown message id:" + messageId);
+                    }
                     break;
                 }
 
@@ -8056,8 +8060,30 @@ namespace VolvoWrench.DG
 
             // NOTE: had this backwards before, shouldn't matter
             var extra = BitBuffer.ReadString();
-            //if (extra.Length > 0)
-            //    Console.WriteLine(extra);
+
+            if (extra.Length > 0)
+            {
+                try
+                {
+                    string[] subs = extra.Split(':');
+                    if (subs[0] == "UDS")
+                    {
+                        if (!DemoScanner.UsedPlugin)
+                        {
+                            DemoScanner.UsedPlugin = true;
+                            var col = Console.ForegroundColor;
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.WriteLine("Found Unreal Demo Scanner plugin for AMXX.");
+                            Console.ForegroundColor = col;
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+                //Console.WriteLine(extra + "(" + DemoScanner.CurrentTime + ") : " + DemoScanner.CurrentTimeString);
+            }
             //Console.ReadLine();
             Seek(1);
         }
