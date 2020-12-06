@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b1";
+        public const string PROGRAMVERSION = "1.53b2";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -5845,6 +5845,7 @@ namespace VolvoWrench.DG
         public static int UDS_BADFPS = 0;
         public static bool UDS_FOUND_BIG_FPS = false;
         public static int ReturnToGameDetects = 0;
+        public static int LAST_UDS_REALFPS = -1;
 
         public static bool IsGameStartSecond()
         {
@@ -8218,13 +8219,12 @@ namespace VolvoWrench.DG
                         if (subs[1] == "FPS")
                         {
                             DemoScanner.UDS_REALFPS = int.Parse(subs[2]);
-                            if (DemoScanner.UDS_REALFPS > DemoScanner.MAX_MONITOR_REFRESHRATE && !DemoScanner.UDS_FOUND_BIG_FPS)
+                            if (DemoScanner.UDS_REALFPS != DemoScanner.LAST_UDS_REALFPS)
                             {
-                                DemoScanner.UDS_FOUND_BIG_FPS = true;
-                                DemoScanner.DemoScanner_AddWarn("[FPS_MAX=" + DemoScanner.UDS_REALFPS + "] at (" + DemoScanner.CurrentTime +
-                                                       "):" + DemoScanner.CurrentTimeString, true, true, true, true);
+                                DemoScanner.LAST_UDS_REALFPS = DemoScanner.UDS_REALFPS;
+                               // DemoScanner.UDS_FOUND_BIG_FPS = true;
+                                DemoScanner.DemoScanner_AddInfo("[PLUGIN][CVAR FPS_MAX=" + DemoScanner.UDS_REALFPS + "][SCANNER][REALFPS = " + DemoScanner.RealFpsMax + " ~ " + DemoScanner.RealFpsMax2 + " ] at " + DemoScanner.CurrentTimeString);
                             }
-
                             DemoScanner.UDS_SCANFPS = 10;
                             DemoScanner.UDS_SCANFPS2 = 10;
                             DemoScanner.UDS_BADFPS = 0;
@@ -8280,7 +8280,10 @@ namespace VolvoWrench.DG
                 }
                 catch
                 {
-
+                    var col = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("PLUGIN UDS PARSE FATAL ERROR! POSSIBLE EDITED BY HACK OR BAD PLUGIN VERSION!");
+                    Console.ForegroundColor = col;
                 }
                 //Console.WriteLine(extra + "(" + DemoScanner.CurrentTime + ") : " + DemoScanner.CurrentTimeString);
             }
