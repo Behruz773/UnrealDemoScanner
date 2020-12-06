@@ -533,6 +533,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                 public float Sidemove;
                 public float Upmove;
                 public DPoint3D Viewangles;
+                public Point3D Viewangles_fl;
                 public sbyte Weaponselect;
 
                 public override bool Equals(object obj)
@@ -1611,6 +1612,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
 
                                             }
                                             nf.RParms.Viewangles.X = tmpfloat2;
+                                            
                                             tmpfloat2 = br.ReadSingle();
                                             //if (tmpfloat.ToString().IndexOf("E") > 0)
                                             //    cdframe.ErrAngles++;
@@ -1727,6 +1729,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             nf.UCmd.Align1 = br.ReadSByte();
 
                                             tmpfloat2 = br.ReadSingle();
+                                            nf.UCmd.Viewangles_fl.X = tmpfloat2;
                                             //if (tmpfloat.ToString().IndexOf("E") > 0)
                                             //    cdframe.ErrAngles++;
                                             try
@@ -1738,7 +1741,9 @@ namespace VolvoWrench.DemoStuff.GoldSource
 
                                             }
                                             nf.UCmd.Viewangles.X = tmpfloat2;
+                                            
                                             tmpfloat2 = br.ReadSingle();
+                                            nf.UCmd.Viewangles_fl.Y = tmpfloat2;
                                             //if (tmpfloat.ToString().IndexOf("E") > 0)
                                             //    cdframe.ErrAngles++;
                                             try
@@ -1751,6 +1756,7 @@ namespace VolvoWrench.DemoStuff.GoldSource
                                             }
                                             nf.UCmd.Viewangles.Y = tmpfloat2;
                                             tmpfloat2 = br.ReadSingle();
+                                            nf.UCmd.Viewangles_fl.Z = tmpfloat2;
                                             //if (tmpfloat.ToString().IndexOf("E") > 0)
                                             //    cdframe.ErrAngles++;
                                             try
