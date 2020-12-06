@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b2";
+        public const string PROGRAMVERSION = "1.53b3";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -3763,7 +3763,7 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[FOV HACK] at (" + CurrentTime +
-                                                "):" + DemoScanner.CurrentTimeString + ((cdframeFov == ClientFov) ? "[BY SERVER ???]" : ""));
+                                                "):" + DemoScanner.CurrentTimeString + ((cdframeFov == ClientFov || cdframeFov == FovByFunc) ? "[BY SERVER ???]" : ""));
 
                                             FovHackDetected += 1;
                                         }
@@ -5846,6 +5846,7 @@ namespace VolvoWrench.DG
         public static bool UDS_FOUND_BIG_FPS = false;
         public static int ReturnToGameDetects = 0;
         public static int LAST_UDS_REALFPS = -1;
+        public static int FovByFunc = 0;
 
         public static bool IsGameStartSecond()
         {
@@ -6586,6 +6587,7 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("ScoreAttrib", MessageScoreAttrib);
             AddUserMessageHandler("TextMsg", TextMsg);
             AddUserMessageHandler("Damage", Damage);
+            AddUserMessageHandler("SetFOV", SetFOV);
         }
 
         // public so svc_deltadescription can be parsed elsewhere
@@ -8380,15 +8382,22 @@ namespace VolvoWrench.DG
             if (DemoScanner.UserAlive && !DemoScanner.UsingAnotherMethodWeaponDetection)
                 DemoScanner.CurrentWeapon = weaponid;
         }
+
         private void Damage()
         {
             BitBuffer.ReadByte();
             BitBuffer.ReadByte();
+            BitBuffer.ReadInt32();
             BitBuffer.ReadInt16();
-            BitBuffer.ReadCoord();
-            BitBuffer.ReadCoord();
-            BitBuffer.ReadCoord();
+            BitBuffer.ReadInt16();
+            BitBuffer.ReadInt16();
+            // after it found NULL byte //fixme
             DemoScanner.LastDamageTime = DemoScanner.CurrentTime;
+        }
+
+        private void SetFOV()
+        {
+            DemoScanner.FovByFunc = (int) BitBuffer.ReadByte();
         }
         private void TextMsg()
         {
@@ -8564,6 +8573,9 @@ namespace VolvoWrench.DG
                 outDataStr +=
                     "MessageScreenFade. DUR:" + duration + ". HOLD:" + holdTime +
                     ". RGBA:" + r + " " + g + " " + b + " " + a + "\n";
+            if (DemoScanner.DEBUG_ENABLED)
+                Console.WriteLine("MessageScreenFade. DUR:" + duration + ". HOLD:" + holdTime +
+                    ". RGBA:" + r + " " + g + " " + b + " " + a);
         }
 
         #endregion
