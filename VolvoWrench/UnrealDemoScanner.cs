@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.52b12";
+        public const string PROGRAMVERSION = "1.53b1";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -344,6 +344,7 @@ namespace VolvoWrench.DG
         public static BinaryWriter ViewDemoHelperComments;
         public static TextWriter TextComments;
         private static readonly Stream TextCommentsStream = new MemoryStream();
+        public const int MAX_MONITOR_REFRESHRATE = 280;
         public static int ViewDemoCommentCount;
 
         public static byte[] xcommentdata =
@@ -434,13 +435,14 @@ namespace VolvoWrench.DG
             public bool Visited;
             public bool SkipAllChecks;
             public float WarnTime;
+            public bool Plugin;
         }
 
         public static List<WarnStruct> DemoScannerWarnList = new List<WarnStruct>();
 
         public static string LastWarnStr = "";
         public static float LastWarnTime = 0.0f;
-        public static void DemoScanner_AddWarn(string warn, bool detected = true, bool log = true, bool skipallchecks = false)
+        public static void DemoScanner_AddWarn(string warn, bool detected = true, bool log = true, bool skipallchecks = false, bool uds_plugin = false)
         {
             if (GameEnd)
             {
@@ -458,6 +460,7 @@ namespace VolvoWrench.DG
             warnStruct.Log = log;
             warnStruct.SkipAllChecks = skipallchecks;
             warnStruct.Visited = false;
+            warnStruct.Plugin = uds_plugin;
             DemoScannerWarnList.Add(warnStruct);
         }
 
@@ -470,11 +473,31 @@ namespace VolvoWrench.DG
                 {
                     curwarn.Visited = true;
 
-                    if (!curwarn.SkipAllChecks && (!curwarn.Detected || IsPlayerLossConnection() || !RealAlive))
+                    var tmpcol = Console.ForegroundColor;
+                    if (curwarn.Detected && ((!IsPlayerLossConnection() && RealAlive) || curwarn.SkipAllChecks))
                     {
-                        var tmpcol = Console.ForegroundColor;
+                        if (curwarn.Plugin)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Magenta;
+                            Console.Write("[PLUGIN] ");
+                        }
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.Write("[DETECTED] ");
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine(curwarn.Warn);
+                    }
+                    else 
+                    {
+                        if (curwarn.Plugin)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Magenta;
+                            Console.Write("[PLUGIN] ");
+                        }
                         Console.ForegroundColor = ConsoleColor.Gray;
-                        Console.Write("[WARN] " + curwarn.Warn);
+                        Console.Write("[WARN] ");
+
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write(curwarn.Warn);
                         Console.ForegroundColor = ConsoleColor.Red;
                         if (IsPlayerLossConnection())
                             Console.WriteLine(" (LAG)");
@@ -482,12 +505,8 @@ namespace VolvoWrench.DG
                             Console.WriteLine(" (DEAD)");
                         else
                             Console.WriteLine(" (FALSE)");
-                        Console.ForegroundColor = tmpcol;
                     }
-                    else
-                    {
-                        Console.WriteLine("[DETECTED] " + curwarn.Warn);
-                    }
+
 
                     if (curwarn.Detected)
                         LossFalseDetection = false;
@@ -500,6 +519,8 @@ namespace VolvoWrench.DG
 
 
                     DemoScannerWarnList[i] = curwarn;
+
+                    Console.ForegroundColor = tmpcol;
                 }
             }
         }
@@ -1841,6 +1862,15 @@ namespace VolvoWrench.DG
                                     subnode.Text += "}\n";
                                 }
 
+                                if (UDS_SaveAnglesArray)
+                                {
+                                    SmallPoint tmpSmallPoint = new SmallPoint();
+                                    tmpSmallPoint.X = cdframe.Viewangles.X;
+                                    tmpSmallPoint.Y = cdframe.Viewangles.Y;
+
+                                    UDS_SavedAngles.Add(tmpSmallPoint);
+                                }
+
                                 CDFrameYAngleHistory[0] = CDFrameYAngleHistory[1];
                                 CDFrameYAngleHistory[1] = CDFrameYAngleHistory[2];
                                 CDFrameYAngleHistory[2] = cdframe.Viewangles.Y;
@@ -1866,7 +1896,8 @@ namespace VolvoWrench.DG
                                         Console.WriteLine("Teleportus " + CurrentTime + ":" + CurrentTimeString);
                                     if (DemoScanner.LastGameMaximizeTime != 0.0f && DemoScanner.LastTeleportusTime != 0.0f && DemoScanner.LastGameMaximizeTime == CurrentTime && !DemoScanner.GameEnd)
                                     {
-                                        DemoScanner_AddWarn("[RETURN TO GAME FEATURE]", true, true, true);
+                                        DemoScanner.ReturnToGameDetects++;
+                                        DemoScanner_AddWarn("[RETURN TO GAME FEATURE]", DemoScanner.ReturnToGameDetects > 2, true, true);
                                     }
                                     DemoScanner.LastTeleportusTime = CurrentTime;
                                 }
@@ -1911,6 +1942,25 @@ namespace VolvoWrench.DG
 
                                             if (CurrentFps < RealFpsMin && CurrentFps > 0)
                                                 RealFpsMin = CurrentFps;
+
+                                            if (UDS_SCANFPS > 0)
+                                            {
+                                                UDS_SCANFPS--;
+                                                if (CurrentFps > MAX_MONITOR_REFRESHRATE)
+                                                {
+                                                    UDS_BADFPS++;
+                                                }
+
+                                                if (UDS_SCANFPS == 0 && UDS_SCANFPS2 == 0)
+                                                {
+                                                    if (UDS_BADFPS > 5)
+                                                    {
+                                                        UDS_BADFPS = 0;
+                                                        DemoScanner.DemoScanner_AddWarn("[FPS HACK] at (" + DemoScanner.CurrentTime +
+                                                      "):" + DemoScanner.CurrentTimeString, true, true, false, true);
+                                                    }
+                                                }
+                                            }
 
                                             SecondFound = true;
                                             LastFpsCheckTime = CurrentTime;
@@ -3607,8 +3657,6 @@ namespace VolvoWrench.DG
                                 }
 
 
-
-
                                 /*
                                  * 1. Игрок не на земле
                                  * 2. Игрок на земле 1 кадр
@@ -3782,6 +3830,24 @@ namespace VolvoWrench.DG
                                             if (CurrentFps2 < RealFpsMin2 && CurrentFps2 > 0)
                                                 RealFpsMin2 = CurrentFps2;
 
+                                            if (UDS_SCANFPS2 > 0)
+                                            {
+                                                UDS_SCANFPS2--;
+                                                if (CurrentFps2 > MAX_MONITOR_REFRESHRATE)
+                                                {
+                                                    UDS_BADFPS++;
+                                                }
+
+                                                if (UDS_SCANFPS == 0 && UDS_SCANFPS2 == 0)
+                                                {
+                                                    if (UDS_BADFPS > 5)
+                                                    {
+                                                        UDS_BADFPS = 0;
+                                                        DemoScanner.DemoScanner_AddWarn("[FPS HACK] at (" + DemoScanner.CurrentTime +
+                                                      "):" + DemoScanner.CurrentTimeString, true, true, false, true);
+                                                    }
+                                                }
+                                            }
                                             LastFpsCheckTime2 = CurrentTime2;
                                             SecondFound2 = true;
                                             CurrentGameSecond2++;
@@ -3797,6 +3863,18 @@ namespace VolvoWrench.DG
 
                                 if (RealAlive)
                                 {
+                                    if (IsAttack || CurrentFrameAttacked || CurrentFrameAlive)
+                                    {
+                                        if (UDS_SaveAnglesArray)
+                                        {
+                                            SmallPoint tmpSmallPoint = new SmallPoint();
+                                            tmpSmallPoint.X = nf.UCmd.Viewangles.X;
+                                            tmpSmallPoint.Y = nf.UCmd.Viewangles.Y;
+
+                                            UDS_SavedAngles.Add(tmpSmallPoint);
+                                        }
+                                    }
+
                                     if (CurrentFrameAttacked || PreviousFrameAttacked)
                                     {
                                         if (CurrentTime - AimType8WarnTime < 0.350f)
@@ -5754,6 +5832,19 @@ namespace VolvoWrench.DG
         public static bool PlayerFrozen = false;
         public static float PlayerFrozenTime = 0.0f;
         public static float PlayerUnFrozenTime = 0.0f;
+        public static bool UDS_SaveAnglesArray = false;
+        public struct SmallPoint
+        {
+            public double X, Y;
+        }
+
+        public static List<SmallPoint> UDS_SavedAngles = new List<SmallPoint>();
+        public static int UDS_REALFPS = 0;
+        public static int UDS_SCANFPS = 0;
+        public static int UDS_SCANFPS2 = 0;
+        public static int UDS_BADFPS = 0;
+        public static bool UDS_FOUND_BIG_FPS = false;
+        public static int ReturnToGameDetects = 0;
 
         public static bool IsGameStartSecond()
         {
@@ -8092,52 +8183,99 @@ namespace VolvoWrench.DG
                         {
                             DemoScanner.UsedPlugin = true;
                             var col = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Cyan;
-                            Console.Write("Found Unreal Demo Scanner plugin for AMXX.");
+                            Console.ForegroundColor = ConsoleColor.Magenta;
+                            Console.WriteLine("Found Unreal Demo Scanner plugin for AMXX.");
                             Console.ForegroundColor = col;
                         }
                         if (subs[1] == "PLUGINVERSION" && !DemoScanner.PluginVersionFound)
                         {
-                            DemoScanner.PluginVersionFound = true;
-                            var col = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Cyan;
-                            Console.Write("Unreal Demo Scanner plugin version: ");
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write(subs[2]);
-                            Console.ForegroundColor = col;
+                            if (DemoScanner.UsedPlugin)
+                            {
+                                DemoScanner.PluginVersionFound = true;
+                                var col = Console.ForegroundColor;
+                                Console.ForegroundColor = ConsoleColor.Magenta;
+                                Console.Write("Unreal Demo Scanner plugin version: ");
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine(subs[2]);
+                                if (subs[2] == "1.0")
+                                {
+                                    Console.WriteLine("ERROR BAD PLUGIN VERSION! NEED INSTALL NEW!");
+                                }
+
+                                Console.ForegroundColor = col;
+                            }
                         }
                         if (subs[1] == "ERROR")
                         {
-                            DemoScanner.PluginVersionFound = true;
                             var col = Console.ForegroundColor;
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.Write("Unreal Demo Scanner plugin error: ");
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write(subs[2]);
-                            Console.ForegroundColor = col;
-                        }
-                        if (subs[1] == "ANGLE")
-                        {
-                            DemoScanner.PluginVersionFound = true;
-                            var col = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Write("ANGLE: ");
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            double angle1 = float.Parse(subs[2], new CultureInfo("en-US"));
-                            Console.Write(subs[2] + " " + subs[3]);
+                            Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
                             Console.ForegroundColor = col;
                         }
                         if (subs[1] == "FPS")
                         {
-                            DemoScanner.PluginVersionFound = true;
-                            var col = Console.ForegroundColor;
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Write("FPS: ");
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write(subs[2]);
-                            Console.ForegroundColor = col;
+                            DemoScanner.UDS_REALFPS = int.Parse(subs[2]);
+                            if (DemoScanner.UDS_REALFPS > DemoScanner.MAX_MONITOR_REFRESHRATE && !DemoScanner.UDS_FOUND_BIG_FPS)
+                            {
+                                DemoScanner.UDS_FOUND_BIG_FPS = true;
+                                DemoScanner.DemoScanner_AddWarn("[FPS_MAX=" + DemoScanner.UDS_REALFPS + "] at (" + DemoScanner.CurrentTime +
+                                                       "):" + DemoScanner.CurrentTimeString, true, true, true, true);
+                            }
+
+                            DemoScanner.UDS_SCANFPS = 10;
+                            DemoScanner.UDS_SCANFPS2 = 10;
+                            DemoScanner.UDS_BADFPS = 0;
                         }
-                        Console.WriteLine("(" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
+                        if (subs[1] == "WEAPON")
+                        {
+                            DemoScanner.UDS_SaveAnglesArray = true;
+                            //var col = Console.ForegroundColor;
+                            //Console.ForegroundColor = ConsoleColor.Red;
+                            //Console.Write("WEAPON: ");
+                            //Console.ForegroundColor = ConsoleColor.Green;
+                            //Console.Write(subs[2]);
+                            //Console.ForegroundColor = col;
+                        }
+
+                        if (subs[1] == "ANGLE")
+                        {
+                            if (DemoScanner.UDS_SaveAnglesArray && DemoScanner.UDS_REALFPS > 0)
+                            {
+                                DemoScanner.UDS_SaveAnglesArray = false;
+                                double angle1 = float.Parse(subs[2], new CultureInfo("en-US"));
+                                double angle2 = float.Parse(subs[3], new CultureInfo("en-US"));
+                                bool foundangle = false;
+                                foreach (var val in DemoScanner.UDS_SavedAngles)
+                                {
+                                    if (Math.Abs(val.X - angle1) < 0.01 && Math.Abs(val.Y - angle2) < 0.01)
+                                    {
+                                        foundangle = true;
+                                        break;
+                                    }
+                                }
+                                if (!foundangle && DemoScanner.RealAlive && !DemoScanner.IsAngleEditByEngine())
+                                {
+                                    DemoScanner.DemoScanner_AddWarn("[AIM TYPE 9] at (" + DemoScanner.CurrentTime +
+                                                       "):" + DemoScanner.CurrentTimeString, false, true, false, true);
+                                }
+                                DemoScanner.UDS_SavedAngles.Clear();
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error UDS plugin! Wrong data found!");
+                            }
+                            //var col = Console.ForegroundColor;
+                            //Console.ForegroundColor = ConsoleColor.Red;
+                            //Console.Write("ANGLE: ");
+                            //Console.ForegroundColor = ConsoleColor.Green;
+
+                            //Console.Write(angle1 + " " + angle2);
+                            //Console.ForegroundColor = col;
+                        }
+
                     }
                 }
                 catch
