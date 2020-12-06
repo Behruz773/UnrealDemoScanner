@@ -486,7 +486,7 @@ namespace VolvoWrench.DG
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine(curwarn.Warn);
                     }
-                    else 
+                    else
                     {
                         if (curwarn.Plugin)
                         {
@@ -3861,7 +3861,7 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (RealAlive)
+                                if (RealAlive && !DemoScanner.HideWeapon)
                                 {
                                     if (IsAttack || CurrentFrameAttacked || CurrentFrameAlive)
                                     {
@@ -5847,7 +5847,15 @@ namespace VolvoWrench.DG
         public static int ReturnToGameDetects = 0;
         public static int LAST_UDS_REALFPS = -1;
         public static int FovByFunc = 0;
+        public static bool IsScreenFade = false;
+        public static float LastViewChange = 0.0f;
+        public static bool HideWeapon = false;
+        public static float HideWeaponTime = 0.0f;
 
+        public static bool IsViewChanged()
+        {
+            return CurrentTime - LastViewChange < 5.0f;
+        }
         public static bool IsGameStartSecond()
         {
             return CurrentGameSecond > 1 || CurrentGameSecond2 > 1 || CurrentFrameIdAll > 100;
@@ -5870,7 +5878,7 @@ namespace VolvoWrench.DG
                 CurrentTime - LastTeleportusTime < 2.5f ||
                 CurrentTime - LastAngleManipulation < 1.0f ||
                 CurrentTime - LastDuckUnduckTime < 1.5f ||
-                IsTakeDamage() || IsPlayerFrozen();
+                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon;
         }
 
 
@@ -6545,7 +6553,7 @@ namespace VolvoWrench.DG
             AddMessageHandler((byte)MessageId.svc_signonnum, 1);
             AddMessageHandler((byte)MessageId.svc_centerprint, MessageCenterPrint);
             AddMessageHandler((byte)MessageId.svc_spawnstaticsound, 14);
-            AddMessageHandler((byte)MessageId.svc_intermission, 0);
+            AddMessageHandler((byte)MessageId.svc_intermission, MessageInterMission);
             AddMessageHandler((byte)MessageId.svc_finale, 1);
             AddMessageHandler((byte)MessageId.svc_cdtrack, 2);
             AddMessageHandler((byte)MessageId.svc_weaponanim, 2);
@@ -6588,6 +6596,7 @@ namespace VolvoWrench.DG
             AddUserMessageHandler("TextMsg", TextMsg);
             AddUserMessageHandler("Damage", Damage);
             AddUserMessageHandler("SetFOV", SetFOV);
+            AddUserMessageHandler("HideWeapon", HideWeapon);
         }
 
         // public so svc_deltadescription can be parsed elsewhere
@@ -7128,6 +7137,8 @@ namespace VolvoWrench.DG
                 //    DemoScanner.FirstUserAlive = false;
                 //}
             }
+
+            DemoScanner.LastViewChange = DemoScanner.CurrentTime;
 
             if (DemoScanner.DUMP_ALL_FRAMES)
             {
@@ -7814,6 +7825,10 @@ namespace VolvoWrench.DG
                     Console.Write("..bad msgcenterprint?.." + msgprint + ">>>>>" + msgprint2);
             }
         }
+        private void MessageInterMission()
+        {
+            //Console.WriteLine("Game end")''
+        }
 
         public void MessageNewUserMsg()
         {
@@ -8224,7 +8239,7 @@ namespace VolvoWrench.DG
                             if (DemoScanner.UDS_REALFPS != DemoScanner.LAST_UDS_REALFPS)
                             {
                                 DemoScanner.LAST_UDS_REALFPS = DemoScanner.UDS_REALFPS;
-                               // DemoScanner.UDS_FOUND_BIG_FPS = true;
+                                // DemoScanner.UDS_FOUND_BIG_FPS = true;
                                 DemoScanner.DemoScanner_AddInfo("[PLUGIN][CVAR FPS_MAX=" + DemoScanner.UDS_REALFPS + "][SCANNER][REALFPS = " + DemoScanner.RealFpsMax + " ~ " + DemoScanner.RealFpsMax2 + " ] at " + DemoScanner.CurrentTimeString);
                             }
                             DemoScanner.UDS_SCANFPS = 10;
@@ -8395,9 +8410,24 @@ namespace VolvoWrench.DG
             DemoScanner.LastDamageTime = DemoScanner.CurrentTime;
         }
 
+        private void HideWeapon()
+        {
+            var flags = BitBuffer.ReadByte();
+            if ((flags & 4) > 0
+                || (flags & 1) > 0
+                || (flags & 4) > 0)
+            {
+                DemoScanner.HideWeapon = true;
+                DemoScanner.HideWeaponTime = DemoScanner.CurrentTime;
+            }
+            else
+            {
+                DemoScanner.HideWeapon = false;
+            }
+        }
         private void SetFOV()
         {
-            DemoScanner.FovByFunc = (int) BitBuffer.ReadByte();
+            DemoScanner.FovByFunc = (int)BitBuffer.ReadByte();
         }
         private void TextMsg()
         {
@@ -8565,6 +8595,18 @@ namespace VolvoWrench.DG
             var duration = BitBuffer.ReadUInt16();
             var holdTime = BitBuffer.ReadUInt16();
             var fadeFlags = BitBuffer.ReadUInt16();
+
+            if ((fadeFlags & 4) > 0 && !DemoScanner.IsScreenFade)
+            {
+                DemoScanner.IsScreenFade = (fadeFlags & 0x0004) > 0;
+                DemoScanner.DemoScanner_AddInfo("[Full screen fade START] at " + DemoScanner.CurrentTimeString);
+            }
+            else if (!((fadeFlags & 4) > 0) && DemoScanner.IsScreenFade)
+            {
+                DemoScanner.IsScreenFade = (fadeFlags & 0x0004) > 0;
+                DemoScanner.DemoScanner_AddInfo("[Full screen fade END] at " + DemoScanner.CurrentTimeString);
+            }
+
             var r = BitBuffer.ReadByte();
             var g = BitBuffer.ReadByte();
             var b = BitBuffer.ReadByte();
