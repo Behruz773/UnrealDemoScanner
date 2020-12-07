@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b3";
+        public const string PROGRAMVERSION = "1.53b4";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -8267,7 +8267,7 @@ namespace VolvoWrench.DG
                                 bool foundangle = false;
                                 foreach (var val in DemoScanner.UDS_SavedAngles)
                                 {
-                                    if (Math.Abs(val.X - angle1) < 0.01 && Math.Abs(val.Y - angle2) < 0.01)
+                                    if (Math.Abs(val.X - angle1) < 0.01 /*&& Math.Abs(val.Y - angle2) < 0.1*/)
                                     {
                                         foundangle = true;
                                         break;
