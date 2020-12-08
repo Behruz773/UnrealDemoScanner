@@ -6,8 +6,9 @@
 
 new bool:g_bRequestCmdInfo[33];
 new Float:tmpViewAngles[33][3];
+new g_iCmds[33];
 
-#define PLUGIN_VERSION "1.2"
+#define PLUGIN_VERSION "1.3"
 
 
 public plugin_init()
@@ -21,10 +22,13 @@ public plugin_init()
 public client_connect(id)
 {
 	set_task(20.0,"unreal_demo_scanner_plugin_start",id,_,_,"b")
+	set_task(5.0,"send_cmd_rate",id+100000,_,_,"b")
 }
 
 public client_disconnected(id)
 {
+	g_iCmds[id] = 0;
+	
 	if (task_exists(id))
 		remove_task(id);
 	if (task_exists(id + 100))
@@ -33,6 +37,8 @@ public client_disconnected(id)
 		remove_task(id + 1000);
 	if (task_exists(id + 10000))
 		remove_task(id + 10000);
+	if (task_exists(id + 100000))
+		remove_task(id + 100000);
 }
 
 public unreal_demo_scanner_plugin_start(id)
@@ -105,9 +111,21 @@ public uds_send_weapon_and_ucmd(id2)
 	}
 }
 
+public send_cmd_rate(id2)
+{
+	new id = id2 - 100000;
+	if(is_user_connected(id))
+	{
+		new userviewangles_command[128];
+		formatex(userviewangles_command,charsmax(userviewangles_command),"%s%i","UDS:RATE:",g_iCmds[id]);
+		write_demo_info(id,userviewangles_command);
+		g_iCmds[id] = 0;
+	}
+}
 
 public OnCmdStart(id, uc_handle, seed)
 {
+	g_iCmds[id]++;
 	if (g_bRequestCmdInfo[id] && (get_uc(uc_handle, UC_Buttons) & IN_ATTACK) )
 	{
 		get_uc( uc_handle, UC_ViewAngles, tmpViewAngles[id]);
