@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b5";
+        public const string PROGRAMVERSION = "1.53b7";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -1397,8 +1397,6 @@ namespace VolvoWrench.DG
            val2 + "% MATCH3:" + val3 + "%]";
         }
 
-        public static int invalidframes = 0;
-
         public static string lastnormalanswer = "";
 
         public static double nospreadtest = 0.0f;
@@ -1419,7 +1417,7 @@ namespace VolvoWrench.DG
             {
                 ConsoleUtils.CenterConsole();
                 Console.SetWindowSize(114, 32);
-                Console.SetBufferSize(114, 3555);
+                Console.SetBufferSize(114, 5555);
                 Console.SetWindowSize(115, 32);
                 ConsoleUtils.CenterConsole();
             }
@@ -1740,8 +1738,63 @@ namespace VolvoWrench.DG
             //}
 
             for (var index = 0;
-                index < CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count;
-                index++)
+               index < CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count;
+               index++)
+            {
+                for (int frameindex = 0; frameindex < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
+                    .Frames.Count; frameindex++)
+                {
+                    var frame = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index]
+                    .Frames[frameindex];
+                    try
+                    {
+                        switch (frame.Key.Type)
+                        {
+                            case GoldSource.DemoFrameType.NetMsg:
+                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time != 0.0f)
+                                {
+                                    if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time != 0.0f && DemoScanner.GameStartTime == 0.0f)
+                                        DemoScanner.GameStartTime = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
+                                    if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2 && ((GoldSource.NetMsgFrame)frame.Value).RParms.Time
+                                    != DemoScanner.GameStartTime)
+                                        DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
+                                }
+                                break;
+                            case GoldSource.DemoFrameType.DemoStart:
+                                break;
+                            case GoldSource.DemoFrameType.ConsoleCommand:
+                                break;
+                            case GoldSource.DemoFrameType.ClientData:
+                                break;
+                            case GoldSource.DemoFrameType.NextSection:
+                                break;
+                            case GoldSource.DemoFrameType.Event:
+                                break;
+                            case GoldSource.DemoFrameType.WeaponAnim:
+                                break;
+                            case GoldSource.DemoFrameType.Sound:
+                                break;
+                            case GoldSource.DemoFrameType.DemoBuffer:
+                                break;
+                            default:
+                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time != 0.0f && DemoScanner.GameStartTime == 0.0f)
+                                    DemoScanner.GameStartTime = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
+                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2 && ((GoldSource.NetMsgFrame)frame.Value).RParms.Time
+                                    != DemoScanner.GameStartTime)
+                                    DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
+
+                                break;
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+
+                }
+            }
+
+            for (var index = 0; index < CurrentDemoFile.GsDemoInfo.DirectoryEntries.Count; index++)
             {
                 var entrynode =
                     new TreeNode("Directory entry [" + (index + 1) + "] - " +
@@ -1772,48 +1825,7 @@ namespace VolvoWrench.DG
                               frame.Key.Type.ToString().ToUpper();
                     var node = new TreeNode();
                     var subnode = new TreeNode();
-                    try
-                    {
-                        switch (frame.Key.Type)
-                        {
-                            case GoldSource.DemoFrameType.NetMsg:
-                                // PreviousNetMsgFrame = CurrentNetMsgFrame;
-                                //CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
-                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time != 0.0f)
-                                {
-                                    if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2)
-                                        DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
-                                }
-                                break;
-                            case GoldSource.DemoFrameType.DemoStart:
-                                break;
-                            case GoldSource.DemoFrameType.ConsoleCommand:
-                                break;
-                            case GoldSource.DemoFrameType.ClientData:
-                                break;
-                            case GoldSource.DemoFrameType.NextSection:
-                                break;
-                            case GoldSource.DemoFrameType.Event:
-                                break;
-                            case GoldSource.DemoFrameType.WeaponAnim:
-                                break;
-                            case GoldSource.DemoFrameType.Sound:
-                                break;
-                            case GoldSource.DemoFrameType.DemoBuffer:
-                                break;
-                            default:
-                                if (((GoldSource.NetMsgFrame)frame.Value).RParms.Time > DemoScanner.GameEndTime2)
-                                    DemoScanner.GameEndTime2 = ((GoldSource.NetMsgFrame)frame.Value).RParms.Time;
-                                // PreviousNetMsgFrame = CurrentNetMsgFrame;
-                                // CurrentNetMsgFrame = (GoldSource.NetMsgFrame)frame.Value;
-                                invalidframes++;
-                                break;
-                        }
-                    }
-                    catch
-                    {
 
-                    }
 
                     switch (frame.Key.Type)
                     {
@@ -1873,6 +1885,7 @@ namespace VolvoWrench.DG
                                         || MINIMIZED;
                                     MINIMIZED = false;
                                     UDS_SavedAngles.Add(tmpSmallPoint);
+                                    //Console.WriteLine("a:" + tmpSmallPoint.X + ":" + tmpSmallPoint.Y);
                                 }
 
                                 CDFrameYAngleHistory[0] = CDFrameYAngleHistory[1];
@@ -3065,17 +3078,17 @@ namespace VolvoWrench.DG
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
 
-                                    if (CurrentTime - LastScreenshotTime < 10.0f)
+                                    if (Math.Abs(CurrentTime - LastScreenshotTime) < 30.0f)
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
 
-                                    if (GameEndTime2 - CurrentTime < 30.0f)
+                                    if (Math.Abs(CurrentTime - GameEndTime2) < 30.0f)
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
 
-                                    if (CurrentTime < 60.0f)
+                                    if (Math.Abs(CurrentTime - GameStartTime) < 60.0f)
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
@@ -3087,6 +3100,7 @@ namespace VolvoWrench.DG
                                             Math.Abs(nf.RParms.Simvel.Y) > 0.1f)
                                         {
                                             DemoScanner.DesyncHackWarns++;
+                                           
                                             if (DemoScanner.DesyncHackWarns > 5)
                                             {
                                                 DemoScanner_AddWarn(
@@ -3864,21 +3878,22 @@ namespace VolvoWrench.DG
                                     }
                                 }
 
+                                //if (UDS_SaveAnglesArray)
+                                //{
+                                //    SmallPoint tmpSmallPoint = new SmallPoint();
+                                //    tmpSmallPoint.X = nf.UCmd.Viewangles.X;
+                                //    tmpSmallPoint.Y = nf.UCmd.Viewangles.Y;
+                                //    tmpSmallPoint.bad = IsAngleEditByEngine() || IsPlayerFrozen() || IsPlayerLossConnection()
+                                // || MINIMIZED;
+                                //    MINIMIZED = false;
+                                //    UDS_SavedAngles.Add(tmpSmallPoint);
+                                //}
 
                                 if (RealAlive && !DemoScanner.HideWeapon)
                                 {
                                     if (IsAttack || CurrentFrameAttacked || CurrentFrameAlive)
                                     {
-                                        if (UDS_SaveAnglesArray)
-                                        {
-                                            SmallPoint tmpSmallPoint = new SmallPoint();
-                                            tmpSmallPoint.X = nf.UCmd.Viewangles.X;
-                                            tmpSmallPoint.Y = nf.UCmd.Viewangles.Y;
-                                            tmpSmallPoint.bad = IsAngleEditByEngine() || IsPlayerFrozen() || IsPlayerLossConnection()
-                                         || MINIMIZED;
-                                            MINIMIZED = false;
-                                            UDS_SavedAngles.Add(tmpSmallPoint);
-                                        }
+
                                     }
 
                                     if (CurrentFrameAttacked || PreviousFrameAttacked)
@@ -5592,11 +5607,6 @@ namespace VolvoWrench.DG
                         Console.WriteLine("Frames: " + CurrentFrameIdAll);
                     }
 
-                    if (invalidframes > 0)
-                    {
-                        Console.WriteLine("Unreadable frames: " + invalidframes);
-                    }
-
                     if (FrameDuplicates > 0)
                     {
                         Console.WriteLine("Duplicate frames: " + FrameDuplicates);
@@ -5833,6 +5843,7 @@ namespace VolvoWrench.DG
         public static uint LastWeaponReloadStatus = 0;
         public static float LastScreenshotTime = 0.0f;
         public static float GameEndTime2 = 0.0f;
+        public static float GameStartTime = 0.0f;
         public static bool UsedPlugin = false;
         public static bool PluginVersionFound = false;
         public static string PluginVersion = "UNKNOWN";
@@ -8264,13 +8275,13 @@ namespace VolvoWrench.DG
                         }
                         else if (subs[1] == "GAMETIME")
                         {
-                            if (Math.Abs(float.Parse(subs[2], new CultureInfo("en-US")) - DemoScanner.CurrentTime) > 0.5)
+                            if (Math.Abs(float.Parse(subs[2], new CultureInfo("en-US")) - DemoScanner.CurrentTime) > 1.1)
                             {
                                 if (!DemoScanner.IsAngleEditByEngine()
                                 && !DemoScanner.IsPlayerLossConnection() && !DemoScanner.IsPlayerFrozen())
                                 {
                                     DemoScanner.UDS_TIMEWARN++;
-                                    if (DemoScanner.UDS_TIMEWARN > 5)
+                                    if (DemoScanner.UDS_TIMEWARN > 10)
                                     {
                                         DemoScanner.UDS_TIMEWARN = 0;
                                         DemoScanner.DemoScanner_AddWarn("[TIME HACK] at (" + DemoScanner.CurrentTime +
@@ -8306,54 +8317,121 @@ namespace VolvoWrench.DG
                             //Console.Write(subs[2]);
                             //Console.ForegroundColor = col;
                         }
-                        else if (subs[1] == "ANGLE")
+                        else if (subs[1] == "ANGLE1")
                         {
-                            if (DemoScanner.UDS_SaveAnglesArray && DemoScanner.UDS_REALFPS > 0)
+                            //if (DemoScanner.UDS_SaveAnglesArray && DemoScanner.UDS_REALFPS > 0)
+                            //{
+                            DemoScanner.UDS_SaveAnglesArray = false;
+                            double angle1 = float.Parse(subs[2], new CultureInfo("en-US"));
+                            double angle2 = float.Parse(subs[3], new CultureInfo("en-US"));
+                            bool foundangle = false;
+                            if (DemoScanner.UDS_SavedAngles.Count < 10)
                             {
-                                DemoScanner.UDS_SaveAnglesArray = false;
-                                double angle1 = float.Parse(subs[2], new CultureInfo("en-US"));
-                                double angle2 = float.Parse(subs[3], new CultureInfo("en-US"));
-                                bool foundangle = false;
-                                foreach (var val in DemoScanner.UDS_SavedAngles)
+                                foundangle = true;
+                            }
+                            foreach (var val in DemoScanner.UDS_SavedAngles)
+                            {
+                                if (!val.bad)
                                 {
-                                    if (!val.bad)
+                                    if (DemoScanner.AngleBetween(val.X, angle1) < 0.06 && DemoScanner.AngleBetween(val.Y, angle2) < 0.06)
                                     {
-                                        if (DemoScanner.AngleBetween(val.X, angle1) < 0.01 && DemoScanner.AngleBetween(val.Y, angle2) < 0.01)
-                                        {
-                                            //Console.WriteLine("DIFF:" + DemoScanner.AngleBetween(val.Y, angle2));
-                                            foundangle = true;
-                                            break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (DemoScanner.AngleBetween(val.X, angle1) < 5 || DemoScanner.AngleBetween(val.Y, angle2) < 5)
-                                        {
-                                           // Console.WriteLine("DIFF2:" + DemoScanner.AngleBetween(val.Y, angle2));
-                                            foundangle = true;
-                                            break;
-                                        }
+                                        //Console.WriteLine("DIFF:" + DemoScanner.AngleBetween(val.Y, angle2));
+                                        foundangle = true;
+                                        break;
                                     }
                                 }
-                                if (!foundangle && DemoScanner.RealAlive && !DemoScanner.IsAngleEditByEngine() &&
-                                   DemoScanner.UDS_SavedAngles.Count > 100)
+                                else
                                 {
-                                    DemoScanner.DemoScanner_AddWarn("[AIM TYPE 9] at (" + DemoScanner.CurrentTime +
-                                                   "):" + DemoScanner.CurrentTimeString, false, true, false, true);
+                                    //return;
                                 }
-                                DemoScanner.UDS_SavedAngles.Clear();
+                            }
+                            if (!foundangle && DemoScanner.RealAlive && !DemoScanner.IsAngleEditByEngine())
+                            {
+                                DemoScanner.DemoScanner_AddWarn("[AIM TYPE 9.1] at (" + DemoScanner.CurrentTime +
+                                               "):" + DemoScanner.CurrentTimeString, false, true, false, true);
                             }
                             else
                             {
-                                Console.WriteLine("Error UDS plugin! Wrong data found!");
-                            }
-                            //var col = Console.ForegroundColor;
-                            //Console.ForegroundColor = ConsoleColor.Red;
-                            //Console.Write("ANGLE: ");
-                            //Console.ForegroundColor = ConsoleColor.Green;
 
-                            //Console.Write(angle1 + " " + angle2);
-                            //Console.ForegroundColor = col;
+                            }
+                        }
+                        else if (subs[1] == "ANGLE2")
+                        {
+                            //if (DemoScanner.UDS_SaveAnglesArray && DemoScanner.UDS_REALFPS > 0)
+                            //{
+                            DemoScanner.UDS_SaveAnglesArray = false;
+                            double angle1 = float.Parse(subs[2], new CultureInfo("en-US"));
+                            double angle2 = float.Parse(subs[3], new CultureInfo("en-US"));
+                            bool foundangle = false;
+                            if (DemoScanner.UDS_SavedAngles.Count < 10)
+                            {
+                                foundangle = true;
+                            }
+                            foreach (var val in DemoScanner.UDS_SavedAngles)
+                            {
+                                if (!val.bad)
+                                {
+                                    if (DemoScanner.AngleBetween(val.X, angle1) < 0.06 && DemoScanner.AngleBetween(val.Y, angle2) < 0.06)
+                                    {
+                                        //Console.WriteLine("DIFF:" + DemoScanner.AngleBetween(val.Y, angle2));
+                                        foundangle = true;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    return;
+                                }
+                            }
+                            if (!foundangle && DemoScanner.RealAlive && !DemoScanner.IsAngleEditByEngine())
+                            {
+                                DemoScanner.DemoScanner_AddWarn("[AIM TYPE 9.2] at (" + DemoScanner.CurrentTime +
+                                               "):" + DemoScanner.CurrentTimeString, false, true, false, true);
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                        else if (subs[1] == "ANGLE3")
+                        {
+                            //if (DemoScanner.UDS_SaveAnglesArray && DemoScanner.UDS_REALFPS > 0)
+                            //{
+                            DemoScanner.UDS_SaveAnglesArray = false;
+                            double angle1 = float.Parse(subs[2], new CultureInfo("en-US"));
+                            double angle2 = float.Parse(subs[3], new CultureInfo("en-US"));
+                            bool foundangle = false;
+                            if (DemoScanner.UDS_SavedAngles.Count < 10)
+                            {
+                                foundangle = true;
+                            }
+                            foreach (var val in DemoScanner.UDS_SavedAngles)
+                            {
+                                // Console.WriteLine("a:" + val.X + ":" + val.Y);
+                                if (!val.bad)
+                                {
+                                    if (DemoScanner.AngleBetween(val.X, angle1) < 0.06 && DemoScanner.AngleBetween(val.Y, angle2) < 0.06)
+                                    {
+                                        //Console.WriteLine("DIFF:" + DemoScanner.AngleBetween(val.Y, angle2));
+                                        foundangle = true;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    //return;
+                                }
+                            }
+                            if (!foundangle && DemoScanner.RealAlive && !DemoScanner.IsAngleEditByEngine())
+                            {
+                                DemoScanner.DemoScanner_AddWarn("[AIM TYPE 9.3] at (" + DemoScanner.CurrentTime +
+                                               "):" + DemoScanner.CurrentTimeString, false, true, false, true);
+                            }
+                            else
+                            {
+
+                            }
+                            DemoScanner.UDS_SavedAngles.Clear();
                         }
                         else if (subs[1] == "RATE")
                         {
@@ -8389,13 +8467,13 @@ namespace VolvoWrench.DG
                                 DemoScanner.UDS_RATE_WARN2 = 0;
                             }
 
-                            //var col = Console.ForegroundColor;
-                            //Console.ForegroundColor = ConsoleColor.Red;
-                            //Console.WriteLine("PLUGIN UDS RATE COMMAND!");
-                            //Console.Write("Real rate: " + DemoScanner.UDS_RATE1 + "/" + DemoScanner.UDS_RATE2 + ":");
-                            //Console.ForegroundColor = col;
-                            //Console.Write(extra);
-                            //Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
+                            var col = Console.ForegroundColor;
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("PLUGIN UDS RATE COMMAND!");
+                            Console.Write("Real rate: " + DemoScanner.UDS_RATE1 + "/" + DemoScanner.UDS_RATE2 + ":");
+                            Console.ForegroundColor = col;
+                            Console.Write(extra);
+                            Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
                             DemoScanner.UDS_RATE1 = 0;
                             DemoScanner.UDS_RATE2 = 0;
                         }
