@@ -23,15 +23,11 @@ namespace VolvoWrench.DemoStuff.Source
                     var flags = (SendPropFlags) bb.ReadBits(16);
 
                     if (type == SendPropType.DataTable || (flags & SendPropFlags.Exclude) != 0)
-                    {
                         propnode.Text += " : " + bb.ReadString();
-                    }
                     else
                     {
                         if (type == SendPropType.Array)
-                        {
                             propnode.Text += "[" + bb.ReadBits(10) + "]";
-                        }
                         else
                         {
                             bb.SeekBits(64);

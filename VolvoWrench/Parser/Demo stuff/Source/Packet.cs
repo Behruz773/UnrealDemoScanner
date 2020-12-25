@@ -11,11 +11,7 @@ namespace VolvoWrench.DemoStuff.Source
         private static readonly Dictionary<uint, MsgHandler> Handlers = new Dictionary<uint, MsgHandler>
         {
             {
-                0, (_, node) =>
-                {
-                    node.Text = @"net_nop";
-                    node.ForeColor = Color.Gray;
-                }
+                0, (_, node) => { node.Text = @"net_nop"; node.ForeColor = Color.Gray;}
             },
             {1, net_disconnect},
             {2, net_file},
@@ -56,7 +52,8 @@ namespace VolvoWrench.DemoStuff.Source
             {
                 var type = bb.ReadBits(6);
 
-                if (Handlers.TryGetValue((uint) type, out var handler))
+                MsgHandler handler;
+                if (Handlers.TryGetValue((uint)type, out handler))
                 {
                     var sub = new TreeNode(handler.Method.Name);
                     node.Nodes.Add(sub);
@@ -64,7 +61,7 @@ namespace VolvoWrench.DemoStuff.Source
                 }
                 else
                 {
-                    node.Nodes.Add("unknown message type [" + (uint) type + "]").ForeColor = Color.Crimson;
+                    node.Nodes.Add("unknown message type [" + (uint)(type) + "]").ForeColor = Color.Crimson;
                     break;
                 }
             }
@@ -85,7 +82,7 @@ namespace VolvoWrench.DemoStuff.Source
 
         private static void net_tick(BitBuffer bb, TreeNode node)
         {
-            node.Nodes.Add("Index: " + bb.ReadBits(32));
+            node.Nodes.Add("Index: " + (int) bb.ReadBits(32));
             node.Nodes.Add("Host frametime: " + bb.ReadBits(16));
             node.Nodes.Add("Host frametime StdDev: " + bb.ReadBits(16));
         }
@@ -98,13 +95,14 @@ namespace VolvoWrench.DemoStuff.Source
         private static void net_setconvar(BitBuffer bb, TreeNode node)
         {
             var n = bb.ReadBits(8);
-            while (n-- > 0) node.Nodes.Add(bb.ReadString() + ": " + bb.ReadString());
+            while (n-- > 0)
+                node.Nodes.Add(bb.ReadString() + ": " + bb.ReadString());
         }
 
         private static void net_signonstate(BitBuffer bb, TreeNode node)
         {
             node.Nodes.Add("Signon state: " + (SigOnState) bb.ReadBits(8));
-            node.Nodes.Add("Spawn count: " + bb.ReadBits(32));
+            node.Nodes.Add("Spawn count: " + (int) bb.ReadBits(32));
         }
 
         private static void svc_print(BitBuffer bb, TreeNode node)
@@ -116,7 +114,7 @@ namespace VolvoWrench.DemoStuff.Source
         {
             var version = (short) bb.ReadBits(16);
             node.Nodes.Add("Version: " + version);
-            node.Nodes.Add("Server count: " + bb.ReadBits(32));
+            node.Nodes.Add("Server count: " + (int) bb.ReadBits(32));
             node.Nodes.Add("SourceTV: " + bb.ReadBoolean());
             node.Nodes.Add("Dedicated: " + bb.ReadBoolean());
             node.Nodes.Add("Server client CRC: 0x" + bb.ReadBits(32).ToString("X8"));
@@ -125,7 +123,6 @@ namespace VolvoWrench.DemoStuff.Source
                 node.Nodes.Add("Server map CRC: 0x" + bb.ReadBits(32).ToString("X8"));
             else
                 node.Nodes.Add("MD5 Hash: " + bb.ReadBits(128));
-
             node.Nodes.Add("Current player count: " + bb.ReadBits(8));
             node.Nodes.Add("Max player count: " + bb.ReadBits(8));
             node.Nodes.Add("Interval per tick: " + bb.ReadSingle());
@@ -254,7 +251,6 @@ namespace VolvoWrench.DemoStuff.Source
                 node.Nodes.Add("Entity index: " + bb.ReadBits(11));
                 node.Nodes.Add("Model index: " + bb.ReadBits(12));
             }
-
             node.Nodes.Add("Low priority: " + bb.ReadBoolean());
         }
 
@@ -287,8 +283,8 @@ namespace VolvoWrench.DemoStuff.Source
             node.Nodes.Add("Max entries: " + bb.ReadBits(11));
             var d = bb.ReadBoolean();
             node.Nodes.Add("Is delta: " + d);
-            if (d) node.Nodes.Add("Delta from: " + bb.ReadBits(32));
-
+            if (d)
+                node.Nodes.Add("Delta from: " + bb.ReadBits(32));
             node.Nodes.Add("Baseline: " + bb.ReadBoolean());
             node.Nodes.Add("Updated entries: " + bb.ReadBits(11));
             var b = bb.ReadBits(20);
@@ -343,25 +339,18 @@ namespace VolvoWrench.DemoStuff.Source
         {
             [Description("No state yet! About to connect.")]
             None = 0,
-
             [Description("Client challenging the server with all OOB packets.")]
             Challenge = 1,
-
             [Description("Client has connected to the server! Netchans ready.")]
             Connected = 2,
-
             [Description("Got serverinfo and stringtables.")]
             New = 3,
-
             [Description("Recieved signon buffers.")]
             Prespawn = 4,
-
             [Description("Ready to recieve entity packets.")]
             Spawn = 5,
-
             [Description("Fully connected, first non-delta packet recieved.")]
             Full = 6,
-
             [Description("Server is changing level.")]
             ChangeLevel = 7
         }

@@ -22,7 +22,10 @@ namespace VolvoWrench.DemoStuff.Source
 
         public BitBuffer(byte[] data)
         {
-            if (data == null) throw new ArgumentNullException(nameof(data), @"Value cannot be null.");
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data), @"Value cannot be null.");
+            }
 
             _data = new List<byte>(data);
             Endian = EndianType.Little;
@@ -44,11 +47,14 @@ namespace VolvoWrench.DemoStuff.Source
                     CurrentBit = offset;
                     break;
                 case SeekOrigin.End:
-                    CurrentBit = _data.Count * 8 - offset;
+                    CurrentBit = (_data.Count*8) - offset;
                     break;
             }
 
-            if (CurrentBit < 0 || CurrentBit > _data.Count * 8) throw new BitBufferOutOfRangeException();
+            if (CurrentBit < 0 || CurrentBit > _data.Count*8)
+            {
+                throw new BitBufferOutOfRangeException();
+            }
         }
 
         public void SeekBytes(int count)
@@ -68,24 +74,34 @@ namespace VolvoWrench.DemoStuff.Source
         {
             var bitOffset = CurrentBit % 8;
 
-            if (bitOffset != 0) SeekBits(8 - bitOffset);
+            if (bitOffset != 0)
+            {
+                SeekBits(8 - bitOffset);
+            }
         }
 
         // HL 1.1.0.6 bit reading (big endian byte and bit order)
         private uint ReadUnsignedBitsBigEndian(int nBits)
         {
             if (nBits <= 0 || nBits > 32)
-                throw new ArgumentException(@"Value must be a positive integer between 1 and 32 inclusive.",
-                    nameof(nBits));
+            {
+                throw new ArgumentException(@"Value must be a positive integer between 1 and 32 inclusive.", nameof(nBits));
+            }
 
             // check for overflow
-            if (CurrentBit + nBits > _data.Count * 8) throw new BitBufferOutOfRangeException();
+            if (CurrentBit + nBits > _data.Count*8)
+            {
+                throw new BitBufferOutOfRangeException();
+            }
 
             var currentByte = CurrentBit / 8;
-            var bitOffset = CurrentBit - currentByte * 8;
+            var bitOffset = CurrentBit - (currentByte*8);
             var nBytesToRead = (bitOffset + nBits) / 8;
 
-            if ((bitOffset + nBits) % 8 != 0) nBytesToRead++;
+            if ((bitOffset + nBits)%8 != 0)
+            {
+                nBytesToRead++;
+            }
 
             // get bytes we need
             ulong currentValue = 0;
@@ -96,7 +112,7 @@ namespace VolvoWrench.DemoStuff.Source
             }
 
             // get bits we need from bytes
-            currentValue >>= nBytesToRead * 8 - bitOffset - nBits;
+            currentValue >>= ((nBytesToRead*8 - bitOffset) - nBits);
             currentValue &= (uint) (((long) 1 << nBits) - 1);
 
             // increment current bit
@@ -109,17 +125,24 @@ namespace VolvoWrench.DemoStuff.Source
         {
             nBits = Math.Abs(nBits);
             if (nBits <= 0 || nBits > 32)
-                throw new ArgumentException(@"Value must be a positive integer between 1 and 32 inclusive.",
-                    nameof(nBits));
+            {
+                throw new ArgumentException(@"Value must be a positive integer between 1 and 32 inclusive.", nameof(nBits));
+            }
 
             // check for overflow
-            if (CurrentBit + nBits > _data.Count * 8) throw new BitBufferOutOfRangeException();
+            if (CurrentBit + nBits > _data.Count*8)
+            {
+                throw new BitBufferOutOfRangeException();
+            }
 
             var currentByte = CurrentBit / 8;
-            var bitOffset = CurrentBit - currentByte * 8;
+            var bitOffset = CurrentBit - (currentByte*8);
             var nBytesToRead = (bitOffset + nBits) / 8;
 
-            if ((bitOffset + nBits) % 8 != 0) nBytesToRead++;
+            if ((bitOffset + nBits)%8 != 0)
+            {
+                nBytesToRead++;
+            }
 
             // get bytes we need
             ulong currentValue = 0;
@@ -141,16 +164,22 @@ namespace VolvoWrench.DemoStuff.Source
 
         public uint ReadUnsignedBits(int nBits)
         {
-            if (Endian == EndianType.Little) return ReadUnsignedBitsLittleEndian(nBits);
+            if (Endian == EndianType.Little)
+            {
+                return ReadUnsignedBitsLittleEndian(nBits);
+            }
             return ReadUnsignedBitsBigEndian(nBits);
         }
 
         public int ReadBits(int nBits)
         {
             var result = (int) ReadUnsignedBits(nBits - 1);
-            var sign = ReadBoolean() ? 1 : 0;
+            var sign = (ReadBoolean() ? 1 : 0);
 
-            if (sign == 1) result = -((1 << (nBits - 1)) - result);
+            if (sign == 1)
+            {
+                result = -((1 << (nBits - 1)) - result);
+            }
 
             return result;
         }
@@ -158,10 +187,12 @@ namespace VolvoWrench.DemoStuff.Source
         public bool ReadBoolean()
         {
             // check for overflow
-            if (CurrentBit + 1 > _data.Count * 8) throw new BitBufferOutOfRangeException();
+            if (CurrentBit + 1 > _data.Count*8)
+            {
+                throw new BitBufferOutOfRangeException();
+            }
 
-            var result = (_data[CurrentBit / 8] &
-                          (Endian == EndianType.Little ? 1 << (CurrentBit % 8) : 128 >> (CurrentBit % 8))) != 0;
+            var result = (_data[CurrentBit/8] & ((Endian == EndianType.Little ? 1 << CurrentBit%8 : 128 >> CurrentBit%8))) != 0;
             CurrentBit++;
             return result;
         }
@@ -180,7 +211,10 @@ namespace VolvoWrench.DemoStuff.Source
         {
             var result = new byte[nBytes];
 
-            for (var i = 0; i < nBytes; i++) result[i] = ReadByte();
+            for (var i = 0; i < nBytes; i++)
+            {
+                result[i] = ReadByte();
+            }
 
             return result;
         }
@@ -189,7 +223,10 @@ namespace VolvoWrench.DemoStuff.Source
         {
             var result = new char[nChars];
 
-            for (var i = 0; i < nChars; i++) result[i] = (char) ReadByte(); // not unicode
+            for (var i = 0; i < nChars; i++)
+            {
+                result[i] = (char) ReadByte(); // not unicode
+            }
 
             return result;
         }
@@ -240,7 +277,10 @@ namespace VolvoWrench.DemoStuff.Source
             {
                 var b = ReadByte();
 
-                if (b == 0x00) break;
+                if (b == 0x00)
+                {
+                    break;
+                }
 
                 bytes.Add(b);
             }
@@ -261,11 +301,20 @@ namespace VolvoWrench.DemoStuff.Source
 
             var result = new float[3];
 
-            if (xFlag) result[0] = ReadCoord(goldSrc);
+            if (xFlag)
+            {
+                result[0] = ReadCoord(goldSrc);
+            }
 
-            if (yFlag) result[1] = ReadCoord(goldSrc);
+            if (yFlag)
+            {
+                result[1] = ReadCoord(goldSrc);
+            }
 
-            if (zFlag) result[2] = ReadCoord(goldSrc);
+            if (zFlag)
+            {
+                result[2] = ReadCoord(goldSrc);
+            }
 
             return result;
         }
@@ -282,7 +331,10 @@ namespace VolvoWrench.DemoStuff.Source
 
             var value = 0.0f;
 
-            if (!intFlag && !fractionFlag) return value;
+            if (!intFlag && !fractionFlag)
+            {
+                return value;
+            }
 
             var sign = ReadBoolean();
             uint intValue = 0;
@@ -291,16 +343,26 @@ namespace VolvoWrench.DemoStuff.Source
             if (intFlag)
             {
                 if (goldSrc)
+                {
                     intValue = ReadUnsignedBits(12);
+                }
                 else
+                {
                     intValue = ReadUnsignedBits(14) + 1;
             }
+            }
 
-            if (fractionFlag) fractionValue = ReadUnsignedBits(goldSrc ? 3 : 5);
+            if (fractionFlag)
+            {
+                fractionValue = ReadUnsignedBits(goldSrc ? 3 : 5);
+            }
 
-            value = intValue + fractionValue * 1.0f / 32.0f;
+            value = intValue + (fractionValue*1.0f/32.0f);
 
-            if (sign) value = -value;
+            if (sign)
+            {
+                value = -value;
+            }
 
             return value;
         }
@@ -315,7 +377,7 @@ namespace VolvoWrench.DemoStuff.Source
             for (var i = 0; i < nBits; i++)
             {
                 var currentByte = CurrentBit / 8;
-                var bitOffset = CurrentBit - currentByte * 8;
+                var bitOffset = CurrentBit - (currentByte*8);
 
                 var temp = _data[currentByte];
                 temp -= (byte) (_data[currentByte] & (1 << bitOffset));
@@ -329,18 +391,26 @@ namespace VolvoWrench.DemoStuff.Source
         {
             var sb = new StringBuilder();
 
-            for (var i = 0; i < nBits; i++) sb.AppendFormat("{0}", ReadBoolean() ? 1 : 0);
+            for (var i = 0; i < nBits; i++)
+            {
+                sb.AppendFormat("{0}", (ReadBoolean() ? 1 : 0));
+            }
 
-            return sb + "\n";
+            return (sb + "\n");
         }
 
         public void InsertBytes(byte[] insertData)
         {
-            if (insertData.Length == 0) return;
+            if (insertData.Length == 0)
+            {
+                return;
+            }
 
             if (CurrentBit % 8 != 0)
+            {
                 throw new ApplicationException(
                     "InsertBytes can only be called if the current bit is aligned to byte boundaries.");
+            }
 
             _data.InsertRange(CurrentByte, insertData);
             CurrentBit += insertData.Length * 8;
@@ -348,13 +418,21 @@ namespace VolvoWrench.DemoStuff.Source
 
         public void RemoveBytes(int count)
         {
-            if (count == 0) return;
+            if (count == 0)
+            {
+                return;
+            }
 
             if (CurrentBit % 8 != 0)
+            {
                 throw new ApplicationException(
                     "RemoveBytes can only be called if the current bit is aligned to byte boundaries.");
+            }
 
-            if (CurrentByte + count > Length) throw new BitBufferOutOfRangeException();
+            if (CurrentByte + count > Length)
+            {
+                throw new BitBufferOutOfRangeException();
+            }
 
             _data.RemoveRange(CurrentByte, count);
         }
@@ -374,12 +452,12 @@ namespace VolvoWrench.DemoStuff.Source
         /// <summary>
         ///     The byte we are reading the bits of currently
         /// </summary>
-        public int CurrentByte => (CurrentBit - CurrentBit % 8) / 8;
+        public int CurrentByte => (CurrentBit - (CurrentBit%8))/8;
 
         /// <summary>
         ///     Bits left from the buffer
         /// </summary>
-        public int BitsLeft => _data.Count * 8 - CurrentBit;
+        public int BitsLeft => (_data.Count*8) - CurrentBit;
 
         /// <summary>
         ///     Bytes left from the buffer
@@ -423,11 +501,14 @@ namespace VolvoWrench.DemoStuff.Source
         public void WriteUnsignedBits(uint value, int nBits)
         {
             var currentByte = _currentBit / 8;
-            var bitOffset = _currentBit - currentByte * 8;
+            var bitOffset = _currentBit - (currentByte*8);
 
             // calculate how many bits need to be written to the current byte
             var bitsToWriteToCurrentByte = 8 - bitOffset;
-            if (bitsToWriteToCurrentByte > nBits) bitsToWriteToCurrentByte = nBits;
+            if (bitsToWriteToCurrentByte > nBits)
+            {
+                bitsToWriteToCurrentByte = nBits;
+            }
 
             // calculate how many bytes need to be added to the list
             var bytesToAdd = 0;
@@ -437,13 +518,22 @@ namespace VolvoWrench.DemoStuff.Source
                 var temp = nBits - bitsToWriteToCurrentByte;
                 bytesToAdd = temp / 8;
 
-                if (temp % 8 != 0) bytesToAdd++;
+                if ((temp%8) != 0)
+                {
+                    bytesToAdd++;
+                }
             }
 
-            if (bitOffset == 0) bytesToAdd++;
+            if (bitOffset == 0)
+            {
+                bytesToAdd++;
+            }
 
             // add new bytes if needed
-            for (var i = 0; i < bytesToAdd; i++) _data.Add(new byte());
+            for (var i = 0; i < bytesToAdd; i++)
+            {
+                _data.Add(new byte());
+            }
 
             var nBitsWritten = 0;
 
@@ -460,7 +550,10 @@ namespace VolvoWrench.DemoStuff.Source
             while (nBitsWritten < nBits)
             {
                 bitsToWriteToCurrentByte = nBits - nBitsWritten;
-                if (bitsToWriteToCurrentByte > 8) bitsToWriteToCurrentByte = 8;
+                if (bitsToWriteToCurrentByte > 8)
+                {
+                    bitsToWriteToCurrentByte = 8;
+                }
 
                 b = (byte) ((value >> nBitsWritten) & ((1 << bitsToWriteToCurrentByte) - 1));
                 _data[currentByte] = b;
@@ -477,7 +570,7 @@ namespace VolvoWrench.DemoStuff.Source
         {
             WriteUnsignedBits((uint) value, nBits - 1);
 
-            var sign = value < 0 ? 1u : 0u;
+            var sign = (value < 0 ? 1u : 0u);
             WriteUnsignedBits(sign, 1);
         }
 
@@ -485,9 +578,15 @@ namespace VolvoWrench.DemoStuff.Source
         {
             var currentByte = _currentBit / 8;
 
-            if (currentByte > _data.Count - 1) _data.Add(new byte());
+            if (currentByte > _data.Count - 1)
+            {
+                _data.Add(new byte());
+            }
 
-            if (value) _data[currentByte] += (byte) (1 << (_currentBit % 8));
+            if (value)
+            {
+                _data[currentByte] += (byte) (1 << _currentBit%8);
+            }
 
             _currentBit++;
         }
@@ -504,12 +603,18 @@ namespace VolvoWrench.DemoStuff.Source
 
         public void WriteBytes(byte[] values)
         {
-            foreach (var t in values) WriteByte(t);
+            foreach (byte t in values)
+            {
+                WriteByte(t);
+            }
         }
 
         public void WriteChars(char[] values)
         {
-            foreach (var t in values) WriteByte((byte) t);
+            foreach (char t in values)
+            {
+                WriteByte((byte) t);
+            }
         }
 
         public void WriteInt16(short value)
@@ -534,7 +639,10 @@ namespace VolvoWrench.DemoStuff.Source
 
         public void WriteString(string value)
         {
-            foreach (var t in value) WriteByte((byte) t);
+            foreach (char t in value)
+            {
+                WriteByte((byte) t);
+            }
 
             // null terminator
             WriteByte(0);
@@ -543,12 +651,17 @@ namespace VolvoWrench.DemoStuff.Source
         public void WriteString(string value, int length)
         {
             if (length < value.Length + 1)
+            {
                 throw new ApplicationException("String length longer than specified length.");
+            }
 
             WriteString(value);
 
             // write padding 0's
-            for (var i = 0; i < length - (value.Length + 1); i++) WriteByte(0);
+            for (var i = 0; i < length - (value.Length + 1); i++)
+            {
+                WriteByte(0);
+            }
         }
 
         public void WriteVectorCoord(bool goldSrc, float[] coord)

@@ -1,11 +1,76 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using VolvoWrench.DemoStuff.Source;
 
 namespace VolvoWrench.DemoStuff.Source
 {
-    internal class StringTable
+    class StringTable
     {
+        public class PlayerInfo
+        {
+            public PlayerInfo() { }
+
+            public PlayerInfo(BinaryReader reader)
+            {
+                Version = reader.ReadInt64SwapEndian();
+                XUID = reader.ReadInt64SwapEndian();
+                Name = reader.ReadCString(128);
+                UserID = reader.ReadInt32SwapEndian();
+                GUID = reader.ReadCString(33);
+                FriendsID = reader.ReadInt32SwapEndian();
+                FriendsName = reader.ReadCString(128);
+
+                IsFakePlayer = reader.ReadBoolean();
+                IsHLTV = reader.ReadBoolean();
+
+                customFiles0 = reader.ReadInt32();
+                customFiles1 = reader.ReadInt32();
+                customFiles2 = reader.ReadInt32();
+                customFiles3 = reader.ReadInt32();
+
+                filesDownloaded = reader.ReadByte();
+            }
+
+            /// version for future compatibility
+            public long Version { get; set; }
+
+            // network xuid
+            public long XUID { get; set; }
+            // scoreboard information
+            public string Name { get; set; } //MAX_PLAYER_NAME_LENGTH=128
+                                             // local server user ID, unique while server is running
+            public int UserID { get; set; }
+            // global unique player identifer
+            public string GUID { get; set; } //33bytes
+                                             // friends identification number
+            public int FriendsID { get; set; }
+            // friends name
+            public string FriendsName { get; set; } //128
+                                                    // true, if player is a bot controlled by game.dll
+            public bool IsFakePlayer { get; set; }
+            // true if player is the HLTV proxy
+            public bool IsHLTV { get; set; }
+            // custom files CRC for this player
+            public int customFiles0 { get; set; }
+            public int customFiles1 { get; set; }
+            public int customFiles2 { get; set; }
+            public int customFiles3 { get; set; }
+            private byte filesDownloaded { get; set; }
+            // this counter increases each time the server downloaded a new file
+            private byte FilesDownloaded { get; set; }
+
+            public static int SizeOf => 190;
+
+            public static PlayerInfo ParseFrom(BinaryReader reader)
+            {
+                return new PlayerInfo(reader);
+            }
+        }
+
         public static void ParsePacket(byte[] data, TreeNode node)
         {
             var bb = new BitBuffer(data);
@@ -18,8 +83,8 @@ namespace VolvoWrench.DemoStuff.Source
                 ParseStringTable(bb, tableName, sub);
                 node.Nodes.Add(sub);
             }
-        }
 
+        }
         //Might be interesting: https://github.com/LestaD/SourceEngine2007/blob/43a5c90a5ada1e69ca044595383be67f40b33c61/src_main/common/protocol.h
         private static void ParseStringTable(BitBuffer bb, string tableName, TreeNode node)
         {
@@ -28,7 +93,8 @@ namespace VolvoWrench.DemoStuff.Source
             {
                 var stringName = bb.ReadString();
 
-                if (stringName.Length >= 100) throw new Exception("Roy said I should throw this.");
+                if (stringName.Length >= 100)
+                    throw new Exception("Roy said I should throw this.");
 
                 if (bb.ReadBoolean())
                 {
@@ -51,8 +117,7 @@ namespace VolvoWrench.DemoStuff.Source
                         node.Nodes.Add("Costumfile 3: " + info.customFiles2);
                         node.Nodes.Add("Costumfile 4: " + info.customFiles3);
                     }
-                    else if (tableName == "soundprecache" || tableName == "decalprecache" ||
-                             tableName == "modelprecache")
+                    else if (tableName == "soundprecache" || tableName == "decalprecache" || tableName == "modelprecache")
                     {
                         node.Nodes.Add(stringName);
                     }
@@ -99,78 +164,5 @@ namespace VolvoWrench.DemoStuff.Source
                 }
             }
         }
-
-        public class PlayerInfo
-        {
-            public PlayerInfo()
-            {
-            }
-
-            public PlayerInfo(BinaryReader reader)
-            {
-                Version = reader.ReadInt64SwapEndian();
-                XUID = reader.ReadInt64SwapEndian();
-                Name = reader.ReadCString(128);
-                UserID = reader.ReadInt32SwapEndian();
-                GUID = reader.ReadCString(33);
-                FriendsID = reader.ReadInt32SwapEndian();
-                FriendsName = reader.ReadCString(128);
-
-                IsFakePlayer = reader.ReadBoolean();
-                IsHLTV = reader.ReadBoolean();
-
-                customFiles0 = reader.ReadInt32();
-                customFiles1 = reader.ReadInt32();
-                customFiles2 = reader.ReadInt32();
-                customFiles3 = reader.ReadInt32();
-
-                filesDownloaded = reader.ReadByte();
-            }
-
-            /// version for future compatibility
-            public long Version { get; set; }
-
-            // network xuid
-            public long XUID { get; set; }
-
-            // scoreboard information
-            public string Name { get; set; } //MAX_PLAYER_NAME_LENGTH=128
-
-            // local server user ID, unique while server is running
-            public int UserID { get; set; }
-
-            // global unique player identifer
-            public string GUID { get; set; } //33bytes
-
-            // friends identification number
-            public int FriendsID { get; set; }
-
-            // friends name
-            public string FriendsName { get; set; } //128
-
-            // true, if player is a bot controlled by game.dll
-            public bool IsFakePlayer { get; set; }
-
-            // true if player is the HLTV proxy
-            public bool IsHLTV { get; set; }
-
-            // custom files CRC for this player
-            public int customFiles0 { get; set; }
-            public int customFiles1 { get; set; }
-            public int customFiles2 { get; set; }
-            public int customFiles3 { get; set; }
-
-            private byte filesDownloaded { get; }
-
-            // this counter increases each time the server downloaded a new file
-            private byte FilesDownloaded { get; set; }
-
-            public static int SizeOf => 190;
-
-            public static PlayerInfo ParseFrom(BinaryReader reader)
-            {
-                return new PlayerInfo(reader);
-            }
         }
     }
-}

@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b7";
+        public const string PROGRAMVERSION = "1.53b8";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -245,7 +245,7 @@ namespace VolvoWrench.DG
         public static float ForceCenterViewTime = 0.0f;
         public static bool IsForceCenterView()
         {
-            return CurrentTime - ForceCenterViewTime < 0.25f;
+            return CurrentTime - ForceCenterViewTime < 0.5f;
         }
 
         public static int SkipNextAttack = 0;
@@ -2234,7 +2234,7 @@ namespace VolvoWrench.DG
                                     {
                                         DemoScanner.LastAim5Detected = 0.0f;
                                     }
-                                    if (NewAttack)
+                                    if (NewAttack && !IsForceCenterView())
                                     {
                                         if (PlayerSensitivityWarning == 0 && DemoScanner.LastAim5DetectedReal != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5DetectedReal < 0.5f)
@@ -3931,7 +3931,7 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                     {
-                                        if (viewanglesforsearch.X != nf.RParms.Viewangles.X)
+                                        if (!IsForceCenterView() && !IsAngleEditByEngine() && viewanglesforsearch.X != nf.RParms.Viewangles.X)
                                         {
                                             if (CurrentFrameAttacked && CurrentFrameOnGround && CurrentTime - LastDeathTime > 2.0
                                                 && CurrentTime - LastAliveTime > 2.0)
@@ -5906,7 +5906,7 @@ namespace VolvoWrench.DG
                 CurrentTime - LastTeleportusTime < 2.5f ||
                 CurrentTime - LastAngleManipulation < 1.0f ||
                 CurrentTime - LastDuckUnduckTime < 1.5f ||
-                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon;
+                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon || IsForceCenterView( );
         }
 
 
