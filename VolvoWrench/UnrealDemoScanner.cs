@@ -855,6 +855,7 @@ namespace VolvoWrench.DG
                         DemoScanner_AddWarn("[AIM TYPE 3] at (" + StopAttackBtnFrameId +
                                                     "):" + DemoScanner.CurrentTimeString, false);
                     }
+                    NeedIgnoreAttackFlag = 1;
                     NeedSearchAim2 = false;
                     NeedWriteAim = false;
                     IsNoAttackLastTime = CurrentTime;
@@ -2905,7 +2906,7 @@ namespace VolvoWrench.DG
                                     }
                                     CurrentFrameAttacked = true;
 
-                                    if (!IsAttack)
+                                    if (!IsAttack && NeedIgnoreAttackFlag > 0)
                                     {
                                         NeedIgnoreAttackFlag++;
                                     }
@@ -2941,7 +2942,7 @@ namespace VolvoWrench.DG
                                 }
 
 
-                                if (NeedIgnoreAttackFlag == 3)
+                                if (NeedIgnoreAttackFlag == 4)
                                 {
                                     NeedIgnoreAttackFlagCount++;
                                 }
@@ -4770,7 +4771,7 @@ namespace VolvoWrench.DG
                                     ReallyAim2 = 0;
                                 }
 
-                                if (!IsAttack && (NeedIgnoreAttackFlag == 0 || NeedIgnoreAttackFlag == 1))
+                                if (!IsAttack && NeedIgnoreAttackFlag == 0)
                                 {
                                     if (!BadAttackFound && CurrentFrameAttacked && FirstAttack)
                                     {
