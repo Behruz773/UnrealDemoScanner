@@ -2937,7 +2937,6 @@ namespace VolvoWrench.DG
                                     {
                                         NeedIgnoreAttackFlag = 0;
                                     }
-                                    NeedIgnoreAttackFlag--;
                                     CurrentFrameAttacked = false;
                                 }
 
