@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b9";
+        public const string PROGRAMVERSION = "1.53b10";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -2788,7 +2788,7 @@ namespace VolvoWrench.DG
 
                                     subnode.Text += "}\n";
                                 }
-
+                                //Console.WriteLine("Sound:" + CurrentTimeString);
                                 break;
                             }
                         case GoldSource.DemoFrameType.DemoBuffer:
@@ -3115,7 +3115,8 @@ namespace VolvoWrench.DG
                                     }
 
                                     if (DemoScanner.CurrentTime - DemoScanner.LastSideMoveTime > 2.0
-                                        && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 2.0)
+                                        && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 2.0
+                                        && DemoScanner.CurrentTime - DemoScanner.LastSoundTime > 3.0)
                                     {
                                         if (Math.Abs(nf.RParms.Simvel.X) > 0.1f &&
                                             Math.Abs(nf.RParms.Simvel.Y) > 0.1f)
@@ -5919,6 +5920,7 @@ namespace VolvoWrench.DG
         public static bool MINIMIZED = true;
         public static int NeedIgnoreAttackFlag = 0;
         public static int NeedIgnoreAttackFlagCount = 0;
+        public static float LastSoundTime = 0;
 
         public static bool IsViewChanged()
         {
@@ -7221,27 +7223,30 @@ namespace VolvoWrench.DG
 
             var flags = BitBuffer.ReadUnsignedBits(9);
 
+            int vol = 0;
             if ((flags & (1 << 0)) != 0) // volume
-                BitBuffer.SeekBits(8);
-
+                vol = BitBuffer.ReadBits(8);
+            int att = 0;
             if ((flags & (1 << 1)) != 0) // attenuation * 64
-                BitBuffer.SeekBits(8);
+                att = BitBuffer.ReadBits(8);
 
-            BitBuffer.SeekBits(3); // channel
-            BitBuffer.SeekBits(11); // edict number
-
+            int channel = BitBuffer.ReadBits(3); // channel
+            int edictnum = BitBuffer.ReadBits(11); // edict number
+            int soundidx = 0;
             if ((flags & (1 << 2)) != 0) // sound index (short)
-                BitBuffer.SeekBits(16);
+                soundidx = BitBuffer.ReadBits(16);
             else // sound index (byte)
-                BitBuffer.SeekBits(8);
+                soundidx = BitBuffer.ReadBits(8);
 
             BitBuffer.ReadVectorCoord(true); // position
-
+            int pitch = 0;
             if ((flags & (1 << 3)) != 0) // pitch
-                BitBuffer.SeekBits(8);
+                pitch = BitBuffer.ReadBits(8);
 
             BitBuffer.SkipRemainingBits();
             BitBuffer.Endian = BitBuffer.EndianType.Little;
+            if (channel == 2 && DemoScanner.ViewEntity == edictnum)
+                DemoScanner.LastSoundTime = DemoScanner.CurrentTime;
         }
 
         private void MessagePrint()
