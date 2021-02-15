@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b10";
+        public const string PROGRAMVERSION = "1.53b11";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -242,10 +242,11 @@ namespace VolvoWrench.DG
         {
             return CurrentTime - ChangeWeaponTime < 0.25f;
         }
+        public static int FoundForceCenterView = 0;
         public static float ForceCenterViewTime = 0.0f;
         public static bool IsForceCenterView()
         {
-            return CurrentTime - ForceCenterViewTime < 0.5f;
+            return CurrentTime - ForceCenterViewTime < 2.0f;
         }
 
         public static int SkipNextAttack = 0;
@@ -631,6 +632,7 @@ namespace VolvoWrench.DG
             if (s.ToLower().IndexOf("force_centerview") > -1)
             {
                 ForceCenterViewTime = CurrentTime;
+                FoundForceCenterView++;
             }
 
             if (s.ToLower().IndexOf("slot") > -1 || s.ToLower().IndexOf("invprev") > -1 ||
@@ -1911,7 +1913,7 @@ namespace VolvoWrench.DG
 
                                 if (GetDistance(oldoriginpos,
                                           new Point(cdframe.Origin.X,
-                                              cdframe.Origin.Y)) > 250)
+                                              cdframe.Origin.Y)) > 100)
                                 {
                                     DemoScanner.PlayerTeleportus++;
                                     DemoScanner.ReloadWarns = 0;
@@ -2240,9 +2242,17 @@ namespace VolvoWrench.DG
                                     {
                                         DemoScanner.LastAim5Detected = 0.0f;
                                     }
-                                    if (NewAttack && !IsForceCenterView())
+                                    if (NewAttack)
                                     {
-                                        if (PlayerSensitivityWarning == 0 && DemoScanner.LastAim5DetectedReal != 0.0f &&
+                                        if (IsForceCenterView())
+                                        {
+                                            DemoScanner_AddWarn(
+                                                        "[FORCE_CENTERVIEW 1] at (" + CurrentTime +
+                                                        "):" + DemoScanner.CurrentTimeString, false);
+                                            DemoScanner.LastAim5DetectedReal = 0.0f;
+                                            DemoScanner.LastAim5Detected = 0.0f;
+                                        }
+                                        else if (PlayerSensitivityWarning == 0 && DemoScanner.LastAim5DetectedReal != 0.0f &&
                                             CurrentTime - DemoScanner.LastAim5DetectedReal < 0.5f)
                                         {
                                             DemoScanner_AddWarn(
@@ -2994,22 +3004,6 @@ namespace VolvoWrench.DG
                                     DemoScanner.ReloadWarns = 0;
                                 }
 
-                                if (IsRoundEnd() || DemoScanner.LastForwardMoveTime == 0.0f || DemoScanner.LastMoveForward == 0.0f)
-                                {
-                                    DemoScanner.DesyncHackWarns = 0;
-                                }
-                                if (CurrentTime - LastJumpTime < 1.0 || !CurrentFrameOnGround)
-                                {
-                                    DemoScanner.DesyncHackWarns = 0;
-                                }
-                                if (!DemoScanner.RealAlive)
-                                {
-                                    DemoScanner.DesyncHackWarns = 0;
-                                }
-                                if (DemoScanner.IsAngleEditByEngine())
-                                {
-                                    DemoScanner.DesyncHackWarns = 0;
-                                }
 
                                 if (RealAlive)
                                 {
@@ -3094,7 +3088,26 @@ namespace VolvoWrench.DG
                                     //        ". AngleDirY333:" + GetAngleDirection(nf.UCmd.Viewangles.Y, PreviousNetMsgFrame.UCmd.Viewangles.Y) + "\n");
                                     //}
 
-                                    if (!DemoScanner.CurrentFrameOnGround || IsAngleEditByEngine())
+
+                                    if (IsRoundEnd() || DemoScanner.LastForwardMoveTime == 0.0f || DemoScanner.LastMoveForward == 0.0f)
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+
+                                    if (CurrentTime - LastJumpTime < 1.5 || !CurrentFrameOnGround)
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+                                    
+                                    if (DemoScanner.IsBigVelocity() || IsHookDetected( ))
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+                                    else if (IsPlayerLossConnection() && DemoScanner.DesyncHackWarns > 0)
+                                    {
+                                        DemoScanner.DesyncHackWarns--;
+                                    }
+                                    else if (DemoScanner.IsAngleEditByEngine() && DemoScanner.DesyncHackWarns > 0)
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
@@ -3114,20 +3127,35 @@ namespace VolvoWrench.DG
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
 
-                                    if (DemoScanner.CurrentTime - DemoScanner.LastSideMoveTime > 2.0
-                                        && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 2.0
-                                        && DemoScanner.CurrentTime - DemoScanner.LastSoundTime > 3.0)
+                                    if (DemoScanner.IsPlayerTeleport())
                                     {
-                                        if (Math.Abs(nf.RParms.Simvel.X) > 0.1f &&
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+
+                                    if (Math.Abs(nf.RParms.Simvel.X) > 100.0f ||
+                                            Math.Abs(nf.RParms.Simvel.Y) > 100.0f || nf.RParms.Simvel.Z != 0.0f)
+                                    {
+                                        DemoScanner.DesyncHackWarns = 0;
+                                    }
+
+                                    if (DemoScanner.CurrentTime - DemoScanner.LastSideMoveTime > 1.0
+                                    && DemoScanner.CurrentTime - DemoScanner.LastForwardMoveTime > 1.0)
+                                    {
+                                        if (Math.Abs(nf.RParms.Simvel.X) > 0.1f ||
                                             Math.Abs(nf.RParms.Simvel.Y) > 0.1f)
                                         {
                                             DemoScanner.DesyncHackWarns++;
 
-                                            if (DemoScanner.DesyncHackWarns > 5)
+                                            if (DemoScanner.DesyncHackWarns > 4)
                                             {
-                                                DemoScanner_AddWarn(
-                                                   "[DESYNC HACK] at (" +
-                                                   CurrentTime + ") " + CurrentTimeString, !IsAngleEditByEngine() && !IsPlayerLossConnection());
+                                                DemoScanner.LastDesyncDetectTime = CurrentTime;
+                                                if (!IsAngleEditByEngine() && !IsPlayerLossConnection() && DemoScanner.CurrentTime - DemoScanner.LastSoundTime > 2.0)
+                                                {
+                                                    DemoScanner.DesyncDetects++;
+                                                    DemoScanner_AddWarn(
+                                                       "[DESYNC HACK] at (" +
+                                                       CurrentTime + ") " + CurrentTimeString);
+                                                }
                                                 DemoScanner.DesyncHackWarns = 0;
                                             }
                                         }
@@ -3920,7 +3948,16 @@ namespace VolvoWrench.DG
 
                                     if (CurrentFrameAttacked || PreviousFrameAttacked)
                                     {
-                                        if (CurrentTime - AimType8WarnTime < 0.350f)
+                                        if (IsForceCenterView())
+                                        {
+                                            DemoScanner_AddWarn(
+                                                        "[FORCE_CENTERVIEW 2] at (" + CurrentTime +
+                                                        "):" + DemoScanner.CurrentTimeString, false);
+                                            AimType8WarnTime = 0.0f;
+                                            AimType8WarnTime2 = 0.0f;
+                                            AimType8False = false;
+                                        }
+                                        else if (CurrentTime - AimType8WarnTime < 0.350f)
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 8.1] at (" + AimType8WarnTime +
@@ -4050,12 +4087,12 @@ namespace VolvoWrench.DG
                                             if (AimType8Warn == 1 ||
                                                 AimType8Warn == 2)
                                             {
-                                                if (!IsForceCenterView())
-                                                {
-                                                    if (bAimType8WarnTime != CurrentTime)
-                                                        AimType8WarnTime = CurrentTime;
-                                                    bAimType8WarnTime = CurrentTime;
-                                                }
+                                                /*if (!)
+                                                {*/
+                                                if (bAimType8WarnTime != CurrentTime)
+                                                    AimType8WarnTime = CurrentTime;
+                                                bAimType8WarnTime = CurrentTime;
+                                                //}
                                                 if (!DemoScanner.AimType8False)
                                                 {
                                                     DemoScanner.AimType8False = !CurrentFrameOnGround || IsAngleEditByEngine() || IsPlayerLossConnection() || IsChangeWeapon();
@@ -4760,7 +4797,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 2] at (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsChangeWeapon());
+                                                    "):" + DemoScanner.CurrentTimeString, !IsPlayerLossConnection() && !IsChangeWeapon() && !IsForceCenterView());
                                                 if (!IsPlayerLossConnection() && !IsChangeWeapon())
                                                     SilentAimDetected++;
                                             }
@@ -4866,7 +4903,7 @@ namespace VolvoWrench.DG
                                             {
                                                 DemoScanner_AddWarn(
                                                     "[AIM TYPE 1] at (" + CurrentTime +
-                                                    "):" + DemoScanner.CurrentTimeString, !IsChangeWeapon() && !IsPlayerLossConnection());
+                                                    "):" + DemoScanner.CurrentTimeString, !IsChangeWeapon() && !IsPlayerLossConnection() && !IsForceCenterView());
                                                 SilentAimDetected++;
                                             }
                                             else
@@ -4883,7 +4920,7 @@ namespace VolvoWrench.DG
                                         {
                                             DemoScanner_AddWarn(
                                                 "[AIM TYPE 1] at (" + CurrentTime +
-                                                "):" + DemoScanner.CurrentTimeString, !IsChangeWeapon() && !IsPlayerLossConnection());
+                                                "):" + DemoScanner.CurrentTimeString, !IsChangeWeapon() && !IsPlayerLossConnection() && IsForceCenterView());
                                             SilentAimDetected++;
                                         }
                                     }
@@ -5132,6 +5169,11 @@ namespace VolvoWrench.DG
                 DemoScanner.DemoScanner_AddInfo("Lost attack flag: " + NeedIgnoreAttackFlagCount + ".");
             }
 
+            if (FoundForceCenterView > 0)
+            {
+                DemoScanner.DemoScanner_AddInfo("Used illegal force_centerview commands: " + FoundForceCenterView + ".");
+            }
+
             if (ModifiedDemoFrames > 0)
             {
                 DemoScanner.DemoScanner_AddInfo("Possible demoscanner bypass. Tried to kill frames:" + ModifiedDemoFrames);
@@ -5244,8 +5286,7 @@ namespace VolvoWrench.DG
                 if (maxfps1 == 1000.0f && maxfps2 == 1000.0f &&
                     maxfps1 / averagefps2.Average() > 4.0f)
                 {
-                    Console.WriteLine("[BHOP/JUMP] Обнаружен неизвестный хак. (???)");
-                    Console.WriteLine("[BHOP/JUMP] Unknown hack detected. (???)");
+                    DemoScanner.DemoScanner_AddWarn("[UNKNOWN BHOP/JUMP HACK] in demo file!", false, true, false, true);
                 }
             }
             catch
@@ -5874,6 +5915,7 @@ namespace VolvoWrench.DG
         public static float LastSideMoveTime = 0.0f;
         public static float LastForwardMoveTime = 0.0f;
         public static int DesyncHackWarns = 0;
+        public static float LastDesyncDetectTime = 0.0f;
         public static float LastDamageTime = 0.0f;
         public static int CurrentGameSecond = 0;
         public static int CurrentGameSecond2 = 0;
@@ -5921,6 +5963,19 @@ namespace VolvoWrench.DG
         public static int NeedIgnoreAttackFlag = 0;
         public static int NeedIgnoreAttackFlagCount = 0;
         public static float LastSoundTime = 0;
+        public static int DesyncDetects = 0;
+        public static float FoundBigVelocityTime = 0.0f;
+        public static float LastBeamFound = 0.0f;
+
+        public static bool IsHookDetected( )
+        {
+            return CurrentTime - LastBeamFound < 5.0;
+        }
+
+        public static bool IsBigVelocity()
+        {
+            return CurrentTime - FoundBigVelocityTime < 2.0f;
+        }
 
         public static bool IsViewChanged()
         {
@@ -5945,10 +6000,15 @@ namespace VolvoWrench.DG
             if (NO_TELEPORT)
                 return false;
             return
-                CurrentTime - LastTeleportusTime < 2.5f ||
+               IsPlayerTeleport() ||
                 CurrentTime - LastAngleManipulation < 1.0f ||
                 CurrentTime - LastDuckUnduckTime < 1.5f ||
-                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon || IsForceCenterView();
+                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon;
+        }
+
+        public static bool IsPlayerTeleport()
+        {
+            return CurrentTime - LastTeleportusTime < 2.5f;
         }
 
 
@@ -7650,6 +7710,7 @@ namespace VolvoWrench.DG
                     break;
 
                 case 1: // TE_BEAMENTPOINT
+                    DemoScanner.LastBeamFound = DemoScanner.CurrentTime;
                     Seek(20);
                     break;
 
@@ -7758,6 +7819,7 @@ namespace VolvoWrench.DG
                     break;
 
                 case 99: // TE_KILLBEAM
+                    DemoScanner.LastBeamFound = DemoScanner.CurrentTime;
                     Seek(2);
                     break;
 
@@ -8262,7 +8324,6 @@ namespace VolvoWrench.DG
 
             // NOTE: had this backwards before, shouldn't matter
             var extra = BitBuffer.ReadString();
-
             if (extra.Length > 0)
             {
                 try
@@ -8386,6 +8447,21 @@ namespace VolvoWrench.DG
                             //Console.ForegroundColor = ConsoleColor.Green;
                             //Console.Write(subs[2]);
                             //Console.ForegroundColor = col;
+                        }
+                        else if (subs[1] == "AZ")
+                        {
+                            int z = 2;
+                            //while (true)
+                            //{
+                            //    float angle1 = float.Parse(subs[z], new CultureInfo("en-US"));
+                            //    float angle2 = float.Parse(subs[z], new CultureInfo("en-US"));
+                            //    File.WriteAllText(File.ReadAllText("in.comp") + angle1.ToString() + ":" + angle2.ToString() + ":");
+                            //    z += 2;
+                            //    if (z >= subs.Length)
+                            //    {
+                            //        break;
+                            //    }
+                            //}
                         }
                         else if (subs[1] == "ANGLE1")
                         {
@@ -8574,6 +8650,16 @@ namespace VolvoWrench.DG
                             Console.Write(extra);
                             Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
                         }
+                    }
+                    else
+                    {
+                        var col = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("PLUGIN UDS BAD COMMAND!");
+                        Console.Write("cmd line: ");
+                        Console.ForegroundColor = col;
+                        Console.Write(extra);
+                        Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
                     }
                 }
                 catch
@@ -9789,6 +9875,15 @@ namespace VolvoWrench.DG
                                     if (entryList[index].Name == "weaponanim")
                                         if (DemoScanner.SelectSlot > 0)
                                             DemoScanner.SkipNextAttack = 2;
+
+                                    if (entryList[index].Name == "velocity[0]" || entryList[index].Name == "velocity[1]")
+                                    {
+                                        var velocity = value != null ? (float)value : 0.0f;
+                                        if (velocity > 100.0f)
+                                        {
+                                            DemoScanner.FoundBigVelocityTime = DemoScanner.CurrentTime;
+                                        }
+                                    }
 
                                     if (entryList[index].Name == "fov")
                                     {
