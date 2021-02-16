@@ -45,7 +45,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b11";
+        public const string PROGRAMVERSION = "1.53b12";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -848,14 +848,15 @@ namespace VolvoWrench.DG
 
                     // Если игрок жив, атакует, время атаки больше чем 150мс, атака остановлена на 2 кадра раньше чем нажат -attack
                     if (IsUserAlive() && CurrentTime != 0.0 &&
-                        (CurrentTime - IsAttackLastTime > 0.10) &&
-                        (CurrentTime - IsNoAttackLastTime > 0.10) && (IsAttackLastTime != CurrentTime)
-                        && /*!CurrentFrameDuplicated && */IsAttack &&
+                        (CurrentTime - IsAttackLastTime > 0.15) &&
+                        (CurrentTime - IsNoAttackLastTime > 0.15) && (IsAttackLastTime != CurrentTime)
+                        && IsAttack &&
                         CurrentNetMsgFrameId - StopAttackBtnFrameId > 2 && StopAttackBtnFrameId != 0 && NeedSearchAim3)
                     {
                         DemoScanner.NeedSearchAim3 = false;
-                        DemoScanner_AddWarn("[AIM TYPE 3] at (" + StopAttackBtnFrameId +
-                                                    "):" + DemoScanner.CurrentTimeString, false);
+                        if (!CurrentFrameDuplicated)
+                            DemoScanner_AddWarn("[AIM TYPE 3] at (" + StopAttackBtnFrameId +
+                                                        "):" + DemoScanner.CurrentTimeString, false);
                     }
                     NeedIgnoreAttackFlag = 1;
                     NeedSearchAim2 = false;
@@ -2246,9 +2247,14 @@ namespace VolvoWrench.DG
                                     {
                                         if (IsForceCenterView())
                                         {
-                                            DemoScanner_AddWarn(
-                                                        "[FORCE_CENTERVIEW 1] at (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString, false);
+                                            if (CurrentTime - DemoScanner.LastForceCenterView > 10.0f)
+                                            {
+                                                DemoScanner_AddWarn(
+                                                            "[FORCE_CENTERVIEW 1] at (" + CurrentTime +
+                                                            "):" + DemoScanner.CurrentTimeString, false);
+
+                                                DemoScanner.LastForceCenterView = CurrentTime;
+                                            }
                                             DemoScanner.LastAim5DetectedReal = 0.0f;
                                             DemoScanner.LastAim5Detected = 0.0f;
                                         }
@@ -3098,8 +3104,8 @@ namespace VolvoWrench.DG
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
-                                    
-                                    if (DemoScanner.IsBigVelocity() || IsHookDetected( ))
+
+                                    if (DemoScanner.IsBigVelocity() || IsHookDetected())
                                     {
                                         DemoScanner.DesyncHackWarns = 0;
                                     }
@@ -3950,9 +3956,14 @@ namespace VolvoWrench.DG
                                     {
                                         if (IsForceCenterView())
                                         {
-                                            DemoScanner_AddWarn(
-                                                        "[FORCE_CENTERVIEW 2] at (" + CurrentTime +
-                                                        "):" + DemoScanner.CurrentTimeString, false);
+                                            if (CurrentTime - DemoScanner.LastForceCenterView > 10.0f)
+                                            {
+                                                DemoScanner_AddWarn(
+                                                            "[FORCE_CENTERVIEW 2] at (" + CurrentTime +
+                                                            "):" + DemoScanner.CurrentTimeString, false);
+
+                                                DemoScanner.LastForceCenterView = CurrentTime;
+                                            }
                                             AimType8WarnTime = 0.0f;
                                             AimType8WarnTime2 = 0.0f;
                                             AimType8False = false;
@@ -5171,7 +5182,7 @@ namespace VolvoWrench.DG
 
             if (FoundForceCenterView > 0)
             {
-                DemoScanner.DemoScanner_AddInfo("Used illegal force_centerview commands: " + FoundForceCenterView + ".");
+                DemoScanner.DemoScanner_AddWarn("Used illegal force_centerview commands: " + FoundForceCenterView + (FoundForceCenterView > 50 ? "\n. (Possible demoscanner bypass." : ""), false, true, false);
             }
 
             if (ModifiedDemoFrames > 0)
@@ -5966,8 +5977,9 @@ namespace VolvoWrench.DG
         public static int DesyncDetects = 0;
         public static float FoundBigVelocityTime = 0.0f;
         public static float LastBeamFound = 0.0f;
+        public static float LastForceCenterView = 0.0f;
 
-        public static bool IsHookDetected( )
+        public static bool IsHookDetected()
         {
             return CurrentTime - LastBeamFound < 5.0;
         }
@@ -8395,7 +8407,7 @@ namespace VolvoWrench.DG
                                 DemoScanner.LossPackets2 = DemoScanner.LossPackets;
                             }
                         }
-                        else if (subs[1] == "VSYNC")
+                        /*else if (subs[1] == "VSYNC")
                         {
                             DemoScanner.IsVsync = subs[2] == "1";
                         }
@@ -8595,7 +8607,7 @@ namespace VolvoWrench.DG
 
                             }
                             DemoScanner.UDS_SavedAngles.Clear();
-                        }
+                        }*/
                         else if (subs[1] == "RATE")
                         {
                             int serverrate = int.Parse(subs[2]);
@@ -8642,34 +8654,34 @@ namespace VolvoWrench.DG
                         }
                         else
                         {
-                            var col = Console.ForegroundColor;
+                           /* var col = Console.ForegroundColor;
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("PLUGIN UDS BAD COMMAND!");
                             Console.Write("cmd line: ");
                             Console.ForegroundColor = col;
                             Console.Write(extra);
-                            Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
+                            Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");*/
                         }
                     }
                     else
                     {
-                        var col = Console.ForegroundColor;
+                       /*var col = Console.ForegroundColor;
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("PLUGIN UDS BAD COMMAND!");
                         Console.Write("cmd line: ");
                         Console.ForegroundColor = col;
                         Console.Write(extra);
-                        Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");
+                        Console.WriteLine(" (" + DemoScanner.CurrentTime + " : " + DemoScanner.CurrentTimeString + ")");*/
                     }
                 }
                 catch
                 {
-                    var col = Console.ForegroundColor;
+                   /* var col = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("PLUGIN UDS PARSE FATAL ERROR! POSSIBLE EDITED BY HACK OR BAD PLUGIN VERSION!");
                     Console.Write("Error line: ");
                     Console.ForegroundColor = col;
-                    Console.WriteLine(extra);
+                    Console.WriteLine(extra);*/
                 }
                 //Console.WriteLine(extra + "(" + DemoScanner.CurrentTime + ") : " + DemoScanner.CurrentTimeString);
             }
