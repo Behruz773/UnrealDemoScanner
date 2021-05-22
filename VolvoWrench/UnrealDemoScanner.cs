@@ -9,12 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using System.Xml.Serialization;
 using VolvoWrench.DemoStuff;
 using VolvoWrench.DemoStuff.GoldSource;
@@ -45,7 +43,7 @@ namespace VolvoWrench.DG
     public static class DemoScanner
     {
         public const string PROGRAMNAME = "Unreal Demo Scanner";
-        public const string PROGRAMVERSION = "1.53b14";
+        public const string PROGRAMVERSION = "1.53b15";
 
         public static bool DEBUG_ENABLED = false;
 
@@ -207,6 +205,10 @@ namespace VolvoWrench.DG
 
         public static float LastJumpTime = 0.0f;
         public static float LastUnJumpTime = 0.0f;
+
+
+        public static float IdealJmpTmpTime1 = 0.0f;
+        public static float IdealJmpTmpTime2 = 0.0f;
 
 
         public static WeaponIdType CurrentWeapon = WeaponIdType.WEAPON_NONE;
@@ -894,6 +896,11 @@ namespace VolvoWrench.DG
 
             if (s.ToLower().IndexOf("+duck") > -1)
             {
+                if (!IsDuck)
+                {
+                    if (CurrentIdealJumpsStrike > 6)
+                        CurrentIdealJumpsStrike--;
+                }
                 FrameCrash = 0;
                 IsDuck = true;
                 DemoScanner.DuckStrikes++;
@@ -968,6 +975,20 @@ namespace VolvoWrench.DG
             {
                 DemoScanner.InStrafe = false;
                 DemoScanner.LastStrafeDisabled = CurrentTime;
+            }
+
+
+
+
+            if (s.ToLower().IndexOf("+mlook") > -1)
+            {
+                DemoScanner.InLook = true;
+                DemoScanner.LastLookEnabled = CurrentTime;
+            }
+            else if (s.ToLower().IndexOf("-mlook") > -1)
+            {
+                DemoScanner.InLook = false;
+                DemoScanner.LastLookDisabled = CurrentTime;
             }
 
 
@@ -3798,13 +3819,17 @@ namespace VolvoWrench.DG
                                 // * */
 
                                 // 01 
-                                if (RealAlive && !CurrentFrameDuplicated)
+                                if (RealAlive)
                                 {
-                                    if (SearchNextJumpStrike)
+                                    if (SearchNextJumpStrike && !CurrentFrameDuplicated)
                                     {
                                         SearchNextJumpStrike = false;
-                                        if (PreviousFrameOnGround && !CurrentFrameOnGround && (IsJump || CurrentTime - LastUnJumpTime < 0.2 || CurrentTime - LastJumpTime < 0.2))
+                                        if (IdealJmpTmpTime1 != LastUnJumpTime &&
+                                            IdealJmpTmpTime2 != LastJumpTime &&
+                                            PreviousFrameOnGround && !CurrentFrameOnGround && (CurrentTime - LastUnJumpTime < 0.25 || CurrentTime - LastJumpTime < 0.25))
                                         {
+                                            IdealJmpTmpTime1 = LastUnJumpTime;
+                                            IdealJmpTmpTime2 = LastJumpTime;
                                             CurrentIdealJumpsStrike++;
                                             if (CurrentIdealJumpsStrike > MaxIdealJumps)
                                             {
@@ -3821,68 +3846,11 @@ namespace VolvoWrench.DG
                                     }
                                     else
                                     {
-                                        if (!PreviousFrameOnGround && CurrentFrameOnGround && FramesOnFly > 10)
+                                        if (!PreviousFrameOnGround && CurrentFrameOnGround && FramesOnFly > 15)
                                         {
                                             SearchNextJumpStrike = true;
                                         }
                                     }
-                                    //    if (CurrentIdealJumpsStrike > 10)
-                                    //    {
-                                    //        CurrentIdealJumpsStrike = 0;
-                                    //        Console.WriteLine("Found ideal jump:" + CurrentTime + ":" + CurrentTimeString);
-                                    //    }
-                                    //    if (!PreviousFrameOnGround && CurrentFrameOnGround)
-                                    //    {
-                                    //        var dublicheck = nf;
-                                    //        bool foundneededframe = false;
-                                    //        for (int n = frameindex + 1;
-                                    //            n < CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames.Count;
-                                    //            n++)
-                                    //        {
-                                    //            if (foundneededframe)
-                                    //            {
-                                    //                break;
-                                    //            }
-                                    //            var tmpframe = CurrentDemoFile.GsDemoInfo.DirectoryEntries[index].Frames[n];
-                                    //            switch (tmpframe.Key.Type)
-                                    //            {
-                                    //                case GoldSource.DemoFrameType.DemoStart:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.ConsoleCommand:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.ClientData:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.NextSection:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.Event:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.WeaponAnim:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.Sound:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.DemoBuffer:
-                                    //                    break;
-                                    //                case GoldSource.DemoFrameType.NetMsg:
-                                    //                default:
-                                    //                    var tmpnetmsgframe1 = (GoldSource.NetMsgFrame)tmpframe.Value;
-                                    //                    if (tmpnetmsgframe1 != nf)
-                                    //                    {
-                                    //                        dublicheck = tmpnetmsgframe1;
-                                    //                        foundneededframe = true;
-                                    //                        if (tmpnetmsgframe1.RParms.Onground == 0)
-                                    //                        {
-                                    //                            CurrentIdealJumpsStrike++;
-                                    //                        }
-                                    //                        else
-                                    //                        {
-                                    //                            CurrentIdealJumpsStrike = 0;
-                                    //                        }
-                                    //                    }
-                                    //                    break;
-                                    //            }
-                                    //        }
-                                    //    }
-                                    //}
                                 }
                                 else
                                 {
@@ -6156,6 +6124,9 @@ namespace VolvoWrench.DG
         public static double[] ViewAngle5History = new double[5];
         public static double[] ViewAngle6History = new double[5];
         public static string[] ViewAnglesString = new string[5];
+        static bool InLook = false;
+        static float LastLookDisabled;
+        static float LastLookEnabled;
 
         public static bool IsHookDetected()
         {
@@ -6169,7 +6140,7 @@ namespace VolvoWrench.DG
 
         public static bool IsViewChanged()
         {
-            return CurrentTime - LastViewChange < 5.0f;
+            return CurrentTime - LastViewChange < 4.5f;
         }
         public static bool IsGameStartSecond()
         {
@@ -6183,7 +6154,7 @@ namespace VolvoWrench.DG
 
         public static bool IsPlayerFrozen()
         {
-            return PlayerFrozen || CurrentTime - PlayerUnFrozenTime < 5.0f;
+            return PlayerFrozen || CurrentTime - PlayerUnFrozenTime < 4.5f;
         }
         public static bool IsAngleEditByEngine()
         {
@@ -6191,14 +6162,14 @@ namespace VolvoWrench.DG
                 return false;
             return
                IsPlayerTeleport() ||
-                CurrentTime - LastAngleManipulation < 1.0f ||
-                CurrentTime - LastDuckUnduckTime < 1.5f ||
-                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon;
+                CurrentTime - LastAngleManipulation < 0.80f ||
+                CurrentTime - LastDuckUnduckTime < 1.25f ||
+                IsTakeDamage() || IsPlayerFrozen() || IsViewChanged() || HideWeapon || CurrentTime - LastLookDisabled < 1.0;
         }
 
         public static bool IsPlayerTeleport()
         {
-            return CurrentTime - LastTeleportusTime < 2.5f;
+            return CurrentTime - LastTeleportusTime < 2.25f;
         }
 
 
