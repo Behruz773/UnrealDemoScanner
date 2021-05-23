@@ -411,7 +411,7 @@ namespace VolvoWrench.DG
 
         public static bool SearchJumpBug = false;
 
-        public const int MaxIdealJumps = 7;
+        public static int MaxIdealJumps = 7;
         public static int CurrentIdealJumpsStrike = 0;
         public static bool SearchNextJumpStrike = false;
 
@@ -1147,6 +1147,7 @@ namespace VolvoWrench.DG
 
                 if (RealAlive)
                 {
+                    FlyJumps++;
                     NeedDetectBHOPHack = true;
                 }
                 else
@@ -3818,42 +3819,52 @@ namespace VolvoWrench.DG
                                  * 3. Игрок не на земле
                                 // * */
 
+
+
                                 // 01 
                                 if (RealAlive)
                                 {
-                                    if (SearchNextJumpStrike && !CurrentFrameDuplicated)
+                                    if (SearchNextJumpStrike )
                                     {
                                         SearchNextJumpStrike = false;
-                                        if (IdealJmpTmpTime1 != LastUnJumpTime &&
-                                            IdealJmpTmpTime2 != LastJumpTime &&
-                                            PreviousFrameOnGround && !CurrentFrameOnGround && (CurrentTime - LastUnJumpTime < 0.25 || CurrentTime - LastJumpTime < 0.25))
+                                        if (!CurrentFrameDuplicated)
                                         {
-                                            IdealJmpTmpTime1 = LastUnJumpTime;
-                                            IdealJmpTmpTime2 = LastJumpTime;
-                                            CurrentIdealJumpsStrike++;
-                                            if (CurrentIdealJumpsStrike > MaxIdealJumps)
+                                            if (IdealJmpTmpTime1 != LastUnJumpTime &&
+                                                IdealJmpTmpTime2 != LastJumpTime &&
+                                                PreviousFrameOnGround && !CurrentFrameOnGround && (CurrentTime - LastUnJumpTime < 0.25 || CurrentTime - LastJumpTime < 0.25))
+                                            {
+                                                IdealJmpTmpTime1 = LastUnJumpTime;
+                                                IdealJmpTmpTime2 = LastJumpTime;
+                                                CurrentIdealJumpsStrike++;
+                                                if (CurrentIdealJumpsStrike > MaxIdealJumps)
+                                                {
+                                                    CurrentIdealJumpsStrike = 0;
+                                                    DemoScanner_AddWarn("[IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
+                                                }
+                                                if (DemoScanner.DEBUG_ENABLED)
+                                                    Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
+                                            }
+                                            else
                                             {
                                                 CurrentIdealJumpsStrike = 0;
-                                                DemoScanner_AddWarn("[IDEALJUMP] at (" + CurrentTime + ") : " + CurrentTimeString);
                                             }
-                                            if (DemoScanner.DEBUG_ENABLED)
-                                                Console.WriteLine("IDEALJUMP WARN [" + (CurrentFrameId - LastCmdFrameId) + "] (" + CurrentTime + ") : " + CurrentTimeString);
-                                        }
-                                        else
-                                        {
-                                            CurrentIdealJumpsStrike = 0;
                                         }
                                     }
                                     else
                                     {
-                                        if (!PreviousFrameOnGround && CurrentFrameOnGround && FramesOnFly > 15)
+                                        if (!PreviousFrameOnGround && CurrentFrameOnGround)
                                         {
-                                            SearchNextJumpStrike = true;
+                                            if (FramesOnFly > 10 && !SearchNextJumpStrike)
+                                            {
+                                                SearchNextJumpStrike = true;
+                                            }
+                                            FlyJumps = 0;
                                         }
                                     }
                                 }
                                 else
                                 {
+                                    FlyJumps = 0;
                                     SearchNextJumpStrike = false;
                                     CurrentIdealJumpsStrike = 0;
                                 }
@@ -3953,6 +3964,19 @@ namespace VolvoWrench.DG
                                             LastFpsCheckTime2 = CurrentTime2;
                                             SecondFound2 = true;
                                             CurrentGameSecond2++;
+                                            MaxIdealJumps = 6;
+                                            if (averagefps2.Count > 1)
+                                            {
+                                                double tmpafps = averagefps2.Average();
+                                                if (tmpafps < 40)
+                                                    MaxIdealJumps = 10;
+                                                else if (tmpafps < 50)
+                                                    MaxIdealJumps = 9;
+                                                else if (tmpafps < 60)
+                                                    MaxIdealJumps = 8;
+                                                else if (tmpafps < 70)
+                                                    MaxIdealJumps = 7;
+                                            }
                                             CurrentFps2 = 0;
                                         }
                                         else
@@ -3981,7 +4005,7 @@ namespace VolvoWrench.DG
                                     ViewAngle3History[4] = nf.RParms.Viewangles.Y;
                                     ViewAngle6History[4] = (double)nf.View.Y;
 
-                                    for (int i = 0; i < 4;i++)
+                                    for (int i = 0; i < 4; i++)
                                     {
                                         ViewAngle1History[i] = ViewAngle1History[i + 1];
                                         ViewAngle2History[i] = ViewAngle2History[i + 1];
@@ -3989,7 +4013,7 @@ namespace VolvoWrench.DG
                                         ViewAngle6History[i] = ViewAngle6History[i + 1];
                                         ViewAnglesString[i] = ViewAnglesString[i + 1];
                                     }
-                                    
+
 
                                     if (NewAttack)
                                     {
@@ -6124,9 +6148,10 @@ namespace VolvoWrench.DG
         public static double[] ViewAngle5History = new double[5];
         public static double[] ViewAngle6History = new double[5];
         public static string[] ViewAnglesString = new string[5];
-        static bool InLook = false;
-        static float LastLookDisabled;
-        static float LastLookEnabled;
+        public static bool InLook = false;
+        public static float LastLookDisabled;
+        public static float LastLookEnabled;
+        public static int FlyJumps = 0;
 
         public static bool IsHookDetected()
         {
@@ -8836,7 +8861,7 @@ namespace VolvoWrench.DG
                         bool foundone = false;
                         bool foundtwo = false;
                         Console.WriteLine();
-                        for(int i = 0; i < 5; i++)
+                        for (int i = 0; i < 5; i++)
                         {
                             Console.WriteLine("TIME:" + DemoScanner.ViewAnglesString[i] + " .A0: " + DemoScanner.ViewAngle1History[i] + ". A1:" + DemoScanner.ViewAngle2History[i]
                                  + ". A2:" + DemoScanner.ViewAngle3History[i] + ". A3:" + DemoScanner.ViewAngle4History[i] + ". A4:" + DemoScanner.ViewAngle5History[i]
